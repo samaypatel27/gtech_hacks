@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Button from '../Button/Button.jsx'
 import DrugVial from './DrugVial.jsx'
+import { useAuthSession } from '../../lib/useAuthSession.js'
 import '../../tailwind.css'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -228,7 +229,9 @@ function DrugProfileDashboard({ applicationId }) {
   const [drug, setDrug] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [lights, setLights] = useState(null)
   const reducedMotion = useMemo(() => usesReducedMotion(), [])
+  const { email } = useAuthSession()
 
   useEffect(() => {
     let cancelled = false
@@ -257,6 +260,34 @@ function DrugProfileDashboard({ applicationId }) {
       cancelled = true
     }
   }, [applicationId])
+
+  // The personalized "can my practice use this?" answer -- same fetch
+  // pattern as the drug profile above, just a different (new) backend
+  // endpoint. Waits for the signed-in email since the lights are computed
+  // per-practice; every doctor reaching this page is signed in already
+  // (DoctorChoicePage gates on it), so `email` just means "session loaded".
+  useEffect(() => {
+    if (!email) return
+    let cancelled = false
+
+    fetch(`${API_URL}/api/practice-drugs/considering`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, application_id: applicationId }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setLights(data.lights)
+      })
+      .catch(() => {
+        // No practice record yet, or the request failed -- the section
+        // just doesn't render rather than showing a broken state.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [applicationId, email])
 
   if (isLoading) {
     return (
@@ -296,47 +327,58 @@ function DrugProfileDashboard({ applicationId }) {
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pr-2 sm:pr-4 [mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]">
           <div className="flex flex-col space-y-10 pb-10">
             <DocumentSection
+              title="Coverage"
+              headline={lights?.coverage?.text}
+              fields={[]}
+              delayMs={0}
+              entranceOn={entranceOn}
+            />
+            <DocumentSection
               title="Billing Path"
               headline={
-                isPermanent
+                lights?.billing_path?.text ||
+                (isPermanent
                   ? `Permanent code ${drug.permanent_hcpcs_code || '—'}`
-                  : `Generic code ${drug.generic_billing_code || '—'}`
+                  : `Generic code ${drug.generic_billing_code || '—'}`)
               }
               fields={[
                 { label: 'Has Permanent Code', value: drug.has_permanent_code },
                 { label: 'Generic Billing Code', value: drug.generic_billing_code, mono: true },
                 { label: 'Permanent HCPCS Code', value: drug.permanent_hcpcs_code, mono: true },
               ]}
-              delayMs={0}
+              delayMs={60}
               entranceOn={entranceOn}
             />
             <DocumentSection
               title="Payment Timing"
               headline={
-                isEmptyValue(drug.cost_per_dose)
+                lights?.payment_timing?.text ||
+                (isEmptyValue(drug.cost_per_dose)
                   ? 'Cost per dose not yet available'
-                  : `$${drug.cost_per_dose} per dose`
+                  : `$${drug.cost_per_dose} per dose`)
               }
               fields={[{ label: 'Cost Per Dose', value: drug.cost_per_dose }]}
-              delayMs={60}
+              delayMs={120}
               entranceOn={entranceOn}
             />
             <DocumentSection
               title="Workflow Feasibility"
               headline={
+                lights?.workflow?.text ||
                 [
                   drug.route_of_administration,
                   drug.infusion_time_minutes ? `${drug.infusion_time_minutes} min infusion` : null,
                 ]
                   .filter((part) => !isEmptyValue(part))
-                  .join(', ') || 'Workflow details not yet available'
+                  .join(', ') ||
+                'Workflow details not yet available'
               }
               fields={[
                 { label: 'Storage Requirements', value: drug.storage_requirements },
                 { label: 'Route of Administration', value: drug.route_of_administration },
                 { label: 'Infusion Time (minutes)', value: drug.infusion_time_minutes },
               ]}
-              delayMs={120}
+              delayMs={180}
               entranceOn={entranceOn}
             />
             <DocumentSection
@@ -346,7 +388,7 @@ function DrugProfileDashboard({ applicationId }) {
                 { label: 'Preparation Instructions', value: drug.preparation_instructions },
                 { label: 'Is Single Dose Vial', value: drug.is_single_dose_vial },
               ]}
-              delayMs={180}
+              delayMs={240}
               entranceOn={entranceOn}
             />
             <DocumentSection
@@ -356,11 +398,11 @@ function DrugProfileDashboard({ applicationId }) {
                 { label: 'NDCs', value: drug.ndcs },
                 { label: 'Citations', value: drug.citations },
               ]}
-              delayMs={240}
+              delayMs={300}
               entranceOn={entranceOn}
             />
 
-            <ActionsSection delayMs={300} entranceOn={entranceOn} />
+            <ActionsSection delayMs={360} entranceOn={entranceOn} />
           </div>
         </div>
       </div>
