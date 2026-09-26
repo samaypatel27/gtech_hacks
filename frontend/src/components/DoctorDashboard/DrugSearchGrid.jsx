@@ -34,21 +34,6 @@ function SkeletonCard() {
   )
 }
 
-function Legend() {
-  return (
-    <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-white/40">
-      <span className="inline-flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full bg-amber-400" />
-        Generic code (awaiting permanent code)
-      </span>
-      <span className="inline-flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full bg-emerald-400" />
-        Permanent code
-      </span>
-    </div>
-  )
-}
-
 // Debounced live search against GET /api/drugs/search, rendered as a
 // results grid. Each card links directly to its drug detail route.
 function DrugSearchGrid() {
@@ -169,14 +154,11 @@ function DrugSearchGrid() {
         )}
 
         {!isSearching && results.length > 0 && (
-          <>
-            <Legend />
-            <div className="drug-grid grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
-              {results.map((drug) => (
-                <DrugCard key={drug.application_id} drug={drug} />
-              ))}
-            </div>
-          </>
+          <div className="drug-grid grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
+            {results.map((drug) => (
+              <DrugCard key={drug.application_id} drug={drug} />
+            ))}
+          </div>
         )}
       </div>
     </div>
