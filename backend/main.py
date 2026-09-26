@@ -1,5 +1,6 @@
 import os
 from typing import Optional
+from datetime import date
 
 import httpx
 from dotenv import load_dotenv
@@ -70,6 +71,7 @@ async def get_fda_label(application_number: str):
 
     return {
         "brand_name": (openfda.get("brand_name") or [""])[0],
+        "route": (openfda.get("route") or [""])[0],
         "indications_and_usage": section("indications_and_usage"),
         "dosage_and_administration": section("dosage_and_administration"),
         "storage_requirements": section("storage_and_handling"),
@@ -111,14 +113,20 @@ async def get_cms_hcpcs_status(brand_name: str):
     has_permanent_code = False
 
     return {
+        "status": "no_code_found",
         "has_permanent_code": has_permanent_code,
         "permanent_hcpcs_code": None,
+        "message": (
+            f"No permanent HCPCS code was found for '{brand_name}'. "
+            "A generic (miscellaneous) code is required until one is assigned."
+        ),
     }
 
 
 @app.get("/api/cms/application-status/{brand_name}")
 async def get_cms_application_status(brand_name: str):
     return {
+        "application_status": "pending",
         "expected_permanent_code_date": "2025-10-01",
         "citation": "CMS_2024_HCPCS_Application_Summary.pdf",
     }
@@ -173,3 +181,21 @@ def search_drugs(q: str = "", limit: int = 20):
         raise HTTPException(status_code=500, detail=f"Supabase query failed: {e}")
 
     return response.data
+class DrugRecord(BaseModel):
+    application_id: str
+    brand_name: str | None = None
+    route_of_administration: str | None = None
+    storage_requirements: str | None = None
+    ndcs: list[dict] | None = None
+    has_permanent_code: bool | None = None
+    permanent_hcpcs_code: str | None = None
+    expected_permanent_code_date: date | None = None
+
+
+@app.post("/api/drugs")
+def upsert_drug(drug: DrugRecord):
+    # exclude_unset: fields the client omitted (e.g. an upstream API call failed)
+    # are left untouched on an existing row instead of being overwritten with null.
+    row = drug.model_dump(mode="json", exclude_unset=True)
+    response = supabase.table("drugs").upsert(row, on_conflict="application_id").execute()
+    return response.data[0]

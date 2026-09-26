@@ -51,7 +51,11 @@ A Supabase MCP server is configured in `.mcp.json` (docs/account/database/debugg
 
 ### Backend
 
-Single-file FastAPI app (`backend/main.py`). CORS is currently the only configured middleware, restricted to `FRONTEND_URL`. Supabase credentials are wired into `.env` but no Supabase client or database access code has been added yet (`requirements.txt` only has `fastapi`, `uvicorn`, `python-dotenv`) — this is the intended next integration point, not yet built.
+Single-file FastAPI app (`backend/main.py`). CORS is the only configured middleware, restricted to `FRONTEND_URL`.
+
+- `GET /api/fda/label/{application_number}` and `GET /api/fda/ndc/{application_number}` proxy openFDA live. `GET /api/cms/hcpcs-status/{brand_name}` and `GET /api/cms/application-status/{brand_name}` are hardcoded stubs pending the CMS file/PDF integration.
+- `POST /api/drugs` upserts into the Supabase `drugs` table (PK `application_id`) via the `supabase` Python client using the **service role key** — `drugs` has RLS enabled with no policies, so all DB writes go through the backend, never the frontend. It dumps with `exclude_unset=True`, so omitted fields leave existing column values untouched while explicit `null`s overwrite.
+- Only columns whose values come directly from an API response are populated; AI-extracted columns (`dosing_formula`, `infusion_time_minutes`, etc.) and `generic_billing_code` are intentionally left null for now.
 
 ### Frontend
 
@@ -62,4 +66,7 @@ Single-file FastAPI app (`backend/main.py`). CORS is currently the only configur
 - Styling is CSS Modules by default (`*.module.css`, imported as `styles` and referenced via `styles.foo`), not a CSS framework or global stylesheet beyond `index.css`. **Exception:** `src/components/DoctorDashboard/` uses Tailwind CSS instead — `src/tailwind.css` imports only `theme.css` + `utilities.css` (no Preflight), scoped intentionally so it doesn't reset native form/button styling on the rest of the app's plain-CSS pages. Any component using Tailwind classes there imports that file directly. Because Preflight is skipped, native form controls (`<input>`, `<button>`) need explicit `appearance-none border-0 bg-transparent` etc. themselves — nothing resets them for free.
 - `DoctorDashboard`'s `DrugSearchGrid.jsx` debounces (300ms) against the live `GET /api/drugs/search?q=` backend endpoint (Enter also searches immediately); `DrugCard.jsx` renders each result as a `react-router-dom` `Link` to `/drugs/:applicationId`, with border/accent color (amber = unclassified generic billing code, green = permanent HCPCS code) derived from `has_permanent_code`/`generic_billing_code`/`permanent_hcpcs_code` on the row. Sibling-dimming on hover is a plain CSS rule (`.drug-grid:hover .drug-card:not(:hover)`) in `tailwind.css`, not React state. `ConsideringDashboard.tsx` (search-then-bento-grid mock) is currently unused/orphaned pending that detail-page work — not deleted since it may be reused.
 - `DrugSearch` (a different, older component under `src/components/DrugSearch/`) still runs against local mock data (`mockTherapies.js`); it has not been wired to the backend.
+- Styling is CSS Modules throughout (`*.module.css`, imported as `styles` and referenced via `styles.foo`), not a CSS framework or global stylesheet beyond `index.css`.
+- Backend calls live in `src/api/` (e.g. `drugMaker.js`), using `VITE_API_URL`. `DrugMakerPage` calls the four FDA/CMS endpoints in parallel from the two `DrugMaker` inputs (application ID → FDA, drug name → CMS), maps each response to `drugs` columns (empty values → `null`), then `POST`s to `/api/drugs`. It skips the save if both FDA calls fail, and omits columns from any call that failed.
+- `DrugSearch` currently runs against local mock data (`mockTherapies.js`); it has not yet been wired to the FastAPI/Supabase backend.
 - Linting is `oxlint`, not ESLint — config in `.oxlintrc.json` enables the `react` and `oxc` plugins with `react/rules-of-hooks` as an error.
