@@ -8,6 +8,7 @@ import DoctorPage from './pages/DoctorPage.jsx'
 import SignUpPage from './pages/SignUpPage.jsx'
 import AuthCallbackPage from './pages/AuthCallbackPage.jsx'
 import DrugDetailPage from './pages/DrugDetailPage.jsx'
+import TeamWorkspacePage from './pages/TeamWorkspacePage.jsx'
 
 function App() {
   return (
@@ -22,9 +23,11 @@ function App() {
         <Route path="/sign-up" element={<SignUpPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/drugs/:applicationId" element={<DrugDetailPage />} />
+        <Route path="/doctor/workspace/:practiceDrugId" element={<TeamWorkspacePage />} />
       </Routes>
     </>
   )
 }
 
 export default App
+

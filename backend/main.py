@@ -758,3 +758,299 @@ def get_or_create_considering(payload: ConsideringRequest):
         .execute()
     )
     return response.data[0]
+
+
+def _build_purchasing_instruction(drug: dict) -> str:
+    brand = drug.get("brand_name") or "this drug"
+    distributors = drug.get("distributors")
+    if distributors and isinstance(distributors, list) and len(distributors) > 0:
+        dist_text = ", ".join(
+            d.get("name", str(d)) if isinstance(d, dict) else str(d)
+            for d in distributors
+        )
+    else:
+        dist_text = "not yet available"
+    ndcs = drug.get("ndcs")
+    if ndcs and isinstance(ndcs, list) and len(ndcs) > 0:
+        ndc_samples = [
+            n.get("ndc_10", "") if isinstance(n, dict) else str(n)
+            for n in ndcs[:3]
+        ]
+        ndc_text = ", ".join(ndc_samples)
+    else:
+        ndc_text = "not yet available"
+    return (
+        f"Order {brand} from your distributor. "
+        f"Distributors: {dist_text}. "
+        f"NDC(s): {ndc_text}. "
+        "Confirm availability and pricing before placing the order."
+    )
+
+
+def _build_receiving_instruction(drug: dict) -> str:
+    brand = drug.get("brand_name") or "this drug"
+    storage = drug.get("storage_requirements") or "not yet available"
+    return (
+        f"When {brand} arrives, inspect the shipment and verify the NDC and lot number "
+        f"match the purchase order. "
+        f"Storage requirements: {storage}. "
+        "Record the vials received in stock and file the invoice."
+    )
+
+
+def _build_nurse_instruction(drug: dict) -> str:
+    brand = drug.get("brand_name") or "this drug"
+    formula = drug.get("dosing_formula") or "not yet available"
+    route = drug.get("route_of_administration") or "not yet available"
+    infusion_min = drug.get("infusion_time_minutes")
+    infusion_text = f"{infusion_min} minutes" if infusion_min is not None else "not yet available"
+    prep = drug.get("preparation_instructions") or "not yet available"
+    return (
+        f"Prepare to administer {brand}. "
+        f"Dosing formula: {formula}. "
+        f"Route: {route}. "
+        f"Infusion time: {infusion_text}. "
+        f"Preparation instructions: {prep}. "
+        "Record the date of service, dose given, vials used (NDC, lot), "
+        "and start/stop times for each administration."
+    )
+
+
+def _build_billing_instruction(drug: dict) -> str:
+    brand = drug.get("brand_name") or "this drug"
+    if drug.get("has_permanent_code"):
+        code = drug.get("permanent_hcpcs_code") or "not yet available"
+        code_note = f"permanent HCPCS code {code}"
+    else:
+        code = drug.get("generic_billing_code") or "not yet available"
+        code_note = f"generic (miscellaneous) billing code {code} until a permanent code is assigned"
+    return (
+        f"{brand} bills under {code_note}. "
+        "Units: 1 for a generic code; for a permanent code, units equal dose divided by the "
+        "billing unit rounded up. "
+        "Include the 11-digit NDC on every claim line. "
+        "Apply modifier JW for discarded waste from a single-dose vial, or JZ if there is no waste. "
+        "An invoice from the distributor is required as a claim attachment. "
+        "Check the payer's prior-authorization requirements before the first treatment."
+    )
+
+
+@app.post("/api/practice-drugs/{practice_drug_id}/team-ready")
+def team_ready(practice_drug_id: int):
+    # Fetch the practice_drugs row to confirm it exists and to get application_id.
+    pd_resp = (
+        supabase.table("practice_drugs")
+        .select("*")
+        .eq("id", practice_drug_id)
+        .limit(1)
+        .execute()
+    )
+    if not pd_resp.data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No practice_drugs row found for id {practice_drug_id}",
+        )
+    practice_drug = pd_resp.data[0]
+
+    # Fetch the drug row so we can write instruction text from real field values.
+    drug_resp = (
+        supabase.table("drugs")
+        .select("*")
+        .eq("application_id", practice_drug["application_id"])
+        .limit(1)
+        .execute()
+    )
+    drug = drug_resp.data[0] if drug_resp.data else {}
+
+    # Advance the practice's status with this drug to 'adopting'.
+    supabase.table("practice_drugs").update(
+        {"status": "adopting", "updated_at": datetime.now(timezone.utc).isoformat()}
+    ).eq("id", practice_drug_id).execute()
+
+    # Insert the four prepare-stage task cards.  `status` defaults to 'todo'
+    # in the DB, but we set it explicitly so the insert is self-documenting.
+    tasks = [
+        {
+            "practice_drug_id": practice_drug_id,
+            "stage": "prepare",
+            "role": "front_desk",
+            "kind": "purchasing",
+            "title": "Purchasing",
+            "instruction": _build_purchasing_instruction(drug),
+            "status": "todo",
+        },
+        {
+            "practice_drug_id": practice_drug_id,
+            "stage": "prepare",
+            "role": "front_desk",
+            "kind": "receiving",
+            "title": "Receiving",
+            "instruction": _build_receiving_instruction(drug),
+            "status": "todo",
+        },
+        {
+            "practice_drug_id": practice_drug_id,
+            "stage": "prepare",
+            "role": "nurse",
+            "kind": "nurse_setup",
+            "title": "Nurse setup",
+            "instruction": _build_nurse_instruction(drug),
+            "status": "todo",
+        },
+        {
+            "practice_drug_id": practice_drug_id,
+            "stage": "prepare",
+            "role": "biller",
+            "kind": "billing_setup",
+            "title": "Billing setup",
+            "instruction": _build_billing_instruction(drug),
+            "status": "todo",
+        },
+    ]
+    task_resp = supabase.table("tasks").insert(tasks).execute()
+
+    return {
+        "practice_drug_id": practice_drug_id,
+        "status": "adopting",
+        "tasks": task_resp.data,
+    }
+
+
+@app.get("/api/practice-drugs/{practice_drug_id}/tasks")
+def get_practice_drug_tasks(practice_drug_id: int):
+    """Return the tasks for this practice_drugs row plus the drug's brand name,
+    so the workspace page can display both without a separate drug-profile fetch."""
+    pd_resp = (
+        supabase.table("practice_drugs")
+        .select("*")
+        .eq("id", practice_drug_id)
+        .limit(1)
+        .execute()
+    )
+    if not pd_resp.data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No practice_drugs row found for id {practice_drug_id}",
+        )
+    practice_drug = pd_resp.data[0]
+
+    drug_resp = (
+        supabase.table("drugs")
+        .select("brand_name")
+        .eq("application_id", practice_drug["application_id"])
+        .limit(1)
+        .execute()
+    )
+    drug_name = drug_resp.data[0]["brand_name"] if drug_resp.data else ""
+
+    tasks_resp = (
+        supabase.table("tasks")
+        .select("*")
+        .eq("practice_drug_id", practice_drug_id)
+        .order("id")
+        .execute()
+    )
+    return {"drug_name": drug_name, "tasks": tasks_resp.data}
+
+
+class TaskStatusUpdate(BaseModel):
+    status: str  # 'todo' | 'done'
+
+
+@app.patch("/api/tasks/{task_id}/status")
+def update_task_status(task_id: int, payload: TaskStatusUpdate):
+    """Toggle a task between 'todo' and 'done'.  Sets completed_at when done."""
+    if payload.status not in ("todo", "done"):
+        raise HTTPException(
+            status_code=422,
+            detail="status must be 'todo' or 'done'",
+        )
+    update = {"status": payload.status}
+    if payload.status == "done":
+        update["completed_at"] = datetime.now(timezone.utc).isoformat()
+    else:
+        update["completed_at"] = None  # clear when un-checking
+
+    resp = supabase.table("tasks").update(update).eq("id", task_id).execute()
+    if not resp.data:
+        raise HTTPException(status_code=404, detail=f"No task found for id {task_id}")
+    return resp.data[0]
+
+
+@app.get("/api/practices/{email}/workspaces")
+def get_practice_workspaces(email: str):
+    """List every practice_drugs row for this practice that has at least one task,
+    with the drug's brand_name and a simple done/total task count.
+    Used by the 'View Tasks' toggle on /doctor/drugs."""
+    # Resolve the practice.
+    practice_resp = (
+        supabase.table("practices")
+        .select("id")
+        .eq("email", email)
+        .limit(1)
+        .execute()
+    )
+    if not practice_resp.data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No practice found for email {email}",
+        )
+    practice_id = practice_resp.data[0]["id"]
+
+    # All practice_drugs rows for this practice.
+    pd_resp = (
+        supabase.table("practice_drugs")
+        .select("id,application_id,status")
+        .eq("practice_id", practice_id)
+        .execute()
+    )
+    if not pd_resp.data:
+        return []
+
+    # Fetch all tasks for these practice_drug ids in one query.
+    pd_ids = [row["id"] for row in pd_resp.data]
+    tasks_resp = (
+        supabase.table("tasks")
+        .select("practice_drug_id,status")
+        .in_("practice_drug_id", pd_ids)
+        .execute()
+    )
+
+    # Group task counts by practice_drug_id; skip rows with zero tasks.
+    counts: dict[int, dict] = {}
+    for t in (tasks_resp.data or []):
+        pid = t["practice_drug_id"]
+        if pid not in counts:
+            counts[pid] = {"total": 0, "done": 0}
+        counts[pid]["total"] += 1
+        if t["status"] == "done":
+            counts[pid]["done"] += 1
+
+    # Collect application_ids that need brand names.
+    app_ids = [row["application_id"] for row in pd_resp.data if row["id"] in counts]
+    if not app_ids:
+        return []
+
+    drugs_resp = (
+        supabase.table("drugs")
+        .select("application_id,brand_name")
+        .in_("application_id", app_ids)
+        .execute()
+    )
+    brand_by_app = {d["application_id"]: d["brand_name"] for d in (drugs_resp.data or [])}
+
+    result = []
+    for row in pd_resp.data:
+        if row["id"] not in counts:
+            continue
+        result.append(
+            {
+                "practice_drug_id": row["id"],
+                "application_id": row["application_id"],
+                "status": row["status"],
+                "brand_name": brand_by_app.get(row["application_id"], ""),
+                "tasks_done": counts[row["id"]]["done"],
+                "tasks_total": counts[row["id"]]["total"],
+            }
+        )
+    return result

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Button from '../Button/Button.jsx'
 import DrugVial from './DrugVial.jsx'
 import { useAuthSession } from '../../lib/useAuthSession.js'
 import '../../tailwind.css'
+
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -189,7 +190,39 @@ function DocumentSection({ title, headline, fields, delayMs, entranceOn }) {
 // Same two actions as the orphaned ConsideringDashboard.tsx mock -- the
 // only ones of the four spec'd actions that already exist anywhere in the
 // app. Uses the shared Button component, like every other button in the app.
-function ActionsSection({ delayMs, entranceOn }) {
+function ActionsSection({ drug, email, delayMs, entranceOn }) {
+  const navigate = useNavigate()
+  const [busy, setBusy] = useState(false)
+
+  async function handleGetTeamReady() {
+    if (busy || !email || !drug) return
+    setBusy(true)
+    try {
+      // Step 1: get or create the practice_drugs row and read its id.
+      const consideringRes = await fetch(`${API_URL}/api/practice-drugs/considering`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, application_id: drug.application_id }),
+      })
+      if (!consideringRes.ok) throw new Error('Could not find practice record')
+      const pd = await consideringRes.json()
+
+      // Step 2: create the four tasks and advance status to adopting.
+      const teamRes = await fetch(
+        `${API_URL}/api/practice-drugs/${pd.id}/team-ready`,
+        { method: 'POST' },
+      )
+      if (!teamRes.ok) throw new Error('team-ready call failed')
+
+      navigate(`/doctor/workspace/${pd.id}`)
+    } catch {
+      // Leave busy=true so the button stays disabled; re-enable on next render
+      // by resetting. A simple alert keeps this minimal -- no extra UI yet.
+      alert('Something went wrong. Please try again.')
+      setBusy(false)
+    }
+  }
+
   return (
     <section
       className={entranceOn ? 'animate-[fade-in-up_280ms_ease-out_forwards]' : ''}
@@ -197,7 +230,9 @@ function ActionsSection({ delayMs, entranceOn }) {
     >
       <SectionHeading>Actions</SectionHeading>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <Button className="flex-1">Get my team ready</Button>
+        <Button className="flex-1" onClick={handleGetTeamReady} disabled={busy || !email}>
+          {busy ? 'Working\u2026' : 'Get my team ready'}
+        </Button>
         <Button className="flex-1">Add patients to hold list</Button>
       </div>
     </section>
@@ -402,7 +437,7 @@ function DrugProfileDashboard({ applicationId }) {
               entranceOn={entranceOn}
             />
 
-            <ActionsSection delayMs={360} entranceOn={entranceOn} />
+            <ActionsSection drug={drug} email={email} delayMs={360} entranceOn={entranceOn} />
           </div>
         </div>
       </div>
