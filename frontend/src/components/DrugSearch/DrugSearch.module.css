@@ -1,0 +1,238 @@
+.panel {
+  width: 100%;
+  max-width: 640px;
+  padding: 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #f3f3f8;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #9a9ab0;
+  max-width: 440px;
+  margin-inline: auto;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.searchField {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.searchField:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.searchField:focus-within {
+  border-color: rgba(140, 150, 220, 0.55);
+  box-shadow: 0 0 0 3px rgba(140, 150, 220, 0.14);
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: #8a8aa0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: #f0f0f5;
+  font-family: inherit;
+}
+
+.searchInput::placeholder {
+  color: #74748c;
+}
+
+.divider {
+  height: 1px;
+  margin: 28px 0 20px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #74748c;
+  padding: 0 4px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.row:focus-visible {
+  outline: none;
+  border-color: rgba(140, 150, 220, 0.6);
+  box-shadow: 0 0 0 3px rgba(140, 150, 220, 0.14);
+}
+
+.rowSelected {
+  background: rgba(140, 150, 220, 0.1);
+  border-color: rgba(140, 150, 220, 0.35);
+}
+
+.rowInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.drugName {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: #f0f0f5;
+}
+
+.drugMeta {
+  font-size: 13px;
+  color: #8f8fa6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.status-ready {
+  background: #7fd6ac;
+}
+
+.status-new {
+  background: #93aef0;
+}
+
+.status-action {
+  background: #d9a25f;
+}
+
+.statusText {
+  font-size: 13px;
+  color: #b4b4c6;
+  white-space: nowrap;
+}
+
+.arrow {
+  color: #74748c;
+  font-size: 15px;
+  transition: transform 140ms ease, color 140ms ease;
+}
+
+.row:hover .arrow,
+.row:focus-visible .arrow {
+  transform: translateX(2px);
+  color: #c4c4d8;
+}
+
+.emptyState {
+  padding: 28px 4px;
+  text-align: center;
+  font-size: 14px;
+  color: #82829a;
+}
+
+@media (max-width: 560px) {
+  .panel {
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .statusText {
+    display: none;
+  }
+}
