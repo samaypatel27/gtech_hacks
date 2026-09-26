@@ -1,7 +1,12 @@
+import csv
+import json
 import os
-from typing import Optional
+from collections import defaultdict
 from datetime import date
+from pathlib import Path
+from typing import Optional
 
+import anthropic
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -27,6 +32,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Credentials resolve lazily (ANTHROPIC_API_KEY or an `ant auth login` profile),
+# so the app still starts without them; only label extraction needs Claude.
+claude = anthropic.AsyncAnthropic()
+
 OPENFDA_BASE_URL = "https://api.fda.gov/drug"
 DAILYMED_BASE_URL = "https://dailymed.nlm.nih.gov/dailymed/services/v2"
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
@@ -37,14 +46,68 @@ class DrugImageResponse(BaseModel):
     setid: Optional[str] = None
     images: list[str]
 
+# Loaded from CMS's quarterly ASP release; refresh with scripts/update_cms_files.py.
+CMS_QUARTER = "October 2026"
+CMS_DATA_DIR = Path(__file__).resolve().parent / "data"
+CROSSWALK_CITATION = f"CMS ASP NDC-HCPCS Crosswalk, {CMS_QUARTER}"
+PAYMENT_LIMIT_CITATION = f"CMS Medicare Part B Payment Limit File, {CMS_QUARTER}"
+
+# "Not otherwise classified" codes are what a drug is billed under *until* it
+# has its own code, so a crosswalk row pointing at one isn't a permanent code.
+NOC_CODES = {"J3490", "J3590", "J7599", "J7699", "J7799", "J8499", "J8999", "J9999", "C9399"}
+
+
+def normalize_name(name: str) -> str:
+    return " ".join(name.lower().split())
+
+
+def load_crosswalk() -> dict[str, list[dict]]:
+    by_brand = defaultdict(list)
+    with open(CMS_DATA_DIR / "asp_ndc_hcpcs_crosswalk.csv", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader)
+        for code, description, _labeler, _ndc, drug_name, billing_unit, *_ in reader:
+            by_brand[normalize_name(drug_name)].append(
+                {"code": code, "description": description, "billing_unit": billing_unit}
+            )
+    return by_brand
+
+
+def load_payment_limits() -> dict[str, float]:
+    limits = {}
+    with open(CMS_DATA_DIR / "asp_payment_limits.csv", encoding="utf-8") as f:
+        reader = csv.reader(f)
+        next(reader)
+        for code, _description, _dosage, limit, *_ in reader:
+            try:
+                limits[code] = float(limit)
+            except ValueError:
+                pass  # e.g. "N/A" for products priced outside the ASP methodology
+    return limits
+
+
+CROSSWALK_BY_BRAND = load_crosswalk()
+PAYMENT_LIMITS = load_payment_limits()
+
+
+def find_permanent_codes(brand_name: str) -> list[dict]:
+    """One entry per distinct drug-specific HCPCS code the brand's NDCs map to."""
+    codes = {}
+    for row in CROSSWALK_BY_BRAND.get(normalize_name(brand_name), []):
+        if row["code"] not in NOC_CODES and row["code"] not in codes:
+            codes[row["code"]] = {
+                **row,
+                "payment_limit": PAYMENT_LIMITS.get(row["code"]),
+            }
+    return list(codes.values())
+
 
 @app.get("/")
 def read_root():
     return {"message": "Hello from FastAPI"}
 
 
-@app.get("/api/fda/label/{application_number}")
-async def get_fda_label(application_number: str):
+async def fetch_label_record(application_number: str) -> dict:
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{OPENFDA_BASE_URL}/label.json",
@@ -59,23 +122,173 @@ async def get_fda_label(application_number: str):
     response.raise_for_status()
 
     results = response.json().get("results", [])
-    record = results[0] if results else {}
+    return results[0] if results else {}
+
+
+@app.get("/api/fda/label/{application_number}")
+async def get_fda_label(application_number: str):
+    record = await fetch_label_record(application_number)
     openfda = record.get("openfda", {})
 
-    def section(field):
-        values = record.get(field, [])
-        return {
-            "value": values[0] if values else "",
-            "citation": f"openfda_label_section: {field}",
-        }
+    # Labels vary in which section holds a given piece of info (e.g. storage is
+    # often only under "how_supplied"), so use the first field that's present.
+    def section(*fields):
+        for field in fields:
+            values = record.get(field)
+            if values:
+                return {
+                    "value": values[0],
+                    "citation": f"openfda_label_section: {field}",
+                }
+        return {"value": "", "citation": f"openfda_label_section: {fields[0]}"}
 
     return {
         "brand_name": (openfda.get("brand_name") or [""])[0],
         "route": (openfda.get("route") or [""])[0],
         "indications_and_usage": section("indications_and_usage"),
         "dosage_and_administration": section("dosage_and_administration"),
-        "storage_requirements": section("storage_and_handling"),
+        "storage_requirements": section("storage_and_handling", "how_supplied"),
     }
+
+
+EXTRACTION_SECTIONS = [
+    "indications_and_usage",
+    "dosage_and_administration",
+    "dosage_forms_and_strengths",
+    "how_supplied",
+    "storage_and_handling",
+]
+
+CITED_FIELDS = [
+    "dosing_formula",
+    "typical_adult_dose",
+    "infusion_time_minutes",
+    "preparation_instructions",
+    "is_single_dose_vial",
+    "approved_uses_and_conditions",
+]
+
+
+def nullable(schema: dict) -> dict:
+    return {"anyOf": [schema, {"type": "null"}]}
+
+
+def closed_object(properties: dict) -> dict:
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": list(properties),
+        "additionalProperties": False,
+    }
+
+
+EXTRACTION_SCHEMA = closed_object(
+    {
+        "dosing_formula": nullable({"type": "string"}),
+        "typical_adult_dose": nullable(
+            closed_object({"amount": {"type": "number"}, "unit": {"type": "string"}})
+        ),
+        "infusion_time_minutes": nullable({"type": "integer"}),
+        "preparation_instructions": nullable({"type": "string"}),
+        "is_single_dose_vial": nullable({"type": "boolean"}),
+        "is_antineoplastic": {"type": "boolean"},
+        "approved_uses_and_conditions": {
+            "type": "array",
+            "items": closed_object(
+                {
+                    "approved_diagnosis": {"type": "string"},
+                    "prior_therapy": nullable({"type": "string"}),
+                    "required_test_method": nullable({"type": "string"}),
+                }
+            ),
+        },
+        "citations": {
+            "type": "array",
+            "items": closed_object(
+                {
+                    "field": {"type": "string", "enum": CITED_FIELDS},
+                    "label_section": {"type": "string", "enum": EXTRACTION_SECTIONS},
+                }
+            ),
+        },
+    }
+)
+
+EXTRACTION_INSTRUCTIONS = """\
+You are extracting facts from an FDA drug label for a medical-billing app. \
+Use only what the label sections below state; use null (or an empty list) for \
+anything the label does not say rather than inferring it.
+
+- dosing_formula: the dosing rule(s) in one concise line, e.g. \
+"200 mg IV every 3 weeks or 400 mg every 6 weeks (adults); 2 mg/kg up to 200 mg every 3 weeks (pediatrics)".
+- typical_adult_dose: the most common single adult dose as a fixed amount and \
+unit (e.g. 200, "mg"). Null if adult dosing is only weight- or BSA-based.
+- infusion_time_minutes: infusion duration in minutes, if the drug is infused.
+- preparation_instructions: the preparation/administration steps a nurse needs \
+(dilution, compatible diluents, in-line filters, stability of the prepared product), condensed.
+- is_single_dose_vial: true for single-dose vials, false for multiple-dose \
+vials, null if not supplied in vials.
+- is_antineoplastic: whether the drug is indicated to treat cancer.
+- approved_uses_and_conditions: one entry per approved indication, with the \
+diagnosis, any required prior therapy, and any required test (e.g. \
+"PD-L1 expression (CPS >= 1) by FDA-authorized test").
+- citations: for each non-null field above, the label section it came from."""
+
+
+@app.get("/api/fda/label-extraction/{application_number}")
+async def get_fda_label_extraction(application_number: str):
+    record = await fetch_label_record(application_number)
+    sections = "\n\n".join(
+        f"<{field}>\n{record[field][0]}\n</{field}>"
+        for field in EXTRACTION_SECTIONS
+        if record.get(field)
+    )
+    if not sections:
+        raise HTTPException(
+            status_code=404,
+            detail=f"openFDA label for {application_number} has no sections to extract from",
+        )
+
+    try:
+        async with claude.beta.messages.stream(
+            model="claude-opus-5",
+            max_tokens=64000,
+            thinking={"type": "adaptive"},
+            # On a safety-classifier decline, re-run on Anthropic's recommended
+            # fallback model instead of returning the refusal.
+            betas=["server-side-fallback-2026-07-01"],
+            fallbacks="default",
+            output_config={"format": {"type": "json_schema", "schema": EXTRACTION_SCHEMA}},
+            messages=[
+                {"role": "user", "content": f"{EXTRACTION_INSTRUCTIONS}\n\n{sections}"}
+            ],
+        ) as stream:
+            message = await stream.get_final_message()
+    except (anthropic.AuthenticationError, TypeError) as err:
+        # The SDK raises TypeError (not an API error) when no credentials are set.
+        if isinstance(err, TypeError) and "authentication" not in str(err):
+            raise
+        raise HTTPException(
+            status_code=503,
+            detail="Label extraction needs a valid ANTHROPIC_API_KEY in backend/.env",
+        )
+    except anthropic.APIStatusError as err:
+        raise HTTPException(status_code=502, detail=f"Claude API error: {err.message}")
+    except anthropic.APIConnectionError:
+        raise HTTPException(status_code=502, detail="Could not reach the Claude API")
+
+    if message.stop_reason != "end_turn":
+        raise HTTPException(
+            status_code=502,
+            detail=f"Label extraction stopped early ({message.stop_reason})",
+        )
+
+    extraction = json.loads(next(b.text for b in message.content if b.type == "text"))
+    extraction["citations"] = [
+        {"field": c["field"], "citation": f"openfda_label_section: {c['label_section']}"}
+        for c in extraction["citations"]
+    ]
+    return extraction
 
 
 @app.get("/api/fda/ndc/{application_number}")
@@ -83,7 +296,11 @@ async def get_fda_ndc(application_number: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{OPENFDA_BASE_URL}/ndc.json",
-            params={"search": f"application_number:{application_number}"},
+            # openFDA returns only 1 result unless a limit is given (max 1000).
+            params={
+                "search": f"application_number:{application_number}",
+                "limit": 1000,
+            },
         )
 
     if response.status_code == 404:
@@ -94,6 +311,7 @@ async def get_fda_ndc(application_number: str):
     response.raise_for_status()
 
     results = response.json().get("results", [])
+    route = next((r["route"][0] for r in results if r.get("route")), "")
     ndcs = []
     for result in results:
         for package in result.get("packaging", []):
@@ -105,26 +323,50 @@ async def get_fda_ndc(application_number: str):
                 }
             )
 
-    return {"ndcs": ndcs}
+    return {"route": route, "ndcs": ndcs}
 
 
 @app.get("/api/cms/hcpcs-status/{brand_name}")
 async def get_cms_hcpcs_status(brand_name: str):
-    has_permanent_code = False
+    codes = find_permanent_codes(brand_name)
+    if not codes:
+        return {
+            "status": "no_code_found",
+            "has_permanent_code": False,
+            "permanent_hcpcs_code": None,
+            "codes": [],
+            "message": (
+                f"No permanent HCPCS code was found for '{brand_name}' in the "
+                f"{CROSSWALK_CITATION}. A generic (miscellaneous) code is required "
+                "until one is assigned."
+            ),
+            "citation": CROSSWALK_CITATION,
+        }
 
+    code_list = ", ".join(c["code"] for c in codes)
     return {
-        "status": "no_code_found",
-        "has_permanent_code": has_permanent_code,
-        "permanent_hcpcs_code": None,
-        "message": (
-            f"No permanent HCPCS code was found for '{brand_name}'. "
-            "A generic (miscellaneous) code is required until one is assigned."
-        ),
+        "status": "code_found",
+        "has_permanent_code": True,
+        "permanent_hcpcs_code": code_list,
+        # Each code's billing unit (e.g. "1 MG") and Medicare payment limit per unit.
+        "codes": codes,
+        "message": f"'{brand_name}' bills under {code_list} per the {CROSSWALK_CITATION}.",
+        "citation": CROSSWALK_CITATION,
+        "payment_limit_citation": PAYMENT_LIMIT_CITATION,
     }
 
 
 @app.get("/api/cms/application-status/{brand_name}")
 async def get_cms_application_status(brand_name: str):
+    # A drug that already has its code isn't waiting on an application.
+    if find_permanent_codes(brand_name):
+        return {
+            "application_status": "code_assigned",
+            "expected_permanent_code_date": None,
+            "citation": CROSSWALK_CITATION,
+        }
+
+    # Stub pending the CMS HCPCS application summary (PDF) integration.
     return {
         "application_status": "pending",
         "expected_permanent_code_date": "2025-10-01",
@@ -200,12 +442,20 @@ def get_drug_profile(application_id: str):
 class DrugRecord(BaseModel):
     application_id: str
     brand_name: str | None = None
+    generic_billing_code: str | None = None
+    expected_permanent_code_date: date | None = None
+    dosing_formula: str | None = None
     route_of_administration: str | None = None
+    infusion_time_minutes: int | None = None
+    preparation_instructions: str | None = None
     storage_requirements: str | None = None
+    is_single_dose_vial: bool | None = None
+    approved_uses_and_conditions: list[dict] | None = None
     ndcs: list[dict] | None = None
+    cost_per_dose: float | None = None
+    citations: list[dict] | None = None
     has_permanent_code: bool | None = None
     permanent_hcpcs_code: str | None = None
-    expected_permanent_code_date: date | None = None
 
 
 @app.post("/api/drugs")

@@ -14,6 +14,9 @@ const encode = encodeURIComponent
 export const fetchFdaLabel = (applicationId) =>
   request(`/api/fda/label/${encode(applicationId)}`)
 
+export const fetchFdaLabelExtraction = (applicationId) =>
+  request(`/api/fda/label-extraction/${encode(applicationId)}`)
+
 export const fetchFdaNdc = (applicationId) =>
   request(`/api/fda/ndc/${encode(applicationId)}`)
 

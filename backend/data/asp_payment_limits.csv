@@ -1,0 +1,888 @@
+HCPCS Code,Short Description,HCPCS Code Dosage,Payment Limit,Co-insurance Percentage,Vaccine AWP%,Vaccine Limit,Blood AWP%,Blood limit,Clotting Factor,Notes
+A9573,"Inj, gadopiclenol, 1 ml",1 ML,3.222,20.000,,,,,,
+A9575,Inj gadoterate meglumi 0.1ml,0.1 ML,0.105,20.000,,,,,,
+A9576,Inj prohance multipack,1 ML,1.345,20.000,,,,,,
+A9577,Inj multihance,1 ML,1.804,20.000,,,,,,
+A9578,Inj multihance multipack,1 ML,1.697,20.000,,,,,,
+A9579,"Gad-base mr contrast nos,1ml",1 ML,1.435,20.000,,,,,,
+A9581,Gadoxetate disodium inj,1 ML,14.470,20.000,,,,,,
+A9585,Gadobutrol injection,0.1 ML,0.235,20.000,,,,,,
+A9589,Insti hexaminolevulinate hcl,100 MG,1431.000,20.000,,,,,,
+A9606,Radium ra223 dichloride ther,1 microCurie,N/A,20.000,,,,,,"microCurie 100% AWP = $212.84
+microCurie 100% WAC = $177.37"
+J0014,Cocaine hcl nasal (goprelto),1 MG,1.825,20.000,,,,,,Added October 2026
+J0121,"Inj., omadacycline, 1 mg",1 MG,4.293,19.501,,,,,,Inflation-adjusted coinsurance
+J0122,"Inj., eravacycline, 1 mg",1 MG,1.333,19.445,,,,,,Inflation-adjusted coinsurance
+J0129,Abatacept injection,10 MG,45.937,20.000,,,,,,"""lesser of"" methodology applied"
+J0131,"Inj, acetaminophen (nos)",10 MG,0.044,20.000,,,,,,
+J0132,Acetylcysteine injection,100 MG,0.499,20.000,,,,,,
+J0133,Acyclovir injection,5 MG,0.048,20.000,,,,,,
+J0134,Inj acetaminophen -fresenius,10 MG,0.051,20.000,,,,,,
+J0136,"Inj, acetaminophen (b braun)",10 MG,0.046,20.000,,,,,,
+J0137,"Inj, acetaminophen (hikma)",10 MG,0.048,20.000,,,,,,
+J0138,Inj acetaminoph 10mg/ibu 3mg,10 MG/3MG,0.129,20.000,,,,,,
+J0153,Adenosine inj 1mg,1 MG,0.378,20.000,,,,,,
+J0162,Inj epinephrine (fresenius),0.1 MG,0.321,20.000,,,,,,
+J0163,Epinephrine in nacl (endo),0.1 MG,0.710,20.000,,,,,,
+J0164,Epinephrine in nacl (baxter),0.1 MG,0.912,20.000,,,,,,
+J0165,Inj epinephrine nos 0.1 mg,0.1 MG,0.206,20.000,,,,,,
+J0166,Inj epinephrine (bpi),0.1 MG,0.830,20.000,,,,,,
+J0167,Inj epinephrine (hospira),0.1 MG,1.422,20.000,,,,,,
+J0168,Epinephrine (intl med sys),0.1 MG,2.697,20.000,,,,,,
+J0169,Inj epinephrine (adrenalin),0.1 MG,0.869,20.000,,,,,,
+J0174,"Lecanemab-irmb, for iv inj",1 MG,1.361,20.000,,,,,,
+J0175,"Inj, donanemab-azbt, 2 mg",2 MG,4.185,20.000,,,,,,
+J0177,"Inj, aflibercept hd, 1 mg",1 MG,290.902,20.000,,,,,,
+J0178,Aflibercept injection,1 MG,722.251,20.000,,,,,,
+J0179,"Inj, brolucizumab-dbll, 1 mg",1 MG,360.439,20.000,,,,,,
+J0180,Agalsidase beta injection,1 MG,230.540,20.000,,,,,,
+J0185,"Inj., aprepitant, 1 mg",1 MG,1.624,20.000,,,,,,
+J0202,"Injection, alemtuzumab",1 MG,2506.200,20.000,,,,,,
+J0206,Inj allopurinol sodium 1 mg,1 MG,4.292,20.000,,,,,,
+J0217,Inj velmanase alfa-tycv 1 mg,1 MG,479.191,19.279,,,,,,Inflation-adjusted coinsurance
+J0218,Inj olipudase alfa-rpcp 1mg,1 MG,404.784,20.000,,,,,,
+J0219,Inj aval alfa-nqpt 4mg,4 MG,83.816,20.000,,,,,,
+J0221,Lumizyme injection,10 MG,211.056,20.000,,,,,,
+J0222,"Inj., patisiran, 0.1 mg",0.1 MG,101.181,20.000,,,,,,
+J0223,Inj givosiran 0.5 mg,0.5 MG,120.744,20.000,,,,,,
+J0224,"Inj. lumasiran, 0.5 mg",0.5 MG,336.640,20.000,,,,,,
+J0225,"Inj, vutrisiran, 1 mg",1 MG,5008.939,20.000,,,,,,
+J0248,"Inj, remdesivir, 1 mg",1 MG,7.511,17.385,,,,,,Inflation-adjusted coinsurance
+J0256,Alpha 1 proteinase inhibitor,10 MG,5.077,20.000,,,,,,
+J0257,Glassia injection,10 MG,5.640,20.000,,,,,,
+J0278,Amikacin sulfate injection,100 MG,0.612,20.000,,,,,,
+J0280,Aminophyllin 250 mg inj,250 MG,10.757,20.000,,,,,,
+J0281,Inj aminocaproic acid 1 gram,1 GM,1.738,20.000,,,,,,
+J0282,Amiodarone hcl,30 MG,0.384,20.000,,,,,,
+J0283,"Inj, amiodarone (nexterone)",30 MG,2.763,11.501,,,,,,Inflation-adjusted coinsurance
+J0285,Amphotericin b,50 MG,42.474,20.000,,,,,,
+J0289,Amphotericin b liposome inj,10 MG,17.851,20.000,,,,,,
+J0290,Ampicillin 500 mg inj,500 MG,0.619,20.000,,,,,,
+J0291,"Inj., plazomicin, 5 mg",5 MG,3.519,20.000,,,,,,
+J0295,Ampicillin sulbactam 1.5 gm,1.5 GM,1.457,20.000,,,,,,
+J0348,Anidulafungin injection,1 MG,0.452,20.000,,,,,,
+J0349,"Inj, rezafungin, 1 mg",1 MG,11.182,19.601,,,,,,Inflation-adjusted coinsurance
+J0360,Hydralazine hcl injection,20 MG,3.344,20.000,,,,,,
+J0401,"Inj, abilify maintena, 1 mg",1 MG,7.456,20.000,,,,,,
+J0402,"Inj, abilify asimtufii, 1 mg",1 MG,6.185,20.000,,,,,,
+J0456,Azithromycin,500 MG,2.571,20.000,,,,,,
+J0457,"Injection, aztreonam, 100 mg",100 MG,2.299,20.000,,,,,,
+J0458,Aztreonam/avibactam 10 mg,10 MG,1.756,19.702,,,,,,Inflation-adjusted coinsurance
+J0461,Atropine sulfate injection,0.01 MG,0.104,20.000,,,,,,
+J0462,"Atropine sulf, nte, 0.01 mg",0.01 MG,0.129,20.000,,,,,,
+J0463,Inj atropine (fresenius te),0.01 MG,0.020,20.000,,,,,,
+J0475,Baclofen 10 mg injection,10 MG,186.996,20.000,,,,,,
+J0476,Baclofen intrathecal trial,50 MCG,46.539,20.000,,,,,,
+J0480,Basiliximab,20 MG,4917.630,20.000,,,,,,
+J0485,Belatacept injection,1 MG,3.883,20.000,,,,,,
+J0490,Belimumab injection,10 MG,58.333,20.000,,,,,,
+J0491,Inj anifrolumab-fnia 1mg,1 MG,18.461,20.000,,,,,,
+J0500,Dicyclomine injection,20 MG,12.061,20.000,,,,,,
+J0515,Inj benztropine mesylate,1 MG,12.262,20.000,,,,,,
+J0517,"Inj., benralizumab, 1 mg",1 MG,165.080,20.000,,,,,,"""lesser of"" methodology applied"
+J0528,Inj fosfomycin disodium 20mg,20 MG,0.633,20.000,,,,,,Added October 2026
+J0558,Peng benzathine/procaine inj,"100,000 UNITS",19.523,15.704,,,,,,Inflation-adjusted coinsurance
+J0561,Penicillin g benzathine inj,"100,000 UNITS",25.612,15.105,,,,,,Inflation-adjusted coinsurance
+J0577,"Inj, brixadi, 7 days or less",Less than or equal to 7 days of therapy ,433.167,20.000,,,,,,
+J0578,"Inj brixadi, more than 7 day",Greater than 7 days and up to 28 days of therapy ,1732.667,20.000,,,,,,
+J0582,Bivalirudin (endo) 1 mg,1 MG,0.168,20.000,,,,,,
+J0583,Bivalirudin,1 MG,0.165,20.000,,,,,,
+J0584,"Injection, burosumab-twza 1m",1 MG,516.850,18.180,,,,,,Inflation-adjusted coinsurance
+J0585,"Injection,onabotulinumtoxina",1 UNIT,6.514,20.000,,,,,,
+J0586,Abobotulinumtoxina,5 Unit,8.937,20.000,,,,,,
+J0587,"Inj, rimabotulinumtoxinb",100 UNITS,13.301,20.000,,,,,,
+J0588,Incobotulinumtoxin a,1 UNIT,5.262,20.000,,,,,,
+J0589,Inj daxibotulinumtoxina-lanm,1 UNIT,3.252,20.000,,,,,,
+J0592,Buprenorphine hydrochloride,0.1 MG,4.698,20.000,,,,,,
+J0593,"Inj., lanadelumab-flyo, 1 mg",1 mg,88.340,20.000,,,,,,
+J0594,Busulfan injection,1 MG,0.839,20.000,,,,,,
+J0595,Butorphanol tartrate 1 mg,1 MG,11.316,20.000,,,,,,
+J0596,"Injection, ruconest",10 UNITS,37.810,20.000,,,,,,
+J0597,"C-1 esterase, berinert",10 UNITS,79.329,18.454,,,,,,Inflation-adjusted coinsurance
+J0598,"C-1 esterase, cinryze",10 UNITS,67.065,20.000,,,,,,
+J0600,Edetate calcium disodium inj,1000 MG,6273.865,20.000,,,,,,
+J0612,"Inj, calcium gluconate, nos",10 MG,0.024,20.000,,,,,,
+J0613,Calcium glucon (wg critical),10 MG,0.041,20.000,,,,,,
+J0614,"Inj, treosulfan, 50 mg",50 MG,32.330,20.000,,,,,,
+J0616,Inj metoprolol tartrate 1 mg,1 MG,0.140,20.000,,,,,,
+J0637,Caspofungin acetate,5 MG,2.463,20.000,,,,,,
+J0638,Canakinumab injection,1 MG,156.953,18.725,,,,,,Inflation-adjusted coinsurance
+J0641,Inj levoleucovorin nos 0.5mg,0.5 MG,0.053,20.000,,,,,,
+J0642,"Injection, khapzory, 0.5 mg",0.5 MG,1.336,20.000,,,,,,
+J0643,Inj leucovorin calcium 1 mg,1 MG,0.054,20.000,,,,,,Added October 2026
+J0644,"Inj, leucovorin cal (avyxa)",1 MG,2.625,20.000,,,,,,Added October 2026
+J0650,"Inj, levothyroxine nos 10mcg",10 MCG,6.581,20.000,,,,,,
+J0651,"Inj, levothyroxine, freskabi",10 MCG,7.079,20.000,,,,,,
+J0652,"Inj, levothyroxine, hikma",10 MCG,6.315,20.000,,,,,,
+J0665,"Inj, bupivacaine, nos, 0.5mg",0.5 MG,0.010,20.000,,,,,,
+J0666,"Inj, bupivacaine liposome",1 MG,1.426,20.000,,,,,,
+J0670,Inj mepivacaine hcl/10 ml,10 ML,4.367,20.000,,,,,,
+J0681,Inj ceftobipole medocarl 3mg,3 MG,1.098,20.000,,,,,,
+J0687,Inj cefazolin (wg crit care),500 MG,0.663,20.000,,,,,,
+J0688,"Inj cefazolin sodium, hikma",500 MG,0.829,20.000,,,,,,
+J0689,"Inj cefazolin sodium, baxter",500 MG,1.281,20.000,,,,,,
+J0690,Cefazolin sodium injection,500 MG,0.781,20.000,,,,,,
+J0692,Cefepime hcl for injection,500 MG,1.292,20.000,,,,,,
+J0694,Cefoxitin sodium injection,1 GM,5.416,20.000,,,,,,
+J0695,Inj ceftolozane tazobactam,75mg (50mg cft/25mg taz),10.015,16.874,,,,,,Inflation-adjusted coinsurance
+J0696,Ceftriaxone sodium injection,250 MG,0.390,20.000,,,,,,
+J0697,Sterile cefuroxime injection,750 MG,2.106,20.000,,,,,,
+J0699,"Inj, cefiderocol, 10 mg",10 mg,2.564,19.970,,,,,,Inflation-adjusted coinsurance
+J0701,Inj. cefepime hcl (baxter),500 MG,6.096,7.890,,,,,,Inflation-adjusted coinsurance
+J0702,Betamethasone acet&sod phosp,3 MG & 3 MG,7.175,20.000,,,,,,
+J0703,"Inj, cefepime hcl (b braun)",500 MG,4.748,10.130,,,,,,Inflation-adjusted coinsurance
+J0712,Ceftaroline fosamil inj,10 MG,4.008,20.000,,,,,,
+J0713,Inj ceftazidime per 500 mg,500 MG,1.549,20.000,,,,,,
+J0714,Ceftazidime and avibactam,.625 GM,109.454,20.000,,,,,,
+J0716,Centruroides immune f(ab),UP TO 120MG,5449.649,20.000,,,,,,Added October 2026
+J0717,Certolizumab pegol inj 1mg,1 MG,3.140,20.000,,,,,,"""lesser of"" methodology applied"
+J0725,Chorionic gonadotropin/1000u,1000 UNITS,14.439,20.000,,,,,,
+J0735,Clonidine hydrochloride,1 MG,14.192,20.000,,,,,,
+J0736,"Inj, clindamycin phosp 300mg",300 MG,1.854,20.000,,,,,,
+J0737,"Inj, clindamycin (baxter)",300 MG,2.068,20.000,,,,,,
+J0738,"Hiv prep, inj, lenacapavir",1 MG,16.016,0.000,,,,,,HIV PrEP drug
+J0739,"Hiv prep, inj, cabotegravir",1 mg,7.278,0.000,,,,,,HIV PrEP drug
+J0740,Cidofovir injection,375 MG,522.238,20.000,,,,,,
+J0741,"Inj, cabote rilpivir 2mg 3mg",2MG/3MG,24.649,20.000,,,,,,
+J0742,Inj imip 4 cilas 4 releb 2mg,4 MG-4 MG-2 MG,2.696,20.000,,,,,,
+J0743,Cilastatin sodium injection,250 MG,6.796,20.000,,,,,,
+J0744,Ciprofloxacin iv,200 MG,1.930,20.000,,,,,,
+J0750,"Hiv prep, ftc/tdf 200/300mg",200 mg/300 mg,0.451,0.000,,,,,,HIV PrEP drug
+J0751,"Hiv prep, ftc/taf 200/25mg",200 mg/25 mg,74.941,0.000,,,,,,HIV PrEP drug
+J0752,"Hiv prep, oral lenacapavir",300 MG,617.946,0.000,,,,,,HIV PrEP drug
+J0759,"Inj, clevidipine, 1 mg",1 MG,2.950,20.000,,,,,,
+J0770,Colistimethate sodium inj,150 MG,18.051,20.000,,,,,,
+J0775,"Collagenase, clost hist inj",0.01 MG,81.072,17.086,,,,,,Inflation-adjusted coinsurance
+J0780,Prochlorperazine injection,10 MG,2.475,20.000,,,,,,
+J0791,Inj crizanlizumab-tmca 5mg,5 MG,129.949,20.000,,,,,,
+J0801,Inj. acthar gel to 40 units,40 UNITS,3884.267,20.000,,,,,,"""lesser of"" methodology applied"
+J0802,"Inj. (ani), up to 40 units",up to 40 Units,3646.455,20.000,,,,,,
+J0834,"Inj., cosyntropin, 0.25 mg",0.25 MG,22.176,20.000,,,,,,
+J0840,Crotalidae poly immune fab,UP TO 1 GM,2044.383,20.000,,,,,,
+J0841,Inj crotalidae im f(ab')2 eq,120 MG,1084.909,20.000,,,,,,Added October 2026
+J0850,Cytomegalovirus imm iv /vial,PER VIAL,1857.125,20.000,,,,,,
+J0870,"Injection, imetelstat, 1 mg",1 MG,59.355,19.788,,,,,,Inflation-adjusted coinsurance
+J0871,"Inj, daptomycin (endo) 1mg",1 MG,0.541,20.000,,,,,,Added October 2026
+J0872,Daptomycin (xellia) unrefrig,1 MG,0.060,20.000,,,,,,
+J0873,Inj daptomycin (xellia),1 MG,0.048,20.000,,,,,,
+J0874,"Inj, daptomycin (baxter)",1 MG,0.062,20.000,,,,,,
+J0875,"Injection, dalbavancin",5 MG,9.439,20.000,,,,,,
+J0877,"Inj, daptomycin (hospira)",1 MG,0.022,20.000,,,,,,
+J0878,Daptomycin injection,1 MG,0.027,20.000,,,,,,AMP-based payment limit
+J0881,"Darbepoetin alfa, non-esrd",1 MCG,3.081,20.000,,,,,,
+J0882,"Darbepoetin alfa, esrd use",1 MCG,3.081,20.000,,,,,,
+J0883,Argatroban nonesrd use 1mg,1 MG,0.772,20.000,,,,,,
+J0884,Argatroban esrd dialysis 1mg,1 MG,0.772,20.000,,,,,,
+J0885,"Epoetin alfa, non-esrd",1000 UNITS,6.669,20.000,,,,,,
+J0887,Epoetin beta esrd use,1 MCG,1.196,20.000,,,,,,
+J0888,Epoetin beta non esrd,1 MCG,1.196,20.000,,,,,,
+J0894,Decitabine injection,1 MG,1.098,20.000,,,,,,
+J0895,Deferoxamine mesylate inj,500 MG,8.777,20.000,,,,,,
+J0896,Inj luspatercept-aamt 0.25mg,0.25 MG,43.484,20.000,,,,,,
+J0897,Denosumab injection,1 MG,29.856,17.885,,,,,,Inflation-adjusted coinsurance
+J0898,Argatroban nonesrd (auromed),1 MG,1.206,20.000,,,,,,
+J0899,"Argatroban dialysis, auromed",1 MG,1.206,20.000,,,,,,
+J0901,Vadadustat oral 1mg for esrd,1 MG,0.125,20.000,,,,,,
+J1000,Depo-estradiol cypionate inj,5 MG,53.805,20.000,,,,,,
+J1010,"Inj, methylpred acetate 1 mg",1 MG,0.123,20.000,,,,,,
+J1071,Inj testosterone cypionate,1 MG,0.023,20.000,,,,,,
+J1072,"Inj, testosterone, azmiro",1 MG,1.301,20.000,,,,,,
+J1096,Dexametha opth insert 0.1 mg,0.1 MG,87.902,20.000,,,,,,
+J1100,Dexamethasone sodium phos,1 MG,0.099,20.000,,,,,,
+J1110,Inj dihydroergotamine mesylt,1 MG,56.507,20.000,,,,,,
+J1120,Acetazolamid sodium injectio,500 MG,23.951,20.000,,,,,,
+J1160,Digoxin injection,0.5 MG,3.809,20.000,,,,,,
+J1162,Digoxin immune fab (ovine),PER VIAL,5711.373,18.404,,,,,,Inflation-adjusted coinsurance
+J1163,"Inj, diltiazem hcl, 0.5 mg",0.5 MG,0.027,20.000,,,,,,
+J1164,Inj diltiazem in 0.72% nacl,0.5 MG,0.176,20.000,,,,,,
+J1165,Phenytoin sodium injection,50 MG,0.513,20.000,,,,,,
+J1171,"Inj, hydromorphone, 0.1 mg",0.1 MG,0.224,20.000,,,,,,
+J1190,Dexrazoxane hcl injection,250 MG,30.832,20.000,,,,,,
+J1200,Diphenhydramine hcl injectio,50 MG,0.855,20.000,,,,,,
+J1201,Inj. cetirizine hcl 0.5mg,0.5 MG,17.073,20.000,,,,,,
+J1203,"Inj, cipaglucosidase, 5 mg",5 MG,96.491,19.727,,,,,,Inflation-adjusted coinsurance
+J1205,Chlorothiazide sodium inj,500 MG,63.398,20.000,,,,,,
+J1212,Dimethyl sulfoxide 50% 50 ml,50 ML,748.813,20.000,,,,,,
+J1230,Methadone injection,10 MG,10.498,20.000,,,,,,
+J1240,Dimenhydrinate injection,50 MG,9.394,20.000,,,,,,
+J1245,Dipyridamole injection,10 MG,8.410,20.000,,,,,,
+J1250,Inj dobutamine hcl/250 mg,250 MG,8.875,20.000,,,,,,
+J1265,Dopamine injection,40 MG,0.823,20.000,,,,,,
+J1270,"Injection, doxercalciferol",1 MCG,0.330,20.000,,,,,,
+J1271,Inj doxycycline hyclate 1 mg,1 MG,0.081,20.000,,,,,,
+J1289,"Narsoplimab-wuug, 1 mg",1 MG,105.441,20.000,,,,,,Added October 2026
+J1290,Ecallantide injection,1 MG,599.616,20.000,,,,,,
+J1299,"Inj, eculizumab, 2 mg",2 MG,43.763,20.000,,,,,,
+J1301,"Injection, edaravone, 1 mg",1 MG,6.375,20.000,,,,,,
+J1302,"Inj, sutimlimab-jome, 10 mg",10 MG,20.133,19.461,,,,,,Inflation-adjusted coinsurance
+J1303,"Inj., ravulizumab-cwvz 10 mg",10 MG,226.454,20.000,,,,,,
+J1304,Inj tofersen intrathec 1 mg,1 MG,164.812,19.941,,,,,,Inflation-adjusted coinsurance
+J1305,"Inj, evinacumab-dgnb, 5mg",5 MG,202.574,20.000,,,,,,
+J1306,"Injection, inclisiran, 1 mg",1 MG,12.897,20.000,,,,,,
+J1307,"Inj, crovalimab-akkz, 10 mg",10 MG,551.512,20.000,,,,,,
+J1308,"Inj, famotidine, 0.25 mg",0.25 MG,0.009,20.000,,,,,,
+J1322,"Elosulfase alfa, injection",1 MG,320.781,19.853,,,,,,Inflation-adjusted coinsurance
+J1323,"Inj, elranatamab-bcmm, 1 mg",1 MG,191.312,20.000,,,,,,
+J1325,Epoprostenol injection,0.5 MG,17.247,20.000,,,,,,
+J1326,"Inj, zolbetuximab-clzb, 2 mg",2 MG,33.919,20.000,,,,,,
+J1335,Ertapenem injection,500 MG,5.826,20.000,,,,,,
+J1364,Erythro lactobionate /500 mg,500 MG,160.427,20.000,,,,,,
+J1380,Estradiol valerate 10 mg inj,10 MG,7.693,20.000,,,,,,
+J1410,Inj estrogen conjugate 25 mg,25 MG,402.131,20.000,,,,,,
+J1430,Ethanolamine oleate 100 mg,100 MG,533.768,20.000,,,,,,
+J1434,"Inj, focinvez, 1mg",1 MG,2.225,20.000,,,,,,
+J1437,Inj. fe derisomaltose 10 mg,10 MG,21.877,20.000,,,,,,
+J1439,Inj ferric carboxymaltos 1mg,1 MG,1.121,20.000,,,,,,
+J1440,Fecal microbiota jslm 1 ml,1 ML,65.826,20.000,,,,,,
+J1442,Inj filgrastim excl biosimil,1 MCG,0.994,20.000,,,,,,
+J1447,Inj tbo filgrastim 1 microg,1 MCG,0.279,20.000,,,,,,
+J1448,"Injection, trilaciclib, 1mg",1 MG,6.001,20.000,,,,,,
+J1449,Inj eflapegrastim-xnst 0.1mg,0.1 MG,37.421,18.902,,,,,,Inflation-adjusted coinsurance
+J1450,Fluconazole,200 MG,5.654,20.000,,,,,,
+J1453,Fosaprepitant injection,1 MG,0.114,20.000,,,,,,
+J1454,"Inj fosnetupitant, palonoset",0.25 MG,479.902,20.000,,,,,,
+J1455,Foscarnet sodium injection,1000 MG,6.734,20.000,,,,,,
+J1456,"Inj, fosaprepitant (teva)",1 MG,0.036,20.000,,,,,,
+J1458,Galsulfase injection,1 MG,529.580,19.787,,,,,,Inflation-adjusted coinsurance
+J1459,Inj ivig privigen 500 mg,500 MG,48.963,20.000,,,,,,
+J1460,Gamma globulin 1 cc inj,1 CC,48.946,20.000,,,,,,
+J1551,Inj cutaquig 100 mg,100 MG,14.172,20.000,,,,,,
+J1552,"Inj, alyglo, 500 mg",500 MG,120.040,20.000,,,,,,
+J1553,Inj yimmugo 100 mg,100 MG,21.664,20.000,,,,,,
+J1554,Inj. asceniv,500 MG,508.454,20.000,,,,,,
+J1555,"Inj cuvitru, 100 mg",100 MG,17.994,20.000,,,,,,
+J1556,"Inj, imm glob bivigam, 500mg",500 MG,80.791,20.000,,,,,,
+J1557,Gammaplex injection,500 MG,62.299,20.000,,,,,,
+J1558,"Inj. xembify, 100 mg",100 MG,15.200,20.000,,,,,,
+J1559,Hizentra injection,100 MG,14.786,19.344,,,,,,Inflation-adjusted coinsurance
+J1560,Gamma globulin > 10 cc inj,10 CC,118.153,20.000,,,,,,
+J1561,Gamunex-c/gammaked,500 MG,48.022,20.000,,,,,,
+J1566,"Immune globulin, powder",500 MG,82.756,20.000,,,,,,
+J1568,Octagam injection,500 MG,47.133,20.000,,,,,,
+J1569,Gammagard liquid/erc inj,500 MG,49.495,20.000,,,,,,
+J1570,Ganciclovir sodium injection,500 MG,29.336,20.000,,,,,,
+J1571,Hepagam b im injection,0.5 ML,71.585,20.000,,,,,,
+J1573,"Hepagam b intravenous, inj",0.5 ML,71.585,20.000,,,,,,
+J1575,Hyqvia 100mg immuneglobulin,100 MG,19.293,19.577,,,,,,Inflation-adjusted coinsurance
+J1576,"Inj, panzyga, 500 mg",500 MG,70.250,20.000,,,,,,
+J1577,"Inj, qivigy, 100mg",100 MG,29.280,20.000,,,,,,Added October 2026
+J1580,Garamycin gentamicin inj,80 MG,1.849,20.000,,,,,,
+J1596,"Inj, glycopyrrolate, 0.1 mg",0.1 MG,0.330,20.000,,,,,,
+J1597,"Inj glycopyrrolate, glyrx-pf",0.1 MG,1.272,20.000,,,,,,
+J1598,Inj glycopyrrolate fres kabi,0.1 MG,1.904,20.000,,,,,,
+J1602,Golimumab for iv use 1mg,1 MG,10.978,20.000,,,,,,
+J1610,Glucagon hydrochloride/1 mg,1 MG,105.492,20.000,,,,,,
+J1611,"Inj glucagon hcl, fresenius",1 MG,134.892,20.000,,,,,,
+J1612,Inj glucagon (gvoke) 0.01 mg,0.01 MG,1.799,20.000,,,,,,
+J1626,Granisetron hcl injection,100 MCG,0.160,20.000,,,,,,
+J1627,"Inj, granisetron, xr, 0.1 mg",0.1 MG,2.907,20.000,,,,,,
+J1628,"Inj., guselkumab, 1 mg",1 MG,66.998,20.000,,,,,,
+J1630,Haloperidol injection,5 MG,0.632,20.000,,,,,,
+J1631,Haloperidol decanoate inj,50 MG,4.847,20.000,,,,,,
+J1640,"Hemin, 1 mg",1 MG,36.050,18.677,,,,,,Inflation-adjusted coinsurance
+J1642,Inj heparin sodium per 10 u,10 UNITS,0.018,20.000,,,,,,
+J1643,"Inj heparin, pfizer, 1000u",1000 UNITS,2.248,20.000,,,,,,
+J1644,Inj heparin sodium per 1000u,1000 UNITS,0.201,20.000,,,,,,
+J1645,Dalteparin sodium,2500 IU,45.668,4.812,,,,,,Inflation-adjusted coinsurance
+J1650,Inj enoxaparin sodium,10 MG,0.497,20.000,,,,,,
+J1652,Fondaparinux sodium,0.5 MG,0.798,20.000,,,,,,
+J1670,Tetanus immune globulin inj,250 UNITS,600.635,20.000,,,,,,
+J1720,Hydrocortisone sodium succ i,100 MG,23.149,20.000,,,,,,
+J1737,Inj meloxicam (azurity) 1mg,1 MG,1.060,20.000,,,,,,Added October 2026
+J1740,Ibandronate sodium injection,1 MG,43.680,20.000,,,,,,
+J1741,Ibuprofen injection,100 MG,3.268,20.000,,,,,,
+J1743,Idursulfase injection,1 MG,572.171,20.000,,,,,,
+J1745,Infliximab not biosimil 10mg,10 MG,29.856,20.000,,,,,,
+J1746,"Inj., ibalizumab-uiyk, 10 mg",10 MG,79.997,20.000,,,,,,
+J1747,"Inj, spesolimab-sbzo, 1 mg",1 MG,65.728,20.000,,,,,,
+J1749,"Inj, iloprost, 0.1 mcg",0.1 MCG,5.651,20.000,,,,,,
+J1750,Inj iron dextran,50 MG,19.005,20.000,,,,,,
+J1756,Iron sucrose injection,1 MG,0.224,20.000,,,,,,
+J1786,Imuglucerase injection,10 UNITS,43.203,20.000,,,,,,
+J1790,Droperidol injection,up to 5 MG,5.348,20.000,,,,,,
+J1805,"Inj, esmolol hcl, 10mg",10 MG,0.246,20.000,,,,,,
+J1806,Inj esmolol hcl wg crit care,10 MG,0.196,20.000,,,,,,
+J1808,"Inj, folic acid, 0.1 mg",0.1 MG,0.053,20.000,,,,,,
+J1809,"Inj, fosdenopterin, 0.1mg",0.1 MG,17.736,20.000,,,,,,
+J1811,Fiasp for insulin pump use,50 UNITS,1.181,20.000,,,,,,
+J1813,Lyumjev for insulin pump use,50 UNITS,3.903,20.000,,,,,,
+J1817,Insulin for insulin pump use,50 UNITS,3.116,20.000,,,,,,
+J1823,"Inj. inebilizumab-cdon, 1 mg",1 MG,511.573,20.000,,,,,,
+J1836,"Inj, metronidazole, 10 mg",10 MG,0.034,20.000,,,,,,
+J1837,"Inj, posaconazole, 1 mg",1 MG,0.385,20.000,,,,,,
+J1885,Ketorolac tromethamine inj,15 MG,0.569,20.000,,,,,,
+J1920,"Inj, labetalol hcl, 5mg",5 MG,0.588,20.000,,,,,,
+J1921,"Inj labetalol hcl hikma, 5mg",5 MG,0.874,20.000,,,,,,
+J1930,Lanreotide injection,1 MG,41.688,20.000,,,,,,
+J1931,Laronidase injection,0.1 MG,41.498,20.000,,,,,,
+J1932,"Inj, lanreotide, (cipla) 1mg",1 MG,20.330,20.000,,,,,,
+J1938,"Inj, furosemide, 1 mg",1 MG,0.018,20.000,,,,,,
+J1939,"Inj, bumetanide, 0.5 mg",0.5 MG,0.493,20.000,,,,,,
+J1943,"Inj., aristada initio, 1 mg",1 MG,3.459,20.000,,,,,,
+J1944,Aripiprazole lauroxil 1 mg,1 MG,3.550,20.000,,,,,,
+J1950,Leuprolide acetate /3.75 mg,3.75 MG,1799.052,18.505,,,,,,Inflation-adjusted coinsurance
+J1951,Inj fensolvi 0.25 mg,0.25 MG,141.696,20.000,,,,,,
+J1952,"Leuprolide inj, camcevi, 1mg",1 mg,36.373,20.000,,,,,,
+J1954,Inj leu acet lutr dpt 7.5 mg,7.5 MG,683.860,13.851,,,,,,Inflation-adjusted coinsurance
+J1955,Inj levocarnitine per 1 gm,1 GM,24.375,20.000,,,,,,
+J1956,Levofloxacin injection,250 MG,2.565,20.000,,,,,,
+J1957,Injection levetiracetam 5 mg,5 MG,0.013,20.000,,,,,,Added October 2026
+J1958,Inj levetirac sodi chlo 5 mg,5 MG,0.033,20.000,,,,,,Added October 2026
+J1961,Inj lenacapavir (hiv tx) 1mg,1 MG,22.937,20.000,,,,,,
+J2002,"Inj, lidocaine in d5w, 1 mg",1 MG,0.003,20.000,,,,,,
+J2010,Lincomycin injection,300 MG,3.690,20.000,,,,,,
+J2020,Linezolid injection,200 MG,2.431,20.000,,,,,,
+J2021,"Inj, linezolid (hospira)",200 MG,31.611,20.000,,,,,,
+J2060,Lorazepam injection,2 MG,2.197,20.000,,,,,,
+J2151,"Inj, mannitol, 250 mg",250 MG,0.112,20.000,,,,,,
+J2175,Meperidine hydrochl /100 mg,100 MG,9.652,20.000,,,,,,
+J2182,"Injection, mepolizumab, 1mg",1 MG,32.181,20.000,,,,,,
+J2183,Inj meropenem (wg crit care),100 MG,1.339,20.000,,,,,,
+J2184,"Inj, meropenem (b. braun)",100 MG,1.921,10.855,,,,,,Inflation-adjusted coinsurance
+J2185,Meropenem,100 MG,0.358,20.000,,,,,,
+J2210,Methylergonovin maleate inj,0.2 MG,22.117,20.000,,,,,,
+J2246,"Inj, micafungin (baxter)",1 MG,0.334,20.000,,,,,,
+J2247,"Inj, micafungin (par pharm)",1 MG,0.219,20.000,,,,,,
+J2248,Micafungin sodium injection,1 MG,0.203,20.000,,,,,,
+J2250,Inj midazolam hydrochloride,1 MG,0.167,20.000,,,,,,
+J2251,Inj midazolam in 0.9% nacl,1 MG,0.078,20.000,,,,,,
+J2260,Inj milrinone lactate / 5 mg,5 MG,1.143,20.000,,,,,,
+J2267,"Inj, mirikizumab-mrkz, 1 mg",1 MG,32.584,20.000,,,,,,"""lesser of"" methodology applied"
+J2270,Morphine sulfate injection,10 MG,7.259,20.000,,,,,,
+J2272,"Inj, morphine (fresenius)",10 MG,9.406,20.000,,,,,,
+J2274,Inj morphine pf epid ithc,10 MG,16.044,20.000,,,,,,
+J2277,"Inj, motixafortide, 0.25 mg",0.25 MG,26.479,20.000,,,,,,
+J2278,Ziconotide injection,1 MCG,10.656,20.000,,,,,,
+J2280,"Inj, moxifloxacin 100 mg",100 MG,8.744,20.000,,,,,,
+J2281,Inj moxifloxacin (fres kabi),100 MG,6.641,20.000,,,,,,
+J2290,"Inj, nafcillin sodium, 20 mg",20 MG,0.047,20.000,,,,,,
+J2291,"Inj, nafcillin (baxter) 20mg",20 MG,0.135,20.000,,,,,,
+J2300,Inj nalbuphine hydrochloride,10 MG,4.071,20.000,,,,,,
+J2305,"Inj, nitroglycerin, 5 mg",5 MG,1.542,20.000,,,,,,
+J2312,"Inj naloxone hcl nos, 0.01mg",0.01 MG,0.076,20.000,,,,,,
+J2315,"Naltrexone, depot form",1 MG,4.537,19.283,,,,,,Inflation-adjusted coinsurance
+J2323,Natalizumab injection,1 MG,23.927,20.000,,,,,,
+J2327,Inj risankizumab-rzaa 1 mg,1 MG,14.011,20.000,,,,,,
+J2329,"Inj ublituximab-xiiy, 1 mg",1 MG,71.089,20.000,,,,,,
+J2350,"Injection, ocrelizumab, 1 mg",1 MG,60.689,20.000,,,,,,
+J2351,Inj ocrelizumab 1mg hya-ocsq,1 MG,47.287,20.000,,,,,,
+J2353,"Octreotide injection, depot",1 MG,211.321,20.000,,,,,,
+J2354,"Octreotide inj, non-depot",25 MCG,0.574,20.000,,,,,,
+J2356,"Inj tezepelumab-ekko, 1mg",1 MG,17.839,20.000,,,,,,"""lesser of"" methodology applied"
+J2357,Omalizumab injection,5 MG,45.687,20.000,,,,,,"""lesser of"" methodology applied"
+J2358,Olanzapine long-acting inj,1 MG,3.202,20.000,,,,,,
+J2359,"Inj. olanzapine, 0.5mg",0.5 MG,0.615,20.000,,,,,,
+J2360,Orphenadrine injection,60 MG,6.274,20.000,,,,,,
+J2361,Inj depemokimab-ulaa 1 mg,1 MG,275.391,20.000,,,,,,Added October 2026
+J2371,Inj phenylephrine hcl 20 mcg,20 MCG,0.002,20.000,,,,,,
+J2372,"Inj, biorphen, 20 micrograms",20 MCG,0.162,20.000,,,,,,
+J2373,"Inj, immphentiv, 20 mcg",20 MCG,0.136,20.000,,,,,,
+J2374,Apraclonidine hcl opht 0.1ml,0.1 ML,28.804,20.000,,,,,,Added October 2026
+J2401,Chloroprocaine hcl injection,1 MG,0.045,20.000,,,,,,
+J2403,"Chloroprocaine opht gel, 1mg",1 MG,0.721,20.000,,,,,,
+J2404,"Inj, nicardipine 0.1 mg",0.1 MG,0.057,20.000,,,,,,
+J2405,Ondansetron hcl injection,1 MG,0.084,20.000,,,,,,
+J2406,"Injection, oritavancin 10 mg",10 MG,44.392,20.000,,,,,,
+J2407,"Injection, oritavancin",10 MG,29.811,20.000,,,,,,
+J2425,Palifermin injection,50 MCG,38.839,15.688,,,,,,Inflation-adjusted coinsurance
+J2426,"Inj, invega sustenna, 1 mg",1 MG,15.437,20.000,,,,,,
+J2427,"Inj, invega hafyera/trinza",1MG,13.246,20.000,,,,,,
+J2428,"Inj, erzofri, 1 mg",1 MG,15.587,20.000,,,,,,
+J2430,Pamidronate disodium /30 mg,30 MG,11.306,20.000,,,,,,
+J2468,"Inj, palonosetron (posfrea)",25 MCG,54.086,20.000,,,,,,
+J2469,Palonosetron hcl,25 MCG,0.469,20.000,,,,,,AMP-based payment limit
+J2501,Paricalcitol,1 MCG,0.891,20.000,,,,,,
+J2502,"Inj, pasireotide long acting",1 MG,613.140,14.593,,,,,,Inflation-adjusted coinsurance
+J2506,Inj pegfilgrast ex bio 0.5mg,0.5 MG,201.241,20.000,,,,,,
+J2507,Pegloticase injection,1 MG,4000.629,18.460,,,,,,Inflation-adjusted coinsurance
+J2508,Pegunigalsidase alfa-iwxj,1 MG,225.998,20.000,,,,,,
+J2516,"Inj, pentamidine isethionate",1 MG,0.482,20.000,,,,,,
+J2540,Penicillin g potassium inj,600000 UNITS,0.781,20.000,,,,,,
+J2543,Piperacillin/tazobactam,1.125 GM,1.183,20.000,,,,,,
+J2545,Pentamidine non-comp unit,300 MG,67.047,20.000,,,,,,
+J2550,Promethazine hcl injection,50 MG,3.241,20.000,,,,,,
+J2560,Phenobarbital sodium inj,120 MG,23.369,20.000,,,,,,
+J2562,Plerixafor injection,1 MG,42.943,20.000,,,,,,
+J2596,Vasopressin (long grove) 1 u,1 UNIT,1.712,20.000,,,,,,
+J2597,Inj desmopressin acetate,1 MCG,3.475,20.000,,,,,,
+J2598,"Inj, vasopressin, 1 unit",1 UNIT,0.566,20.000,,,,,,
+J2599,Inj vasopressin (am reg) 1 u,1 UNIT,0.574,20.000,,,,,,
+J2601,"Inj, vasopressin (baxter)",1 UNIT,2.328,20.000,,,,,,
+J2675,Inj progesterone per 50 mg,50 MG,0.623,20.000,,,,,,
+J2679,Inj fluphenazine hcl 1.25 mg,1.25 MG,7.269,20.000,,,,,,
+J2680,Fluphenazine decanoate 25 mg,25 MG,6.174,20.000,,,,,,
+J2690,Procainamide hcl injection,1 GM,394.868,20.000,,,,,,
+J2700,Oxacillin sodium injeciton,250 MG,0.768,20.000,,,,,,
+J2704,"Inj, propofol, 10 mg",10 MG,0.093,20.000,,,,,,
+J2720,Inj protamine sulfate/10 mg,10 MG,1.785,20.000,,,,,,
+J2724,Protein c concentrate,10 UNITS,15.034,20.000,,,,,,
+J2760,Phentolaine mesylate inj,5 MG,296.849,20.000,,,,,,
+J2765,Metoclopramide hcl injection,10 MG,0.891,20.000,,,,,,
+J2777,"Inj, faricimab-svoa, 0.1mg",0.1 MG,31.322,20.000,,,,,,
+J2778,Ranibizumab injection,0.1 mg,26.384,20.000,,,,,,
+J2779,"Inj, susvimo 0.1 mg",0.1 MG,73.542,20.000,,,,,,
+J2781,"Inj, pegcetacoplan, 1mg",1 MG,135.267,20.000,,,,,,AMP-based payment limit
+J2782,Inj avacincaptad pegol 0.1mg,0.1 MG,100.563,20.000,,,,,,
+J2783,Rasburicase,0.5 MG,386.628,20.000,,,,,,
+J2785,Regadenoson injection,0.1 MG,2.507,20.000,,,,,,
+J2786,"Injection, reslizumab, 1mg",1 MG,11.907,20.000,,,,,,
+J2788,Rho d immune globulin 50 mcg,50 MCG (250 IU),27.653,20.000,,,,,,
+J2789,Riboflavin epioxa/hd<=2ml,UP TO 2 ML,41359.618,20.000,,,,,,Added October 2026
+J2790,Rho d immune globulin inj,300 MCG (1500 IU),82.081,20.000,,,,,,
+J2791,Rhophylac injection,100 IU,4.837,20.000,,,,,,
+J2792,"Rho(d) immune globulin h, sd",100 IU,35.395,20.000,,,,,,
+J2794,"Inj risperdal consta, 0.5 mg",0.5 MG,10.662,20.000,,,,,,
+J2795,Ropivacaine hcl injection,1 MG,0.040,20.000,,,,,,
+J2798,"Inj., perseris, 0.5 mg",0.5 mg,12.191,20.000,,,,,,
+J2799,"Inj, uzedy, 1 mg",1 MG,26.227,20.000,,,,,,
+J2800,Methocarbamol injection,10 ML,3.839,20.000,,,,,,
+J2802,"Inj, romiplostim 1 microgram",1 MCG,11.713,17.890,,,,,,Inflation-adjusted coinsurance
+J2804,"Inj, rifampin, 1 mg",1 MG,0.165,20.000,,,,,,
+J2805,Sincalide injection,5 MCG,145.638,20.000,,,,,,
+J2820,Sargramostim injection,50 MCG,62.470,20.000,,,,,,
+J2860,"Injection, siltuximab",10 MG,178.427,17.398,,,,,,Inflation-adjusted coinsurance
+J2865,Inj sulfameth/trim 5 mg/1 mg,5MG-1MG,0.034,20.000,,,,,,
+J2916,Na ferric gluconate complex,12.5 MG,1.956,20.000,,,,,,
+J2919,"Inj, methylpred sod succ 5mg",5 MG,0.255,20.000,,,,,,
+J2997,Alteplase recombinant,1 MG,98.416,20.000,,,,,,
+J3000,Streptomycin injection,1 GM,16.407,20.000,,,,,,
+J3010,Fentanyl citrate injection,0.1 MG,1.362,20.000,,,,,,
+J3032,Inj. eptinezumab-jjmr 1 mg,1 MG,21.243,18.702,,,,,,Inflation-adjusted coinsurance
+J3055,Inj talquetamab-tgvs 0.25 mg,0.25 MG,77.473,18.921,,,,,,Inflation-adjusted coinsurance
+J3060,"Inj, taliglucerase alfa 10 u",10 UNITS,42.473,20.000,,,,,,
+J3090,Inj tedizolid phosphate,1 MG,2.062,19.560,,,,,,Inflation-adjusted coinsurance
+J3095,Telavancin injection,10 MG,8.149,20.000,,,,,,
+J3101,Tenecteplase injection,1 MG,230.742,14.876,,,,,,Inflation-adjusted coinsurance
+J3105,Terbutaline sulfate inj,1 MG,1.000,20.000,,,,,,
+J3111,Inj. romosozumab-aqqg 1 mg,1 MG,12.792,18.523,,,,,,Inflation-adjusted coinsurance
+J3121,Inj testostero enanthate 1mg,1 MG,0.052,20.000,,,,,,
+J3145,Testosterone undecanoate 1mg,1 MG,2.203,18.111,,,,,,Inflation-adjusted coinsurance
+J3230,Chlorpromazine hcl injection,50 MG,16.802,20.000,,,,,,
+J3240,Thyrotropin injection,0.9 MG,2155.112,20.000,,,,,,
+J3241,Inj. teprotumumab-trbw 10 mg,10 MG,381.627,20.000,,,,,,
+J3243,Tigecycline injection,1 MG,0.479,20.000,,,,,,
+J3245,"Inj., tildrakizumab, 1 mg",1 MG,120.965,20.000,,,,,,
+J3246,Tirofiban hcl,0.25 MG,2.615,20.000,,,,,,Please see the NDC-HCPCS crosswalk for payable NDCs associated with this code
+J3247,Inj secukinumab intrav 1mg,1 MG,18.131,20.000,,,,,,
+J3250,Trimethobenzamide hcl inj,200 MG,62.418,20.000,,,,,,
+J3260,Tobramycin sulfate injection,80 MG,2.345,20.000,,,,,,
+J3262,Tocilizumab injection,1 MG,5.325,20.000,,,,,,
+J3263,"Inj, toripalimab-tpzi, 1 mg",1 MG,40.658,20.000,,,,,,
+J3268,"Injection, delafloxacin",1 MG,0.478,20.000,,,,,,Added October 2026
+J3285,Treprostinil injection,1 MG,54.563,20.000,,,,,,
+J3299,Inj xipere 1 mg,1 MG,47.705,20.000,,,,,,
+J3300,Triamcinolone a inj prs-free,1 MG,17.199,5.754,,,,,,Inflation-adjusted coinsurance
+J3301,Triamcinolone acet inj nos,10 MG,0.787,20.000,,,,,,
+J3304,Inj triamcinolone ace xr 1mg,1 MG,19.159,20.000,,,,,,
+J3315,Triptorelin pamoate,3.75 MG,467.059,20.000,,,,,,
+J3316,"Inj., triptorelin xr 3.75 mg",3.75 MG,3830.439,20.000,,,,,,
+J3358,"Ustekinumab, iv inject, 1 mg",1 MG,10.249,20.000,,,,,,
+J3360,Diazepam injection,5 MG,5.069,20.000,,,,,,
+J3373,"Inj, vancomycin hcl, 10 mg",10 MG,0.032,20.000,,,,,,
+J3374,"Inj, vancomycin (mylan) 10mg",10 MG,0.091,20.000,,,,,,
+J3375,"Inj, vanco (tyzavan) 10mg",10 MG,0.143,20.000,,,,,,
+J3376,Inj vancomycin (hikma) 10mg,10 MG,0.016,20.000,,,,,,
+J3379,"Inj, valproate sod, 5 mg",5 MG,0.032,20.000,,,,,,
+J3380,Inj vedolizumab iv 1 mg,1 MG,20.949,20.000,,,,,,
+J3385,Velaglucerase alfa,100 UNITS,393.929,20.000,,,,,,
+J3396,Verteporfin injection,0.1 MG,11.342,20.000,,,,,,
+J3401,"Vyjuvek 5x10^9pfu/ml, 0.1 ml",0.1 ML,1029.469,20.000,,,,,,
+J3402,Inj. remestemcel-l-rknd/ td,Per Therapeutic Dose,202159.938,20.000,,,,,,
+J3404,Inj zopapogene per ther dose,Per Therapeutic Dose,119675.512,20.000,,,,,,Added October 2026
+J3405,Inj onase abepar-brve treat,Per treatment,2729937.922,20.000,,,,,,Added October 2026
+J3410,Hydroxyzine hcl injection,25 MG,14.113,20.000,,,,,,
+J3411,Thiamine hcl 100 mg,100 MG,1.486,20.000,,,,,,
+J3415,Pyridoxine hcl 100 mg,100 MG,15.788,20.000,,,,,,
+J3420,Vitamin b12 injection,1000 MCG,0.648,20.000,,,,,,
+J3425,Hydroxocobalamin im 10mcg,10 MCG,0.007,20.000,,,,,,
+J3430,Vitamin k phytonadione inj,1 MG,3.989,20.000,,,,,,
+J3465,"Injection, voriconazole",10 MG,0.548,20.000,,,,,,
+J3470,Hyaluronidase injection,150 UNITS,31.802,20.000,,,,,,
+J3473,Hyaluronidase recombinant,1 USP UNIT,0.364,20.000,,,,,,
+J3475,Inj magnesium sulfate,500 MG,0.436,20.000,,,,,,
+J3480,Inj potassium chloride,2 MEQ,0.130,20.000,,,,,,
+J3485,Zidovudine,10 MG,1.513,20.000,,,,,,
+J3486,Ziprasidone mesylate,10 MG,5.940,20.000,,,,,,
+J3489,Zoledronic acid 1mg,1 MG,17.673,20.000,,,,,,
+J7030,Normal saline solution infus,1000 CC,2.263,20.000,,,,,,
+J7040,Normal saline solution infus,500 ML,1.385,20.000,,,,,,
+J7042,5% dextrose/normal saline,500 ML,1.265,20.000,,,,,,
+J7050,Normal saline solution infus,250 CC,0.717,20.000,,,,,,
+J7060,5% dextrose/water,500 ML,2.082,20.000,,,,,,
+J7070,D5w infusion,1000 CC,3.370,20.000,,,,,,
+J7120,Ringers lactate infusion,1000 CC,2.369,20.000,,,,,,
+J7170,"Inj., emicizumab-kxwh 0.5 mg",0.5 MG,58.114,20.000,,,,,1,
+J7171,"Inj, adzynma, 10 iu",10 UNITS,36.378,20.000,,,,,,
+J7172,"Inj marstacim-hncq, 0.5 mg",0.5 MG,50.760,20.000,,,,,1,
+J7173,"Inj. concizumab-mtci, 0.5 mg",0.5 MG,84.782,20.000,,,,,1,
+J7174,Injection fitusiran 0.04 mg,0.04 MG,133.477,20.000,,,,,1,
+J7175,"Inj, factor x, (human), 1iu",1 IU,9.953,20.000,,,,,1,
+J7177,"Inj., fibryga, 1 mg",1 MG,1.219,20.000,,,,,1,
+J7178,Inj human fibrinogen con nos,1 MG,1.428,20.000,,,,,1,
+J7179,Vonvendi inj 1 iu vwf:rco,1 IU,1.826,20.000,,,,,1,
+J7180,Factor xiii anti-hem factor,1 IU,11.239,20.000,,,,,1,
+J7181,Factor xiii recomb a-subunit,1 IU,19.328,20.000,,,,,1,
+J7182,Factor viii recomb novoeight,1 IU,1.557,20.000,,,,,1,
+J7183,Wilate injection,1 I.U. VWF:RCO,1.304,20.000,,,,,1,
+J7185,Xyntha inj,1 IU,1.369,20.000,,,,,1,
+J7186,Antihemophilic viii/vwf comp,PER FACTOR VIII IU,1.267,20.000,,,,,1,
+J7187,"Humate-p, inj",1 IU,1.531,20.000,,,,,1,
+J7188,Factor viii recomb obizur,1 IU,3.236,20.000,,,,,1,
+J7189,Factor viia recomb novoseven,1 MCG,2.774,20.000,,,,,1,
+J7190,Factor viii,1 IU,1.248,20.000,,,,,1,
+J7192,Factor viii recombinant nos,1 IU,1.616,20.000,,,,,1,
+J7193,Factor ix non-recombinant,1 IU,1.412,20.000,,,,,1,
+J7194,Factor ix complex,1 IU,1.748,20.000,,,,,1,
+J7195,Factor ix recombinant nos,1 IU,1.868,20.000,,,,,1,
+J7197,Antithrombin iii injection,1 IU,4.264,19.759,,,,,,Inflation-adjusted coinsurance
+J7198,Anti-inhibitor,1 IU,2.474,20.000,,,,,1,
+J7200,Factor ix recombinan rixubis,1 IU,1.713,20.000,,,,,1,
+J7201,Factor ix alprolix recomb,1 IU,3.761,20.000,,,,,1,
+J7202,Factor ix idelvion inj,1 IU,5.491,20.000,,,,,1,
+J7203,Factor ix recomb gly rebinyn,1 IU,4.715,20.000,,,,,1,
+J7204,Inj recombin esperoct per iu,1 IU,2.363,20.000,,,,,1,
+J7205,Factor viii fc fusion recomb,1 IU,2.557,20.000,,,,,1,
+J7207,Factor viii pegylated recomb,1 IU,2.185,20.000,,,,,1,
+J7208,Inj. jivi 1 iu,1 IU,2.744,19.449,,,,,1,Inflation-adjusted coinsurance
+J7209,Factor viii nuwiq recomb 1iu,1 IU,1.179,20.000,,,,,1,
+J7210,"Inj, afstyla, 1 i.u.",1 IU,1.612,20.000,,,,,1,
+J7211,"Inj, kovaltry, 1 i.u.",1 IU,1.574,20.000,,,,,1,
+J7212,Factor viia recomb sevenfact,1 MCG,2.250,20.000,,,,,1,
+J7213,"Inj, ixinity, 1 i.u.",1 IU,2.035,19.552,,,,,1,Inflation-adjusted coinsurance
+J7214,Altuviiio per factor viii iu,1 IU,4.656,20.000,,,,,1,
+J7308,Aminolevulinic acid hcl top,354 MG,390.523,20.000,,,,,,
+J7311,"Inj., retisert, 0.01 mg",0.01 MG,341.131,20.000,,,,,,
+J7312,Dexamethasone intra implant,0.1 MG,202.424,20.000,,,,,,
+J7313,"Inj., iluvien, 0.01 mg",0.01 MG,516.516,20.000,,,,,,
+J7318,"Inj, durolane 1 mg",1 MG,6.314,20.000,,,,,,
+J7320,"Genvisc 850, inj, 1mg",1 MG,4.231,20.000,,,,,,
+J7321,Hyalgan supartz visco-3 dose,per dose,69.868,20.000,,,,,,
+J7322,"Hyaluronan, hymo or hymo one",1 MG,17.940,20.000,,,,,,
+J7323,Euflexxa inj per dose,per dose,103.603,20.000,,,,,,
+J7324,Orthovisc inj per dose,PER DOSE,116.793,20.000,,,,,,
+J7325,Synvisc or synvisc-one,1 MG,6.011,20.000,,,,,,
+J7326,Gel-one,per dose,524.063,20.000,,,,,,
+J7327,Monovisc inj per dose,PER DOSE,626.144,20.000,,,,,,
+J7328,Gelsyn-3 injection 0.1 mg,0.1 MG,0.550,20.000,,,,,,
+J7329,"Inj, trivisc 1 mg",1 MG,4.207,20.000,,,,,,
+J7331,"Synojoynt, inj., 1 mg",1 MG,3.115,20.000,,,,,,
+J7332,"Inj., triluron, 1 mg",1 MG,10.188,20.000,,,,,,
+J7336,Capsaicin 8% patch,1 SQ CM,3.509,20.000,,,,,,
+J7340,Carbidopa levodopa ent 100ml,100 ML,243.108,20.000,,,,,,
+J7345,"Aminolevulinic acid, 10% gel",10 MG,1.848,20.000,,,,,,
+J7351,Inj bimatoprost itc imp1mcg,1 MCG,213.795,20.000,,,,,,
+J7354,"Cantharidin top, applicator",Per 3.2 mg single-use applicator,683.472,20.000,,,,,,
+J7355,Inj travoprost intra impl,1 MCG,196.804,20.000,,,,,,
+J7356,Inj foscarb/foslevodopa 5 mg,0.25 MG - 5 MG,0.702,20.000,,,,,,
+J7402,Mometasone sinus sinuva,10 MCG,11.345,20.000,,,,,,
+J7500,Azathioprine oral 50mg,50 MG,0.103,20.000,,,,,,
+J7502,Cyclosporine oral 100 mg,100 MG,1.455,20.000,,,,,,
+J7503,Tacrol envarsus ex rel oral,0.25 MG,1.863,20.000,,,,,,
+J7504,Lymphocyte immune globulin,250 MG,5509.072,10.918,,,,,,Inflation-adjusted coinsurance
+J7507,Tacrolimus imme rel oral 1mg,1 MG,0.162,20.000,,,,,,
+J7508,Tacrol astagraf ex rel oral,0.1 MG,0.604,20.000,,,,,,
+J7509,Methylprednisolone oral,4 MG,0.128,20.000,,,,,,
+J7510,Prednisolone oral per 5 mg,5 MG,0.498,20.000,,,,,,
+J7511,Antithymocyte globuln rabbit,25 MG,1065.837,20.000,,,,,,
+J7512,Prednisone ir or dr oral 1mg,1 MG,0.004,20.000,,,,,,
+J7515,Cyclosporine oral 25 mg,25 MG,0.576,20.000,,,,,,
+J7516,"Inj, cyclosporine 250mg",250 MG,75.649,20.000,,,,,,
+J7518,Mycophenolic acid,180 MG,0.257,20.000,,,,,,
+J7520,"Sirolimus, oral",1 MG,0.609,20.000,,,,,,
+J7521,Tacrolim granules oral susp,0.1 MG,1.328,0.997,,,,,,Inflation-adjusted coinsurance
+J7524,Mycophenol mofetil oral 5 mg,5 MG,0.002,20.000,,,,,,Added October 2026 
+J7525,Tacrolimus injection,5 MG,242.073,20.000,,,,,,
+J7526,Inj mycophenola mofetil 5 mg,5 MG,0.200,20.000,,,,,,Added October 2026 
+J7527,Oral everolimus,0.25 MG,1.126,20.000,,,,,,
+J7529,Mycop mofetil susp oral 5 mg,5 MG,0.034,20.000,,,,,,Added October 2026 
+J7530,Mycophenolat (myhibbin) 5 mg,5 MG,0.115,18.875,,,,,,Added October 2026 - Inflation-adjusted coinsurance
+J7601,Ensifentrine inh 3 mg,3 MG,52.117,20.000,,,,,,
+J7605,Arformoterol non-comp unit,15 mcg,0.542,20.000,,,,,,
+J7606,"Formoterol fumarate, inh",20 MCG,1.373,20.000,,,,,,
+J7608,Acetylcysteine non-comp unit,1 GM,6.398,20.000,,,,,,
+J7611,Albuterol non-comp con,1 MG,0.206,20.000,,,,,,
+J7612,Levalbuterol non-comp con,0.5 MG,0.304,20.000,,,,,,
+J7613,Albuterol non-comp unit,1 MG,0.066,20.000,,,,,,
+J7614,Levalbuterol non-comp unit,0.5 MG,0.076,20.000,,,,,,
+J7620,Albuterol ipratrop non-comp,2.5 MG/0.5 MG,0.197,20.000,,,,,,
+J7626,Budesonide non-comp unit,0.5 MG,0.923,20.000,,,,,,
+J7631,Cromolyn sodium noncomp unit,10 MG,0.385,20.000,,,,,,
+J7639,Dornase alfa non-comp unit,1 MG,56.806,20.000,,,,,,
+J7644,Ipratropium bromide non-comp,1 MG,0.445,20.000,,,,,,
+J7674,"Methacholine chloride, neb",1 MG,1.766,20.000,,,,,,
+J7677,Revefenacin inh non-com 1mcg,1 MCG,0.200,20.000,,,,,,
+J7682,Tobramycin non-comp unit,300 MG,11.404,20.000,,,,,,
+J7686,"Treprostinil, non-comp unit", 1.74 MG,830.383,20.000,,,,,,
+J8501,Oral aprepitant,5 MG,2.511,20.000,,,,,,
+J8502,"Inj, aponvie, 1 mg",1 MG,1.998,20.000,,,,,,
+J8515,"Cabergoline, oral 0.25mg",0.25 MG,0.337,20.000,,,,,,
+J8522,"Capecitabine, oral, 50 mg",50 MG,0.029,20.000,,,,,,
+J8530,Cyclophosphamide oral 25 mg,25 MG,1.233,20.000,,,,,,
+J8540,Oral dexamethasone,0.25 MG,0.022,20.000,,,,,,
+J8541,"Oral, hemady, 0.25 mg",0.25 MG,0.375,20.000,,,,,,Added October 2026
+J8560,Etoposide oral 50 mg,50 MG,88.164,20.000,,,,,,
+J8610,Methotrexate oral 2.5 mg,2.5 MG,0.157,20.000,,,,,,
+J8611,Oral methotrexate (jylamvo),2.5 MG,18.264,20.000,,,,,,
+J8612,Oral methotrexate (xatmep),2.5 MG,22.855,20.000,,,,,,
+J8655,"Oral netupitant, palonosetro",0.5 MG,455.762,17.677,,,,,,Inflation-adjusted coinsurance
+J8700,Temozolomide,5 MG,0.208,20.000,,,,,,
+J8705,Topotecan oral,0.25 mg,125.461,20.000,,,,,,
+J9000,Doxorubicin hcl injection,10 MG,3.120,20.000,,,,,,
+J9011,"Datopotamab deruxtecan, 1 mg",1 MG,52.505,20.000,,,,,,
+J9017,Arsenic trioxide injection,1 MG,3.837,20.000,,,,,,
+J9021,"Inj, aspara, rylaze, 0.1 mg",0.1 MG,59.042,18.979,,,,,,Inflation-adjusted coinsurance
+J9022,"Inj, atezolizumab,10 mg",10 MG,96.873,20.000,,,,,,
+J9023,"Injection, avelumab, 10 mg",10 MG,108.994,20.000,,,,,,
+J9024,Inj atezolizumb 5mg hya-tqjs,5 MG,32.419,20.000,,,,,,
+J9025,Azacitidine injection,1 MG,0.269,20.000,,,,,,
+J9026,"Inj, tarlatamab-dlle, 1 mg",1 MG,1613.751,20.000,,,,,,
+J9027,Clofarabine injection,1 MG,15.518,20.000,,,,,,
+J9028,"Inj, nogapendekin pmln, 1mcg",1 MCG,94.139,20.000,,,,,,
+J9029,"Instill adstiladrin, tx dose",PER THERAPEUTIC DOSE,65200.563,20.000,,,,,,
+J9030,Bcg live intravesical 1mg,1 MG,3.532,20.000,,,,,,
+J9032,"Injection, belinostat, 10mg",10 MG,55.526,19.364,,,,,,Inflation-adjusted coinsurance
+J9033,"Inj, bendamustine (nos) 1mg",1 MG,1.846,20.000,,,,,,
+J9034,"Inj., bendeka 1 mg",1 MG,11.422,20.000,,,,,,
+J9035,Bevacizumab injection,10 MG,75.492,20.000,,,,,,
+J9036,Inj. belrapzo/bendamustine,1 MG,9.264,20.000,,,,,,AMP-based payment limit
+J9038,Inj axatilimab-csfr 0.1 mg,0.1 MG,56.498,20.000,,,,,,
+J9039,"Injection, blinatumomab",1 MCG,173.047,17.991,,,,,,Inflation-adjusted coinsurance
+J9040,Bleomycin sulfate injection,15 UNITS,23.120,20.000,,,,,,
+J9041,"Injection, bortezomib, 0.1mg",0.1 MG,2.628,20.000,,,,,,
+J9042,Brentuximab vedotin inj,1 MG,279.207,17.251,,,,,,Inflation-adjusted coinsurance
+J9043,Cabazitaxel injection,1 MG,231.688,20.000,,,,,,
+J9045,Carboplatin injection,50 MG,3.101,20.000,,,,,,
+J9047,"Injection, carfilzomib, 1 mg",1 MG,60.391,17.068,,,,,,Inflation-adjusted coinsurance
+J9049,"Inj, bortezomib, hospira",0.1 MG,1.531,20.000,,,,,,
+J9050,Carmustine injection,100 MG,195.730,20.000,,,,,,
+J9053,Inj belantamab mafodot blmf,0.1 MG,36.201,20.000,,,,,,
+J9054,Inj bortezomib boruzu 0.1 mg,0.1 MG,23.905,20.000,,,,,,
+J9055,Cetuximab injection,10 MG,80.858,20.000,,,,,,
+J9056,"Inj, vivimusta, 1 mg",1 MG,28.614,20.000,,,,,,
+J9060,Cisplatin 10 mg injection,10 MG,2.497,20.000,,,,,,
+J9061,"Inj, amivantamab-vmjw",2 MG,23.622,18.492,,,,,,Inflation-adjusted coinsurance
+J9062,Inj amivantamab 5mg hyaluron,5 MG,40.492,20.000,,,,,,
+J9063,"Inj, elahere, 1 mg",1 MG,71.584,20.000,,,,,,
+J9065,Inj cladribine per 1 mg,1 MG,7.872,20.000,,,,,,
+J9071,Inj cyclophosphamd auromedic,5 MG,0.471,20.000,,,,,,
+J9072,Inj cyclophos frindovyx 5 mg,5 MG,8.120,20.000,,,,,,
+J9073,Inj cyclophos dr reddys 5 mg,5 MG,0.465,20.000,,,,,,
+J9074,"Inj, cyclophosphamd, sandoz",5 MG,3.238,20.000,,,,,,
+J9075,"Inj, cyclophosphamide, nos",5 MG,0.692,20.000,,,,,,
+J9076,"Inj, cyclophos (baxter) 5mg",5 MG,4.601,20.000,,,,,,
+J9100,Cytarabine hcl 100 mg inj,100 MG,0.853,20.000,,,,,,
+J9118,Inj. calaspargase pegol-mknl,10 UNIT,86.179,20.000,,,,,,
+J9119,"Inj., cemiplimab-rwlc, 1 mg",1 MG,30.825,20.000,,,,,,
+J9120,Dactinomycin injection,0.5 MG,320.899,20.000,,,,,,
+J9130,Dacarbazine 100 mg inj,100 MG,3.581,20.000,,,,,,
+J9144,"Daratumumab, hyaluronidase",10 MG,57.973,19.825,,,,,,Inflation-adjusted coinsurance
+J9145,"Injection, daratumumab 10 mg",10 MG,75.228,19.508,,,,,,Inflation-adjusted coinsurance
+J9150,Daunorubicin injection,10 MG,26.912,20.000,,,,,,
+J9153,"Inj daunorubicin, cytarabine",1 MG/2.27 MG,274.300,18.826,,,,,,Inflation-adjusted coinsurance
+J9155,Degarelix injection,1 MG,4.509,20.000,,,,,,
+J9161,Inj denileuk difti-cxdl 1mcg,1 MCG,12.826,20.000,,,,,,
+J9171,Docetaxel injection,1 MG,0.471,20.000,,,,,,
+J9172,"Docetaxel (docivyx), 1 mg",1 MG,46.193,20.000,,,,,,
+J9173,"Inj., durvalumab, 10 mg",10 MG,87.658,20.000,,,,,,
+J9174,"Inj, docetaxel (beizray) 1mg",1 MG,46.531,20.000,,,,,,
+J9176,"Injection, elotuzumab, 1mg",1 MG,8.188,20.000,,,,,,
+J9177,Inj enfort vedo-ejfv 0.25mg,0.25 MG,36.535,20.000,,,,,,
+J9178,"Inj, epirubicin hcl, 2 mg",2 MG,1.868,20.000,,,,,,
+J9179,Eribulin mesylate injection,0.1 MG,63.972,20.000,,,,,,
+J9183,Gemcitabine intravesical sys,225 MG,73054.053,20.000,,,,,,
+J9184,Inj gemcitabin (avyxa) 200mg,200 MG,403.465,20.000,,,,,,
+J9185,Fludarabine phosphate inj,50 MG,177.924,20.000,,,,,,
+J9186,"Inj etoposide (avyxa), 1 mg",1 MG,4.240,20.000,,,,,,Added October 2026
+J9187,"Inj, etoposide, 1 mg",1 MG,0.094,20.000,,,,,,Added October 2026
+J9191,Inj fluorouracil (avyxa)10mg,10 MG,14.840,20.000,,,,,,Added October 2026
+J9192,"Inj, fluorouracil, 10 mg",10 MG,0.039,20.000,,,,,,Added October 2026
+J9200,Floxuridine injection,500 MG,4389.848,20.000,,,,,,
+J9201,In gemcitabine hcl nos 200mg,200 MG,2.734,20.000,,,,,,
+J9203,Gemtuzumab ozogamicin 0.1 mg,0.1 MG,247.370,20.000,,,,,,
+J9204,"Inj mogamulizumab-kpkc, 1 mg",1 MG,258.536,20.000,,,,,,
+J9205,Inj irinotecan liposome 1 mg,1 MG,66.856,20.000,,,,,,
+J9206,Irinotecan injection,20 MG,1.569,20.000,,,,,,AMP-based payment limit
+J9207,Ixabepilone injection,1 MG,139.498,20.000,,,,,,
+J9208,Ifosfamide injection,1 GM,27.905,20.000,,,,,,
+J9209,Mesna injection,200 MG,1.203,20.000,,,,,,
+J9210,"Inj., emapalumab-lzsg, 1 mg",1 MG,391.861,20.000,,,,,,
+J9211,Idarubicin hcl injection,5 MG,33.394,20.000,,,,,,
+J9217,Leuprolide acetate suspnsion,7.5 MG,188.849,20.000,,,,,,
+J9223,"Inj. lurbinectedin, 0.1 mg",0.1 MG,215.722,20.000,,,,,,
+J9226,Supprelin la implant,50 MG,37837.548,20.000,,,,,,
+J9227,Inj. isatuximab-irfc 10 mg,10 MG,89.812,19.193,,,,,,Inflation-adjusted coinsurance
+J9228,Ipilimumab injection,1 MG,190.433,20.000,,,,,,
+J9229,Inj inotuzumab ozogam 0.1 mg,0.1 MG,2873.103,20.000,,,,,,
+J9232,Inj docetaxel (hospira) 1 mg,1 MG,0.513,20.000,,,,,,
+J9245,Inj melpha hydroch nos 50 mg,50 MG,90.032,20.000,,,,,,
+J9246,"Inj., evomela, 1 mg",1 MG,18.569,20.000,,,,,,
+J9248,Inj melphalan (hepzato) 1 mg,1 MG,797.415,20.000,,,,,,
+J9256,"Inj, nipocalimab-aahu, 3 mg",3 MG,32.321,20.000,,,,,,
+J9260,Inj methotrexate sodium 50mg,50 MG,2.909,20.000,,,,,,
+J9261,Nelarabine injection,50 MG,40.872,20.000,,,,,,
+J9263,Oxaliplatin,0.5 MG,0.087,20.000,,,,,,
+J9264,Paclitaxel protein bound,1 MG,3.640,20.000,,,,,,
+J9266,Pegaspargase injection,1 EA,29845.265,18.380,,,,,,Inflation-adjusted coinsurance
+J9267,Paclitaxel injection,1 MG,0.108,20.000,,,,,,
+J9268,Pentostatin injection,10 MG,2612.893,19.207,,,,,,Inflation-adjusted coinsurance
+J9269,Inj. tagraxofusp-erzs 10 mcg,10 MCG,357.292,20.000,,,,,,
+J9271,Inj pembrolizumab,1 MG,62.253,20.000,,,,,,
+J9272,"Inj, dostarlimab-gxly, 10 mg",10 MG,250.548,20.000,,,,,,
+J9273,"Inj tisotu vedotin-tftv, 1mg",1 MG,196.121,19.149,,,,,,Inflation-adjusted coinsurance
+J9274,"Inj, tebentafusp-tebn, 1 mcg",1 MCG,228.006,20.000,,,,,,
+J9275,"Inj cosibelimab-ipdl, 2 mg",2 MG,21.989,20.000,,,,,,Added October 2026
+J9276,"Inj zanidatamab-hrii, 2 mg",2 MG,25.734,20.000,,,,,,
+J9277,Pembrolizumab 1mg berahyalur,1 MG,32.307,20.000,,,,,,
+J9278,"Inj, carboplatin (avyxa)",1 MG,5.226,20.000,,,,,,
+J9280,Mitomycin injection,5 MG,34.838,20.000,,,,,,
+J9281,Mitomycin instillation,1 MG,329.071,20.000,,,,,,
+J9282,Mitomycin intravesical inst,1 MG,272.918,20.000,,,,,,
+J9286,"Inj glofitamab gxbm, 2.5 mg",2.5 MG,2859.117,20.000,,,,,,
+J9289,Inj nivolumab 2 mg hyaluron,2 MG,27.989,20.000,,,,,,
+J9292,"Inj, pemetrexed dipotassium",10 MG,76.690,20.000,,,,,,
+J9293,Mitoxantrone hydrochl / 5 mg,5 MG,19.418,20.000,,,,,,
+J9294,"Inj pemetrexed, hospira 10mg",10 MG,3.678,20.000,,,,,,
+J9297,Inj pemetrexed (sandoz) 10mg,10 MG,4.879,5.788,,,,,,Inflation-adjusted coinsurance
+J9298,Inj nivol relatlimab 3mg/1mg,3 mg/1 mg,205.442,20.000,,,,,,
+J9299,"Injection, nivolumab",1 MG,34.191,20.000,,,,,,
+J9301,Obinutuzumab inj,10 MG,85.039,19.287,,,,,,Inflation-adjusted coinsurance
+J9303,Panitumumab injection,10 MG,183.275,17.864,,,,,,Inflation-adjusted coinsurance
+J9304,"Inj. pemetrexed, 10 mg",10 MG,92.505,20.000,,,,,,
+J9305,Inj. pemetrexed nos 10mg,10 MG,1.230,20.000,,,,,,
+J9306,"Injection, pertuzumab, 1 mg",1 MG,17.269,19.948,,,,,,Inflation-adjusted coinsurance
+J9307,Pralatrexate injection,1 MG,384.572,20.000,,,,,,
+J9308,"Injection, ramucirumab",5 MG,76.398,20.000,,,,,,
+J9309,"Inj, polatuzumab vedotin 1mg",1 MG,144.103,20.000,,,,,,
+J9311,"Inj rituximab, hyaluronidase",10 mg,36.265,20.000,,,,,,
+J9312,"Inj., rituximab, 10 mg",10 MG,72.094,20.000,,,,,,
+J9314,Inj pemetrexed (teva) 10mg,10 MG,10.986,20.000,,,,,,
+J9316,"Pertuzu, trastuzu, 10 mg",10 MG,59.491,20.000,,,,,,
+J9317,Sacituzumab govitecan-hziy,2.5 MG,37.536,20.000,,,,,,
+J9318,Inj romidepsin non-lyo 0.1mg,0.1 MG,32.864,20.000,,,,,,Added October 2026
+J9319,Inj romidepsin lyophil 0.1mg,0.1 MG,32.343,20.000,,,,,,
+J9321,Inj epcoritamab-bysp 0.16 mg,0.16 MG,57.975,20.000,,,,,,
+J9324,"Inj, pemrydi rtu, 10 mg",10 MG,63.580,20.000,,,,,,
+J9325,Inj talimogene laherparepvec,1 million�PFU,77.657,18.530,,,,,,Inflation-adjusted coinsurance
+J9326,Telisotuzumab vedotin-tllv,1 MG,145.946,20.000,,,,,,
+J9328,Temozolomide injection,1 MG,10.410,20.000,,,,,,
+J9329,"Inj, tislelizumab-jsgr",1 MG,58.086,20.000,,,,,,
+J9330,Temsirolimus injection,1 MG,27.707,20.000,,,,,,
+J9331,Inj sirolimus prot part 1 mg,1 MG,91.030,20.000,,,,,,
+J9332,Inj efgartigimod 2mg,2 MG,32.347,20.000,,,,,,
+J9333,Inj rozanolixizum-noli 1 mg,1 MG,23.626,20.000,,,,,,
+J9334,Inj efgart-alfa 2mg hya-qvfc,2 MG,33.590,20.000,,,,,,"""lesser of"" methodology applied"
+J9341,Inj thiotepa (tepylute) 1 mg,1 MG,37.841,20.000,,,,,,
+J9342,Inj thiotepa nos 1 mg,1 MG,5.871,20.000,,,,,,
+J9345,"Inj, retifanlimab-dlwr, 1 mg",1 MG,30.932,20.000,,,,,,
+J9347,"Inj, tremelimumab-actl, 1 mg",1 MG,146.991,20.000,,,,,,
+J9348,"Inj. naxitamab-gqgk, 1 mg",1 MG,685.988,19.467,,,,,,Inflation-adjusted coinsurance
+J9349,"Inj., tafasitamab-cxix",2 MG,14.428,20.000,,,,,,
+J9350,"Inj mosunetuzumab-axgb, 1 mg",1 MG,676.484,20.000,,,,,,
+J9351,Topotecan injection,0.1 MG,2.067,20.000,,,,,,
+J9353,"Inj. margetuximab-cmkb, 5 mg",5 MG,56.046,19.438,,,,,,Inflation-adjusted coinsurance
+J9354,"Inj, ado-trastuzumab emt 1mg",1 MG,43.860,19.828,,,,,,Inflation-adjusted coinsurance
+J9355,Inj trastuzumab excl biosimi,10 MG,68.871,20.000,,,,,,
+J9356,"Inj. herceptin hylecta, 10mg",10 MG,58.038,20.000,,,,,,
+J9357,Valrubicin injection,200 MG,1230.664,20.000,,,,,,
+J9358,Inj fam-trastu deru-nxki 1mg,1 MG,32.653,18.940,,,,,,Inflation-adjusted coinsurance
+J9359,Inj lon tesirin-lpyl 0.075mg,0.075 MG,226.565,20.000,,,,,,
+J9360,Vinblastine sulfate inj,1 MG,5.754,20.000,,,,,,
+J9361,"Inj, efbemalenograstim alfa-",0.5 MG,121.429,20.000,,,,,,Added October 2026
+J9362,"Inj, trabectedin, 0.01 mg",0.01 MG,41.844,19.728,,,,,,Added October 2026 - Inflation-adjusted coinsurance
+J9370,Vincristine sulfate 1 mg inj,1 MG,9.426,20.000,,,,,,
+J9380,Inj teclistamab cqyv 0.5 mg,0.5 MG,35.818,19.228,,,,,,Inflation-adjusted coinsurance
+J9381,Inj teplizumab mzwv 5 mcg,5 MCG,39.274,20.000,,,,,,
+J9382,Inj zenocutuzumab-zbco 1 mg,1 MG,33.869,20.000,,,,,,
+J9390,Vinorelbine tartrate inj,10 MG,4.148,20.000,,,,,,
+J9395,"Injection, fulvestrant",25 MG,5.021,20.000,,,,,,
+J9400,"Inj, ziv-aflibercept, 1mg",1 MG,9.702,20.000,,,,,,
+J9601,Inj linvoseltamab-gcpt 1 mg,1 MG,99.134,20.000,,,,,,
+P9041,"Albumin (human),5%, 50ml",50 ML,10.616,20.000,,,95,10.616,,
+P9045,"Albumin (human), 5%, 250 ml",250 ML,53.079,20.000,,,95,53.079,,
+P9046,"Albumin (human), 25%, 20 ml",20 ML,21.330,20.000,,,95,21.330,,
+P9047,"Albumin (human), 25%, 50ml",50 ML,53.324,20.000,,,95,53.324,,
+Q0138,"Ferumoxytol, non-esrd",1 MG,0.331,20.000,,,,,,
+Q0139,"Ferumoxytol, esrd use",1 MG,0.331,20.000,,,,,,
+Q0162,Ondansetron oral,1 MG,0.016,20.000,,,,,,
+Q0166,Granisetron hcl 1 mg oral,1 MG,0.774,20.000,,,,,,Added October 2026
+Q0167,Dronabinol 2.5mg oral,2.5 MG,2.092,20.000,,,,,,
+Q0224,"Inj, pemivibart, 4500 mg",4500 MG,7615.200,0.000,95,7615.200,,,,See COVID-19 vaccine pricing webpage for payment effective dates 
+Q0234,"Inj, tocilizumab-bavi, 1mg",1 MG,6.327,20.000,95,6.327,,,,See COVID-19 vaccine pricing webpage for payment effective dates 
+Q0237,"Inj, tocilizumab-anoh, hospi",1 MG,4.920,0.000,95,4.920,,,,See COVID-19 vaccine pricing webpage for payment effective dates 
+Q0238,"Inj, tocilizumab-aazg, hospi",1 MG,5.581,0.000,95,5.581,,,,See COVID-19 vaccine pricing webpage for payment effective dates 
+Q0249,Tocilizumab for covid-19,1 MG,7.569,0.000,95,7.569,,,,See COVID-19 vaccine pricing webpage for payment effective dates
+Q2041,Axicabtagene ciloleucel car+,UP TO 200 MILLION CAR T CELLS,577943.258,17.419,,,,,,Inflation-adjusted coinsurance
+Q2042,Tisagenlecleucel car-pos t,up to 600 million CAR-positive viable T cells,626315.834,17.294,,,,,,Inflation-adjusted coinsurance
+Q2043,Sipuleucel-t auto cd54+,Per infusion (minimum 50 million cells),55663.131,20.000,,,,,,
+Q2050,Doxorubicin inj 10mg,10 MG,97.823,20.000,,,,,,
+Q2053,Brexucabtagene car pos t,UP TO 200 MILLION AUTOLOGOUS ANTI-CD19 CAR POSITIVE VIABLE T CELLS,532352.741,18.911,,,,,,Inflation-adjusted coinsurance
+Q2054,Lisocabtagene mara car pos t,"Up to 110 million CAR-positive viable T cells, per therapeutic dose",589846.771,17.989,,,,,,Inflation-adjusted coinsurance
+Q2055,Idecabtagene vicleucel car,UP TO 510 MILLION AUTOLOGOUS ANTI-BCMA CAR-POSITIVE VIABLE T CELLS,575850.465,18.839,,,,,,Inflation-adjusted coinsurance
+Q2056,Ciltacabtagene car-pos t,up to 100 million autologous b-cell maturation antigen (bcma) directed car-positive t cells,594112.255,18.651,,,,,,Inflation-adjusted coinsurance
+Q2057,Afamitresgene autoleucel,PER THERAPEUTIC DOSE,813967.375,20.000,,,,,,
+Q2058,Obecbtge autol up to 400 mil,Per Therapeutic Dose,293725.702,19.668,,,,,,Added October 2026 - Inflation-adjusted coinsurance
+Q4081,"Epoetin alfa, 100 units esrd",100 UNITS,0.667,20.000,,,,,,
+Q5098,"Inj ustekinumab-srlf, 1 mg",1 MG,9.270,20.000,,,,,,"""lesser of"" methodology applied; 8% of reference add-on applied"
+Q5099,"Inj ustekinumab-stba, 1 mg",1 MG,2.890,20.000,,,,,,"""lesser of"" methodology applied; 8% of reference add-on applied"
+Q5100,"Inj ustekinumab-kfce, 1 mg",1 MG,3.080,20.000,,,,,,"""lesser of"" methodology applied; 8% of reference add-on applied"
+Q5101,"Injection, zarxio",1 MCG,0.338,20.000,,,,,,8% of reference add-on applied
+Q5103,"Injection, inflectra",10 MG,28.456,20.000,,,,,,8% of reference add-on applied
+Q5104,"Injection, renflexis",10 MG,25.649,20.000,,,,,,8% of reference add-on applied
+Q5105,Inj retacrit esrd on dialysi,100 UNITS,0.817,20.000,,,,,,
+Q5106,Inj retacrit non-esrd use,1000 UNITS,8.171,20.000,,,,,,
+Q5107,Inj mvasi 10 mg,10 MG,28.294,20.000,,,,,,8% of reference add-on applied
+Q5108,"Injection, fulphila",0.5 MG,55.964,20.000,,,,,,8% of reference add-on applied
+Q5110,Nivestym,1 MCG,0.329,20.000,,,,,,8% of reference add-on applied
+Q5111,"Injection, udenyca 0.5 mg",0.5 MG,128.967,20.000,,,,,,AMP-based payment limit
+Q5112,Inj ontruzant 10 mg,10 MG,32.791,20.000,,,,,,8% of reference add-on applied
+Q5113,Inj herzuma 10 mg,10 MG,55.295,20.000,,,,,,8% of reference add-on applied
+Q5114,Inj ogivri 10 mg,10 MG,29.507,20.000,,,,,,8% of reference add-on applied
+Q5115,Inj truxima 10 mg,10 MG,35.988,20.000,,,,,,8% of reference add-on applied
+Q5116,"Inj., trazimera, 10 mg",10 MG,11.271,20.000,,,,,,8% of reference add-on applied
+Q5117,"Inj., kanjinti, 10 mg",10 MG,63.871,20.000,,,,,,8% of reference add-on applied
+Q5118,"Inj., zirabev, 10 mg",10 MG,25.939,20.000,,,,,,8% of reference add-on applied
+Q5119,"Inj ruxience, 10 mg",10 MG,5.792,20.000,,,,,,AMP-based payment limit
+Q5120,Inj pegfilgrastim-bmez 0.5mg,0.5 MG,302.247,20.000,,,,,,
+Q5121,"Inj. avsola, 10 mg",10 MG,34.686,20.000,,,,,,
+Q5122,"Inj, nyvepria",0.5 MG,141.289,20.000,,,,,,8% of reference add-on applied
+Q5123,"Inj. riabni, 10 mg",10 MG,21.083,20.000,,,,,,8% of reference add-on applied
+Q5124,"Inj. byooviz, 0.1 mg",0.1 MG,249.493,20.000,,,,,,
+Q5125,"Inj, releuko 1 mcg",1 MCG,0.308,20.000,,,,,,8% of reference add-on applied
+Q5126,Inj alymsys 10 mg,10 MG,79.982,20.000,,,,,,
+Q5127,"Inj, stimufend, 0.5 mg",0.5 MG,163.948,20.000,,,,,,8% of reference add-on applied
+Q5128,"Inj, cimerli, 0.1 mg",0.1 MG,81.130,20.000,,,,,,
+Q5129,"Inj, vegzelma, 10 mg",10 MG,21.139,20.000,,,,,,8% of reference add-on applied
+Q5130,"Inj, fylnetra, 0.5 mg",0.5 MG,94.292,20.000,,,,,,8% of reference add-on applied
+Q5133,"Inj, tofidence, 1 mg",1 MG,4.706,20.000,,,,,,8% of reference add-on applied
+Q5134,"Inj, tyruko, 1 mg",1 MG,24.397,20.000,,,,,,
+Q5135,"Inj, tyenne, 1 mg",1 MG,4.370,20.000,,,,,,8% of reference add-on applied
+Q5136,"Inj. denosumab-bbdz, 1 mg",1 MG,26.991,20.000,,,,,,8% of reference add-on applied
+Q5138,"Inj, wezlana, iv, 1 mg",1 MG,2.273,20.000,,,,,,8% of reference add-on applied
+Q5146,"Inj, hercessi, 10 mg",10 MG,30.255,20.000,,,,,,8% of reference add-on applied
+Q5147,"Inj, aflibercept-ayyh, 1 mg",1 MG,763.376,20.000,,,,,,
+Q5148,"Inj, nyposi 1 mcg",1 MCG,1.026,20.000,,,,,,
+Q5151,"Inj, eculizumab-aagh, 2 mg",2 MG,31.547,20.000,,,,,,8% of reference add-on applied
+Q5152,"Inj, eculizumab-aeeb, 2 mg",2 MG,40.412,20.000,,,,,,8% of reference add-on applied
+Q5156,"Inj, tocilizumab-anoh, 1 mg",1 MG,3.098,20.000,,,,,,8% of reference add-on applied
+Q5157,"Inj, denosumab-bmwo, 1 mg",1 MG,24.002,20.000,,,,,,8% of reference add-on applied
+Q5158,"Inj, denosumab-bnht, 1 mg",1 MG,28.702,20.000,,,,,,8% of reference add-on applied
+Q5160,"Inj, jobevne, 10 mg",10 MG,82.139,20.000,,,,,,
+Q5161,"Inj, denosumab-kyqq, 1 mg",1 MG,27.509,20.000,,,,,,Added October 2026; 8% of reference add-on applied
+Q5162,"Inj, denosumab-nxxp, 1 mg",1 MG,15.336,20.000,,,,,,8% of reference add-on applied
+Q5167,"Inj, denosumab-qbde, 1 mg",1 MG,7.681,20.000,,,,,,Added October 2026; 8% of reference add-on applied
+Q5168,"Inj. nufymco, 0.1 mg",0.1 MG,26.384,20.000,,,,,,Added October 2026
+Q5169,"Inj, armlupeg, 0.5 mg",0.5 MG,519.481,20.000,,,,,,Added October 2026
+Q9950,Inj sulf hexa lipid microsph,1 ML,18.052,20.000,,,,,,
+Q9956,"Inj octafluoropropane mic,ml",1 ML,40.323,20.000,,,,,,
+Q9957,"Inj perflutren lip micros,ml",1 ML,40.323,20.000,,,,,,
+Q9958,"Hocm <=149 mg/ml iodine, 1ml",1 ML,0.080,20.000,,,,,,
+Q9961,"Hocm 250-299mg/ml iodine,1ml",1 ML,0.205,20.000,,,,,,
+Q9963,"Hocm 350-399mg/ml iodine,1ml",1 ML,0.219,20.000,,,,,,
+Q9965,"Locm 100-199mg/ml iodine,1ml",1 ML,1.787,20.000,,,,,,
+Q9966,"Locm 200-299mg/ml iodine,1ml",1 ML,0.421,20.000,,,,,,
+Q9967,"Locm 300-399mg/ml iodine,1ml",1 ML,0.186,20.000,,,,,,
+Q9991,Buprenorph xr 100 mg or less,Less than or equal to 100 MG,2060.132,20.000,,,,,,
+Q9992,Buprenorphine xr over 100 mg,Greater than 100 MG,2060.132,20.000,,,,,,
+Q9997,Ustekinumab-ttwe iv inj 1 mg,1 MG,8.591,20.000,,,,,,8% of reference add-on applied
+Q9998,"Inj ustekinumab-aekn, 1 mg",1 MG,10.480,20.000,,,,,,"""lesser of"" methodology applied"
+Q9999,Inj ustekinumab-aauz 1 mg,1 MG,13.246,20.000,,,,,,"""lesser of"" methodology applied"
