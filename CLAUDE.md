@@ -51,7 +51,11 @@ A Supabase MCP server is configured in `.mcp.json` (docs/account/database/debugg
 
 ### Backend
 
-Single-file FastAPI app (`backend/main.py`). CORS is currently the only configured middleware, restricted to `FRONTEND_URL`. Supabase credentials are wired into `.env` but no Supabase client or database access code has been added yet (`requirements.txt` only has `fastapi`, `uvicorn`, `python-dotenv`) — this is the intended next integration point, not yet built.
+Single-file FastAPI app (`backend/main.py`). CORS is the only configured middleware, restricted to `FRONTEND_URL`.
+
+- `GET /api/fda/label/{application_number}` and `GET /api/fda/ndc/{application_number}` proxy openFDA live. `GET /api/cms/hcpcs-status/{brand_name}` and `GET /api/cms/application-status/{brand_name}` are hardcoded stubs pending the CMS file/PDF integration.
+- `POST /api/drugs` upserts into the Supabase `drugs` table (PK `application_id`) via the `supabase` Python client using the **service role key** — `drugs` has RLS enabled with no policies, so all DB writes go through the backend, never the frontend. It dumps with `exclude_unset=True`, so omitted fields leave existing column values untouched while explicit `null`s overwrite.
+- Only columns whose values come directly from an API response are populated; AI-extracted columns (`dosing_formula`, `infusion_time_minutes`, etc.) and `generic_billing_code` are intentionally left null for now.
 
 ### Frontend
 
@@ -60,5 +64,6 @@ Single-file FastAPI app (`backend/main.py`). CORS is currently the only configur
 - Pages live in `src/pages/` and are matched 1:1 to entries in `App.jsx`'s route table. `/temp/*` routes (e.g. `/temp/drug-search`) mark pages that are scaffolding/in-progress rather than final navigation.
 - Feature UI lives in `src/components/<Feature>/`, colocating the component, its CSS Module, and any mock data (e.g. `DrugSearch/DrugSearch.jsx` + `DrugSearch.module.css` + `mockTherapies.js`). Components in this layer are written route-agnostic — they take data/callbacks as props (e.g. `therapies`, `onSelectTherapy`) rather than reaching into routing or fetching themselves — so pages own data-fetching/wiring and components stay reusable.
 - Styling is CSS Modules throughout (`*.module.css`, imported as `styles` and referenced via `styles.foo`), not a CSS framework or global stylesheet beyond `index.css`.
+- Backend calls live in `src/api/` (e.g. `drugMaker.js`), using `VITE_API_URL`. `DrugMakerPage` calls the four FDA/CMS endpoints in parallel from the two `DrugMaker` inputs (application ID → FDA, drug name → CMS), maps each response to `drugs` columns (empty values → `null`), then `POST`s to `/api/drugs`. It skips the save if both FDA calls fail, and omits columns from any call that failed.
 - `DrugSearch` currently runs against local mock data (`mockTherapies.js`); it has not yet been wired to the FastAPI/Supabase backend.
 - Linting is `oxlint`, not ESLint — config in `.oxlintrc.json` enables the `react` and `oxc` plugins with `react/rules-of-hooks` as an error.
