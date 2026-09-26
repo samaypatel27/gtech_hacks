@@ -9,10 +9,11 @@ from typing import Optional
 import anthropic
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
+from supabase_auth.errors import AuthError
 
 from billing_rules import ndc_10_to_11
 
@@ -563,6 +564,64 @@ def get_practice_by_email(email: str):
     if not response.data:
         raise HTTPException(status_code=404, detail=f"No practice found for email {email}")
     return response.data[0]
+
+
+# Unlike the email-in-the-URL endpoints above, this trusts only a verified
+# Supabase Auth session: the frontend sends the user's access token and
+# Supabase itself confirms which email it belongs to.
+def current_practice(authorization: Optional[str] = Header(default=None)) -> dict:
+    scheme, _, token = (authorization or "").partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=401, detail="Missing bearer token")
+    try:
+        user = supabase.auth.get_user(token).user
+    except AuthError:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+    if not user or not user.email:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+    response = supabase.table("practices").select("*").eq("email", user.email).limit(1).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail=f"No practice found for email {user.email}")
+    return response.data[0]
+
+
+@app.get("/api/pins")
+def list_pins(practice: dict = Depends(current_practice)):
+    response = (
+        supabase.table("pinned_drugs")
+        .select("application_id")
+        .eq("practice_id", practice["id"])
+        .execute()
+    )
+    return [row["application_id"] for row in response.data]
+
+
+# PUT/DELETE rather than a toggle so a repeated request (double-click,
+# retry) can't flip the pin back.
+@app.put("/api/pins/{application_id}", status_code=204)
+def pin_drug(application_id: str, practice: dict = Depends(current_practice)):
+    drug_resp = (
+        supabase.table("drugs").select("application_id").eq("application_id", application_id).limit(1).execute()
+    )
+    if not drug_resp.data:
+        raise HTTPException(status_code=404, detail=f"No drug found for {application_id}")
+    supabase.table("pinned_drugs").upsert(
+        {"practice_id": practice["id"], "application_id": application_id},
+        on_conflict="practice_id,application_id",
+        ignore_duplicates=True,
+    ).execute()
+
+
+@app.delete("/api/pins/{application_id}", status_code=204)
+def unpin_drug(application_id: str, practice: dict = Depends(current_practice)):
+    (
+        supabase.table("pinned_drugs")
+        .delete()
+        .eq("practice_id", practice["id"])
+        .eq("application_id", application_id)
+        .execute()
+    )
 
 
 class ConsideringRequest(BaseModel):

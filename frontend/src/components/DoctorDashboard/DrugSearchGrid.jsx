@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import DrugCard from './DrugCard.jsx'
+import { fetchPins, pinDrug, unpinDrug } from '../../api/pins.js'
 import '../../tailwind.css'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -16,38 +17,80 @@ function SkeletonCard() {
   )
 }
 
-// Fetches every drug once on mount and renders the full set as a grid of
-// link cards -- no search.
+// Fetches every drug (plus this practice's pins) once on mount and renders
+// the full set as a grid of link cards, pinned ones first -- no search.
 function DrugSearchGrid() {
   const [drugs, setDrugs] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  // null = pins unavailable (e.g. signed in but sign-up not finished), so
+  // the pin buttons are hidden rather than shown and failing on click.
+  const [pinnedIds, setPinnedIds] = useState(null)
+  const [pendingIds, setPendingIds] = useState(() => new Set())
 
   useEffect(() => {
     let cancelled = false
 
-    fetch(`${API_URL}/api/drugs/search`)
+    const drugsRequest = fetch(`${API_URL}/api/drugs/search`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (cancelled) return
         const seen = new Set()
-        const deduped = (Array.isArray(data) ? data : []).filter((drug) => {
+        return (Array.isArray(data) ? data : []).filter((drug) => {
           if (seen.has(drug.application_id)) return false
           seen.add(drug.application_id)
           return true
         })
-        setDrugs(deduped)
       })
-      .catch(() => {
-        if (!cancelled) setDrugs([])
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+      .catch(() => [])
+    const pinsRequest = fetchPins()
+      .then((ids) => new Set(ids))
+      .catch(() => null)
+
+    // Wait for both so pinned cards don't jump to the top after first paint.
+    Promise.all([drugsRequest, pinsRequest]).then(([drugList, pins]) => {
+      if (cancelled) return
+      setDrugs(drugList)
+      setPinnedIds(pins)
+      setIsLoading(false)
+    })
 
     return () => {
       cancelled = true
     }
   }, [])
+
+  // The backend already sorts by brand name, so a stable partition keeps
+  // both groups alphabetical.
+  const sortedDrugs = useMemo(() => {
+    if (!pinnedIds || pinnedIds.size === 0) return drugs
+    return [
+      ...drugs.filter((drug) => pinnedIds.has(drug.application_id)),
+      ...drugs.filter((drug) => !pinnedIds.has(drug.application_id)),
+    ]
+  }, [drugs, pinnedIds])
+
+  // Optimistic: flip the pin immediately, then revert if the request fails.
+  // Clicks on a card with a request still in flight are ignored so two
+  // opposite requests can't race each other.
+  const togglePin = async (applicationId) => {
+    if (pendingIds.has(applicationId)) return
+    const wasPinned = pinnedIds.has(applicationId)
+    const withPin = (pinned) => (set) => {
+      const next = new Set(set)
+      if (pinned) next.add(applicationId)
+      else next.delete(applicationId)
+      return next
+    }
+
+    setPinnedIds(withPin(!wasPinned))
+    setPendingIds(withPin(true))
+    try {
+      await (wasPinned ? unpinDrug(applicationId) : pinDrug(applicationId))
+    } catch {
+      setPinnedIds(withPin(wasPinned))
+    } finally {
+      setPendingIds(withPin(false))
+    }
+  }
 
   return (
     <div className="min-h-screen w-full px-4 py-8 sm:px-8">
@@ -74,8 +117,13 @@ function DrugSearchGrid() {
 
         {!isLoading && drugs.length > 0 && (
           <div className="drug-grid grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
-            {drugs.map((drug) => (
-              <DrugCard key={drug.application_id} drug={drug} />
+            {sortedDrugs.map((drug) => (
+              <DrugCard
+                key={drug.application_id}
+                drug={drug}
+                isPinned={Boolean(pinnedIds?.has(drug.application_id))}
+                onTogglePin={pinnedIds ? () => togglePin(drug.application_id) : undefined}
+              />
             ))}
           </div>
         )}
