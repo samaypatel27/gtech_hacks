@@ -165,18 +165,12 @@ async def get_drug_images(brand_name: str):
 
 
 @app.get("/api/drugs/search")
-def search_drugs(q: str = "", limit: int = 20):
-    if not q.strip():
-        return []
-
+def search_drugs(q: str = "", limit: int = 100):
     try:
-        response = (
-            supabase.table("drugs")
-            .select("*")
-            .ilike("brand_name", f"%{q}%")
-            .limit(limit)
-            .execute()
-        )
+        query = supabase.table("drugs").select("*")
+        if q.strip():
+            query = query.ilike("brand_name", f"%{q}%")
+        response = query.order("brand_name").limit(limit).execute()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Supabase query failed: {e}")
 

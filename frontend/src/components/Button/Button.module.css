@@ -1,0 +1,36 @@
+/* The one button look for the whole app: transparent, white 1px border,
+   white text. No primary/secondary variants -- every text button in the
+   app (drug maker launch/retry/reset, drug detail actions, home nav)
+   renders through this same class. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 14px;
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

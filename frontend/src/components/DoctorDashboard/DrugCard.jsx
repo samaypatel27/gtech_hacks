@@ -1,4 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { renderVialSnapshot } from './vialRenderer.js'
+import StaticVialSvg from './StaticVialSvg.jsx'
+
+const STATUS_COLORS = {
+  permanent: { css: '#34D399', hex: 0x34d399 },
+  generic: { css: '#FBBF24', hex: 0xfbbf24 },
+}
 
 function ArrowIcon() {
   return (
@@ -14,9 +22,36 @@ function ArrowIcon() {
   )
 }
 
-// Simple card: just the brand name and application id, linking to the
-// drug's detail route.
+// A still (non-spinning) snapshot of the same glass vial used on the detail
+// page, rendered once via a shared offscreen WebGL context (vialRenderer.js)
+// and cached by application id -- cheap even with a full grid of cards.
+function CardVialThumb({ drug, statusColor, statusColorHex }) {
+  const [dataUrl] = useState(() =>
+    renderVialSnapshot({
+      applicationId: drug.application_id,
+      statusColor,
+      statusColorHex,
+      width: 240,
+      height: 300,
+    }),
+  )
+
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      {dataUrl ? (
+        <img src={dataUrl} alt="" aria-hidden="true" className="h-full w-full object-contain opacity-90" />
+      ) : (
+        <StaticVialSvg statusColor={statusColor} className="h-full max-h-[70%] w-auto opacity-80" />
+      )}
+    </div>
+  )
+}
+
+// Simple card: brand name, a still vial thumbnail, and the application id,
+// linking to the drug's detail route.
 function DrugCard({ drug }) {
+  const isPermanent = Boolean(drug.has_permanent_code)
+  const status = isPermanent ? STATUS_COLORS.permanent : STATUS_COLORS.generic
   const ariaLabel = `${drug.brand_name}, ${drug.application_id}`
 
   return (
@@ -30,11 +65,15 @@ function DrugCard({ drug }) {
         <ArrowIcon />
       </span>
 
-      <p className="line-clamp-2 text-lg leading-snug font-semibold text-[#f0f0f5] sm:text-xl">
+      <p className="line-clamp-2 shrink-0 text-lg leading-snug font-semibold text-[#f0f0f5] sm:text-xl">
         {drug.brand_name}
       </p>
 
-      <p className="font-mono text-[13px] text-white/40">{drug.application_id}</p>
+      <div className="min-h-0 flex-1 py-2">
+        <CardVialThumb drug={drug} statusColor={status.css} statusColorHex={status.hex} />
+      </div>
+
+      <p className="shrink-0 font-mono text-[13px] text-white/40">{drug.application_id}</p>
     </Link>
   )
 }

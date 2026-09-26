@@ -56,6 +56,9 @@ Single-file FastAPI app (`backend/main.py`). CORS is the only configured middlew
 - `GET /api/fda/label/{application_number}` and `GET /api/fda/ndc/{application_number}` proxy openFDA live. `GET /api/cms/hcpcs-status/{brand_name}` and `GET /api/cms/application-status/{brand_name}` are hardcoded stubs pending the CMS file/PDF integration.
 - `POST /api/drugs` upserts into the Supabase `drugs` table (PK `application_id`) via the `supabase` Python client using the **service role key** — `drugs` has RLS enabled with no policies, so all DB writes go through the backend, never the frontend. It dumps with `exclude_unset=True`, so omitted fields leave existing column values untouched while explicit `null`s overwrite.
 - Only columns whose values come directly from an API response are populated; AI-extracted columns (`dosing_formula`, `infusion_time_minutes`, etc.) and `generic_billing_code` are intentionally left null for now.
+- `GET /api/drugs/search?q=` returns every row (ordered by `brand_name`) when `q` is empty, or an `ilike` brand-name match when it's set. The frontend grid has no search UI and always calls it with no `q`, so in practice this always returns the full seeded set; the `q` filter is left in place for future reuse rather than deleted.
+- `GET /api/drugs/profile/{application_id}` returns the full row for one drug (404 if not found) — backs the drug detail page.
+- `drugs` columns beyond the original schema: `generic_name`, `approval_date`, `pubchem_query`, `code_status` (`"generic"` | `"permanent"`); `route_of_administration` doubles as the "route" field rather than adding a duplicate column. Seeded via `backend/scripts/resolve_drug_data.py` (resolves NDA/route/approval date against openFDA, writes `backend/scripts/drug_seed_data.json`) and `backend/scripts/seed_drugs.py` (loads that JSON and upserts via the Supabase client) — both re-runnable, network-free after the JSON snapshot exists.
 
 ### Frontend
 

@@ -26,6 +26,20 @@
   }
 }
 
+/* Drug detail page hero entrance -- slides in from the left. Entrance
+   classes are only applied by the component when the user hasn't asked
+   for reduced motion, so no extra media-query guard is needed here. */
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* While one drug card in the grid is hovered/focused, dim its siblings
    so the active card reads as the focal point. Plain CSS on purpose —
    no extra React state needed for a pure hover effect. */
