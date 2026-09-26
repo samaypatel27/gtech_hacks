@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from supabase import create_client
 
+from billing_rules import ndc_10_to_11
+
 load_dotenv()
 
 # Service role key bypasses RLS; `drugs` has RLS enabled with no policies,
@@ -223,8 +225,10 @@ anything the label does not say rather than inferring it.
 
 - dosing_formula: the dosing rule(s) in one concise line, e.g. \
 "200 mg IV every 3 weeks or 400 mg every 6 weeks (adults); 2 mg/kg up to 200 mg every 3 weeks (pediatrics)".
-- typical_adult_dose: the most common single adult dose as a fixed amount and \
-unit (e.g. 200, "mg"). Null if adult dosing is only weight- or BSA-based.
+- typical_adult_dose: the most common single adult dose as an amount and unit. \
+Prefer a fixed dose (e.g. 200, "mg") when the label gives one. If adult dosing \
+is only weight- or BSA-based, give the per-kg or per-m² rate with unit exactly \
+"mg/kg" or "mg/m2" (e.g. 10, "mg/kg"). Null only if the label states no adult dose.
 - infusion_time_minutes: infusion duration in minutes, if the drug is infused.
 - preparation_instructions: the preparation/administration steps a nurse needs \
 (dilution, compatible diluents, in-line filters, stability of the prepared product), condensed.
@@ -317,9 +321,15 @@ async def get_fda_ndc(application_number: str):
     ndcs = []
     for result in results:
         for package in result.get("packaging", []):
+            ndc_10 = package.get("package_ndc", "")
+            try:
+                ndc_11 = ndc_10_to_11(ndc_10)
+            except ValueError:
+                ndc_11 = None  # malformed upstream NDC; keep the package, skip the conversion
             ndcs.append(
                 {
-                    "ndc_10": package.get("package_ndc", ""),
+                    "ndc_10": ndc_10,
+                    "ndc_11": ndc_11,
                     "description": package.get("description", ""),
                     "sample": bool(package.get("sample", False)),
                 }
@@ -434,6 +444,8 @@ class DrugRecord(BaseModel):
     preparation_instructions: str | None = None
     storage_requirements: str | None = None
     is_single_dose_vial: bool | None = None
+    typical_adult_dose: dict | None = None
+    is_antineoplastic: bool | None = None
     approved_uses_and_conditions: list[dict] | None = None
     ndcs: list[dict] | None = None
     cost_per_dose: float | None = None
