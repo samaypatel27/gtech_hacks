@@ -93,7 +93,7 @@ The board is created in Prepare, but it shows tasks from **every** stage, so the
 2. Claude extracts: dosing, infusion time, preparation, storage, single-dose flag, approved uses and required tests, with citations to label sections.
 3. Parse packages: NDC 10 → 11 digits, strength in mg, vial size.
 4. Codes: look up the CMS crosswalk **by NDC**, with **effective dates** from the HCPCS quarterly file. For drugs whose code is still pending, Claude reads the CMS HCPCS application summary PDF.
-5. Save `drugs`, `drug_packages` and **`drug_codes` (effective_from / effective_to)**.
+5. Save one `drugs` row, including the **packages** list and the **codes** list (each code with its start and end dates).
 
 **`billing_rules.py`**: pure functions, each with pytest tests:
 | Function | Does |
@@ -121,13 +121,13 @@ The board is created in Prepare, but it shows tasks from **every** stage, so the
 **Backend**
 - **NPI sign-up:** NPPES API → name, specialty, state (→ Medicare contractor) → create practice.
 - **Practice profile:** payers and capabilities (infusion chairs, refrigeration).
-- **Insurer policies:** for the demo drug, Claude extracts coverage status, prior auth and documentation requirements from 1–2 insurer documents into `payer_drug_policies`. (Fallback: enter by hand, labeled.)
+- **Insurer policies:** for the demo drug, Claude extracts coverage status, prior auth and documentation requirements from 1–2 insurer documents into the drug's `payer_policies`. (Fallback: enter by hand, labeled.)
 - **`GET /practices/{id}/drugs/{id}/considering`** computes the **four lights** on the server:
   - **Coverage:** from insurer policies, filtered to the practice's payers.
   - **Billing path:** current code, what claims need, expected permanent date, and "we can draft these for you."
   - **Payment timing:** cost per dose × planned patients × typical delay, labeled as an estimate. Timing only, never profit.
   - **Workflow:** label requirements vs. practice capabilities.
-- **Decision actions:** adopt, hold, notify me, talk to specialist. Each writes `drug_adoptions` and an **event**.
+- **Decision actions:** adopt, hold, notify me, talk to specialist. Each updates the practice's `practice_drugs` row and writes an **event**.
 
 **Frontend**
 - NPI sign-up screen.
@@ -197,7 +197,7 @@ The board is created in Prepare, but it shows tasks from **every** stage, so the
 **Goal:** handle the permanent code arriving, the way the mentor asked.
 
 **Build**
-- **"Simulate CMS update"** admin button: inserts a new `drug_codes` row with its effective date.
+- **"Simulate CMS update"** admin button: adds a new entry to the drug's `codes` list with its effective date (and closes the generic code's end date).
 - **Date-of-service rule:** the claim builder picks the code by the date the drug was given, not the purchase or submission date.
   - Given before the switch → generic code, units = 1.
   - Given on or after → permanent code, units = dose ÷ billing unit (JW units recalculated the same way).
@@ -217,7 +217,7 @@ The board is created in Prepare, but it shows tasks from **every** stage, so the
 
 **Build**
 - The **`events` table**, filled during Phases 2–5, plus a **seed of ~40 fake practices** across regions.
-- **Database view `pharma_drug_summary`:** opted-in practices only, grouped by region and specialty, **counts under 5 hidden**.
+- **Database view `pharma_summary`:** opted-in practices only, grouped by region and specialty, **counts under 5 hidden**.
 - **Dashboard:**
   - funnel (viewed → adopted → started → stuck)
   - region map or list
@@ -233,7 +233,7 @@ The board is created in Prepare, but it shows tasks from **every** stage, so the
 
 ### Phase 7: Hardening and pitch (~10–15%)
 **Hardening**
-- **Compliance touches:** `audit_log` entries for view, sign and export; backend checks that every request only touches its own practice; a data-sharing toggle in practice settings.
+- **Compliance touches:** `events` entries for view, sign and export (the audit trail); backend checks that every request only touches its own practice; a data-sharing toggle in practice settings.
 - **Edge cases:** a drug that already has a permanent code ("standard billing applies"); openFDA down (use the snapshot); AI call failure (clear error + retry).
 - **Labels on everything mocked:** launch message, distributors, dashboard numbers.
 - **One-command demo reset.**
@@ -245,41 +245,120 @@ The board is created in Prepare, but it shows tasks from **every** stage, so the
 
 ---
 
-## 5. Database (three data tiers)
+## 5. Database
 
-**Tier 1: Public reference data** (no restrictions)
-| Table | Key columns |
-|---|---|
-| `drugs` | application_id, brand/generic name, approval date, route, dosing, typical dose, infusion minutes, preparation, storage, single-dose flag, approved uses (JSON), is_antineoplastic, citations, sponsor |
-| **`drug_codes`** | application_id, payer (blank = Medicare), code, NOC or permanent, billing unit, **effective_from, effective_to**, citation |
-| `drug_packages` | application_id, NDC-10, NDC-11, strength (mg), vial size, single-dose flag |
-| `payers` | name, Medicare or commercial |
-| `payer_drug_policies` | payer, drug, coverage status, prior auth required, documentation requirements (JSON), source link, date retrieved |
-| `drug_distributors` | drug, distributor name and link (from the drug maker) |
-| *Claim rules* | A config file with citations, not a table |
+**8 tables, 1 view and 2 config files**, grouped into the three data tiers.
 
-**Tier 2: Practice workspace** (patient data; only that practice can see it)
-| Table | Key columns |
-|---|---|
-| `practices` | NPI, name, specialty, state, Medicare contractor, capabilities, payers, share-with-pharma choice |
-| `users` | practice or drug maker, role, NPI |
-| `drug_adoptions` | practice × drug: status (considering / adopting / holding / active), lights at decision time, planned patients per month |
-| `hold_list` | practice, drug, patient, date |
-| `tasks` | practice, drug, stage, role, title, details, status, patient (optional), created by (AI / automatic) |
-| `invoices` | practice, file, distributor, lines (NDC, lot, quantity, unit cost), AI-extracted flag |
-| `patients` | practice, name, date of birth, sex, weight, payer, member ID, diagnosis |
-| `notes` | patient, author, text, version |
-| `orders` | patient, drug, dose, route, frequency, status, documentation check results (items with quotes), signed by (NPI) |
-| `administrations` | order, **date of service**, dose given, vials used (NDC, lot), waste, start and stop times |
-| `claims` | administration, payer, status (draft / ready / exported / returned / needs recoding), claim JSON, check results, code used, replaces claim |
-| `help_requests` | practice (named by consent), drug, payer, issue type, summary with patient details removed, status |
-| `audit_log` | who, what, which record, when |
+```
+PUBLIC                PRACTICE WORKSPACE (patient data)              PHARMA SIGNALS
+┌──────────┐     ┌────────────┐   ┌────────────────┐           ┌──────────┐
+│  drugs   │◄────│ practices  │──►│ practice_drugs │──► tasks  │  events  │──► view: pharma_summary
+└──────────┘     └────────────┘   └────────────────┘     ▲     └──────────┘   (aggregated, opt-in,
+      ▲               │                                   │     ┌───────────────┐  counts under 5 hidden)
+      │               └──► patients ──► treatments ───────┘     │ help_requests │
+      └──────────────────────────────────┘                      └───────────────┘
+config/: payers.json + claim_rules.json
+```
 
-**Tier 3: Signals to pharma**
-| Table / view | Key columns |
-|---|---|
-| `events` | drug, practice region and specialty, event type, time |
-| View `pharma_drug_summary` | Aggregated by drug and region; opted-in practices only; counts under 5 hidden. **The only thing the pharma dashboard reads.** |
+### Two kinds of "order" (don't mix them up)
+| | "Get my team ready" | A patient order |
+|---|---|---|
+| **Meaning** | "Our practice is adopting DrugX" | "Give Maria 500 mg of DrugX" |
+| **How often** | **Once** per practice per drug | **Many times**, once per patient per dose |
+| **Stage** | Prepare | Treat & Bill |
+| **Stored in** | `practice_drugs` (status becomes adopting) + setup rows in `tasks` | `treatments` |
+
+(The purchase from the distributor is a third kind of "order"; it's stored as invoices and stock on `practice_drugs`.)
+
+### Where information lives
+Each fact lives where it belongs, and task cards store instruction text written from those facts:
+- **Facts about the drug** (storage, preparation, billing code, units rule) → `drugs`, the single source of truth, with citations.
+- **Facts about this practice's use of the drug** (planned patients, vial quantities, invoices, stock) → `practice_drugs`.
+- **Facts about one patient's treatment** (Maria's dose, vials, infusion times) → `treatments`.
+- **Task cards** → `tasks` stores the **instruction text** (AI-written from those facts, e.g. "Refrigerate at 2–8°C on arrival") plus a link back to the source, so cards show instantly without recalculating.
+
+### Tier 1: Public reference data (no restrictions)
+
+- **`drugs`: everything public about a drug**
+  - *Used in:* every stage. It's the reference everything else reads from.
+  - *What it does:* holds the FDA label facts (dosing, typical dose, infusion time, storage, preparation, single-dose flag, approved uses with required tests), whether it's a cancer drug, **vial sizes and NDCs** (JSON), **billing codes with their start and end dates** (JSON; this drives Switch), **insurer coverage per payer** (JSON), distributors (JSON), cost per dose, and a citation for every fact.
+  - *Written by:* the drug maker's "Launch drug" step; the app fetches and extracts everything automatically. Switch adds a new entry to the codes list.
+  - *Example `codes` value:* `[{code:"J3490", type:"generic", from:"2026-02-03", to:"2026-09-30"}, {code:"J0644", type:"permanent", unit:"1 mg", from:"2026-10-01"}]`
+
+### Tier 2: Practice workspace (patient data; only that practice can see it)
+
+- **`practices`: one row per clinic**
+  - *Used in:* sign-up, and anywhere the app personalizes an answer.
+  - *What it does:* holds the NPI, doctor's name, specialty, state (sets the Medicare contractor), the practice's insurers, capabilities (infusion chairs, refrigeration), and whether it agreed to share signals with pharma.
+
+- **`practice_drugs`: one row per practice per drug**
+  - *Used in:* **Consider** and **Prepare**.
+  - *What it does:*
+    - tracks the practice's status with the drug (considering → holding or adopting → active)
+    - saves the four lights shown when they decided
+    - stores planned patients per month
+    - holds the **hold list** (waiting patients), **invoices** (file path, distributor, lines of NDC / lot / quantity / cost) and **stock on hand**
+  - *Written when:* the doctor opens the drug (created), clicks "Get my team ready" (status becomes adopting), holds patients, or staff upload an invoice.
+
+- **`tasks`: the team board (the practice's home screen)**
+  - *Used in:* **Prepare**, **Treat & Bill** and **Switch**.
+  - *What it does:* one row per to-do card: the role it's for, the stage, the **instruction text**, and its status.
+  - *Linked to:* always a `practice_drugs` row; sometimes a specific `treatments` row (e.g. "Record Maria's infusion").
+  - *Written when:*
+    - "Get my team ready" creates the setup tasks
+    - a signed order creates "buy for this patient" (if no stock) and "record infusion"
+    - a finished claim creates "claim ready for review"
+    - Switch creates "claims need recoding" and "review hold list"
+
+- **`patients`: the practice's patients**
+  - *Used in:* **Treat & Bill** (and the hold list).
+  - *What it does:* holds demographics, weight (for the dose), insurance and member ID (for coverage and the claim), diagnosis, and the **current visit note** the documentation check reads.
+
+- **`treatments`: one row per dose given, from order to claim**
+  - *Used in:* **Treat & Bill** and **Switch**.
+  - *What it does:* one row moves through the whole flow:
+    - **Doctor's order:** dose, vial mix, documentation check results with quotes, a copy of the note at signing, signed time.
+    - **Nurse's record:** date of service, dose given, vials used (NDC, lot), waste, start and stop times.
+    - **Claim:** every CMS-1500 field, the 8 check results, which code was used, and earlier versions if it was corrected.
+    - **Status:** ordered → signed → administered → claim ready → exported → needs recoding.
+  - *Why one table:* it's always one patient, one dose, one claim.
+  - *Switch uses it:* "treatments for this drug with a date of service on or after the switch date" → rebuild their claims.
+
+### Tier 3: Signals to pharma
+
+- **`events`: the activity log**
+  - *Used in:* every stage; feeds the **pharma dashboard** and the **audit trail**.
+  - *What it does:* records every meaningful action (viewed drug, lights shown, adopted, held, signed, exported, claim returned) with the practice's region and specialty.
+  - **Pharma never reads this table directly.**
+
+- **View `pharma_summary`**
+  - *Used in:* the pharma dashboard, and nothing else.
+  - *What it does:* includes only opted-in practices, groups by drug, region and specialty, and hides counts under 5. **This view is the privacy boundary.**
+
+- **`help_requests`: the "Get help" queue**
+  - *Used in:* any stage, when a practice asks the drug maker for help.
+  - *What it does:* holds the issue with patient details removed, and the practice's name (shared because they chose to send it). The drug maker marks it assigned or resolved, so it needs its own status.
+
+### Config files (not tables)
+- **`payers.json`:** Medicare (plus contractor) and one commercial insurer.
+- **`claim_rules.json`:** units rule, what goes in Item 19, invoice requirement, JW/JZ rules, each with a citation.
+
+### Which table is written at each step (Maria's story)
+| Step | What happens | Table written |
+|---|---|---|
+| Drug maker launches DrugX | Profile, codes and coverage built | `drugs` |
+| Dr. Patel signs up with her NPI | Practice created | `practices` |
+| She opens DrugX | Four lights shown | `practice_drugs` (created), `events` |
+| She holds 3 patients, then clicks "Get my team ready" | Status becomes adopting; setup tasks created | `practice_drugs`, `tasks`, `events` |
+| Front desk uploads the invoice | Stock recorded; purchasing task done | `practice_drugs`, `tasks` |
+| She orders DrugX for Maria; note checked; signed | Order with check results; board tasks created | `treatments`, `tasks`, `events` |
+| Nurse records the infusion | Waste and codes calculated | `treatments`, `tasks` |
+| Claim built and exported | Claim and checks saved | `treatments`, `tasks`, `events` |
+| Permanent code arrives | New code added; claims flagged for recoding | `drugs`, `treatments`, `tasks` |
+| Clinic clicks Get help | Queue entry | `help_requests` |
+| Drug maker opens the dashboard | Reads the summary view only | `pharma_summary` (over `events`) |
+
+**Tradeoff:** JSON columns aren't validated by the database. That's fine because they're always read with their parent row and the rules run in Python. Data queried across many rows (`events`, `treatments`) stays in real tables.
 
 **Compliance note:** documentation checks send patient notes to the AI provider. In production, that provider must also be under a BAA.
 
@@ -309,7 +388,7 @@ The board is created in Prepare, but it shows tasks from **every** stage, so the
 | Team board (templated is fine) | AI-drafted board tasks (use templates) |
 | Documentation check + draft | AI invoice reading (enter lines by hand) |
 | Nurse form + claim builder + checks | Purchasing card details |
-| Switch (simulated) | Audit log, region map |
+| Switch (simulated) | Audit-trail events, region map |
 | Minimal pharma dashboard | |
 
 ---
