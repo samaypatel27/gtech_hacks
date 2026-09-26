@@ -1,0 +1,34 @@
+IMPIRICUS MENTOR CONVERSATION NOTES
+===================================
+
+Context: Spoke with the Impiricus mentors generally and shared three ideas (for conversation purposes).
+
+--- This year's track / what made prior winners stand out ---
+- They are emphasizing making something the industry hasn't seen before (so maybe a net-new thing is the preference).
+- Prior winners had a clear problem and value; they defined it very well.
+- In some cases, doctors or industry people would share the problem and their suggestions, and the hackathon winners would actually look deeper and find what's best, rather than just implementing what they were told.
+
+--- Idea 1: Connecting doctors with doctors ---
+- He said it was good, but we'd need to consider that Impiricus would be responsible for all the doctor-to-doctor interactions.
+- He said we could also bring pharma in, where they can jump in at some parts or in some cases.
+
+--- Idea 2: Clinical trials ---
+- He said it's a good idea.
+- Impiricus currently does something where, if a doctor chooses a drug, they suggest a trial the doctor can refer to.
+- We wanted to use EMRs, but he said to stay away from those, because Impiricus's target audience is individual doctors / private practices, not hospitals.
+
+--- On ideas 1 and 2 generally ---
+- He spoke neutrally about both.
+- When asked whether people have implemented these before, he said yes, many people have.
+- But he said not to let that deter us: a small change can make it a lot better, and even if seven people do it, the best one can still win.
+
+--- Idea 3: Billing (new drugs on generic billing codes) ---
+- Neutral overall, but I felt his eyebrow kind of raise when I explained it.
+- He has experience in this area and said it's something he's heard of as an issue before.
+- He said it's a very niche idea.
+- The company has talked about it a little before, but never pursued it because other things would bring them more money.
+- He said it's definitely HCP-focused. People have worked on payments before, and this involves the doctor, so it's okay.
+- He suggested we can skip patient eligibility (like I said), but maybe do something basic to show we considered it, like NPI identification.
+- He is one of the judges. The other judge is Impiricus's SVP of Data Analytics.
+- So: no need to focus so heavily on the database, but consider compliance, how the data would work, and things like that.
+- Also consider how insurance plays a part in this, because insurers are part of the process.

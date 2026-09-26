@@ -1,0 +1,1192 @@
+
+> <ide_opened_file>The user opened the file c:\Users\harsh\VS
+  Code\HackGT2026\Comp_Details\PastWinners.txt in the IDE. This may or may not
+  be related to the current task.</ide_opened_file>
+
+> ok. I'm here at HackGT, and I'm gonna need to lock in on this. So let's do
+  this.
+
+  To start off, we're currently brainstorming the idea, and we need to focus in
+  on an idea. Let me further explain
+
+  I've included the sponsor prompt in the files, and the two ideas (at least
+  parts of it). Now let me explain some of our thought processes so far in the
+  time we spent researching
+
+  So from the prompt, we first looked at past winners (i've pasted those in
+  another file as well). THen when brainstorming, I think what happened was
+  that we kind of accindentally got too focused on using or directly adding to
+  Impericus's platform, but wee realized that's tough and the prompt doesn't
+  ask for that directly either. Additionally, the winning ideas weren't so
+  focused on it either. I think what we realized was maybe we should try to
+  align with Impiricus's values but doesn't need to even use their product.
+  Under that lens, you see the first place idea essentially did a parallel: if
+  impiricus connects pharmas to HCPs, then the first place idea connecteed
+  medical devices to HCPs in a way. For idea 2, that wasn't related at all to
+  the thing. For idea 3, not too sure.
+
+  And we saw that maybe these ideas may be kinda like that? Like the clinical
+  trials one is like a parallel again, connecting clinical trials ot doctors
+  (and if we wanted to take a step further, we can make this general, but leave
+  a suggestion to impiricus saying pharmas do a lot of clinical trials, and
+  this is another thing they can do specifically for their pharmas, adding big
+  value potentially). For the billing code idea, it could provide huge business
+  value so that it helps their pharmas get those products to not sit on their
+  shelves for like 6-9 months.
+
+  What do you think? Are these fair and legit? Do they seem winning material?
+  If it helps, I can give the devpost link to all the submissions from last
+  year, and we can do an analysis on what others made and see that? Only if we
+  can do that. And how realistic are these dieas. consider what features we
+  would include, if one idea feels too simple (or if it's ok compared ot the
+  winning ideas), etc.
+
+● Bash(cd "c:/Users/harsh/VS Code/HackGT2026" && find . -type f | head -50)
+  ⎿  (No output)
+
+● Bash(cd "c:/Users/harsh/VS Code/HackGT2026/Comp_Details" && for f in
+      SponsorPrompt.txt PastWinners.txt ClinicalTrialsIdea.txt
+      TempBillingCodeIdea.txt; do echo "=====…)
+  ⎿  (No output)
+
+● I read the prompt, the past winners, and both idea docs. Your reasoning holds
+  up, and both ideas are legitimate.
+
+  Your "parallel" idea is right
+
+  Impiricus's core idea is getting the right information to the right HCP at the
+  right moment, usually set off by an event. Medicus won because it copied that
+  idea into a new area (medical devices) without using Impiricus's product at
+  all. Both of your ideas follow the same pattern, and each has a natural
+  trigger:
+  - Trials: the patient's cancer progressed on standard therapy, so the doctor
+    sees the trials that fit right now.
+  - Billing: a new drug launched, or a claim got denied, so the clinic gets the
+    playbook and a direct line to the drug maker's reimbursement specialist.
+
+  Use that trigger framing in your pitch. It shows the judges you understand
+  what their business is.
+
+  Scoring each idea against the four criteria
+
+  ┌─────────────┬──────────────────────────────┬───────────────────────────┐
+  │  Criterion  │          TrialMatch          │     Launch Readiness      │
+  │             │                              │         (billing)         │
+  ├─────────────┼──────────────────────────────┼───────────────────────────┤
+  │ Impact on   │                              │ Weak spot: the main user  │
+  │ HCP         │ High, and easy to feel       │ is the biller, not the    │
+  │             │                              │ doctor                    │
+  ├─────────────┼──────────────────────────────┼───────────────────────────┤
+  │             │ Weak spot: a very crowded    │                           │
+  │ Originality │ space (NIH's TrialGPT,       │ High; almost nobody       │
+  │             │ Tempus, Deep 6, lots of      │ builds this at hackathons │
+  │             │ hackathon projects)          │                           │
+  ├─────────────┼──────────────────────────────┼───────────────────────────┤
+  │ Technical   │ Medium-high                  │ Medium-high               │
+  ├─────────────┼──────────────────────────────┼───────────────────────────┤
+  │             │ Medium: trial recruitment is │ Very high: drug uptake at │
+  │ Commercial  │  paid from pharma's R&D      │  launch is the top        │
+  │ fit         │ budget, not the commercial   │ priority of the brand     │
+  │             │ budget Impiricus sells into  │ teams Impiricus sells to  │
+  └─────────────┴──────────────────────────────┴───────────────────────────┘
+
+  TrialMatch risks:
+  - Two of last year's three winners were "doctor enters patient info, AI
+    retrieves relevant stuff." Judges could see this as a proven format or as a
+    copy.
+  - Clinical trial matching is probably one of the most common healthcare
+    hackathon ideas.
+  - Without a twist, it's likely to feel familiar.
+
+  Billing idea risks:
+  - It's dry, and non-billing judges won't feel the pain right away.
+  - "Impact on the HCP" is the first judging criterion, and a biller dashboard
+    doesn't obviously hit it.
+
+  How to fix each weakness
+
+  TrialMatch: make it two-sided, like Medicus.
+  - On the doctor side, check each eligibility criterion one by one and mark it
+    met, not met, or unknown, quoting the evidence from the patient's notes.
+  - Turn the unknowns into a useful moment: "Order a KRAS test and this patient
+    qualifies for 3 more trials."
+  - Add a sponsor side: a dashboard showing which eligibility criteria rule out
+    the most real patients in each region. Overly strict eligibility rules are a
+    known reason trials fail to enroll, so that data is valuable to pharma.
+    It's also your originality point.
+
+  Billing: start the flow with the doctor.
+  - The doctor says "I want to start this patient on [new drug]."
+  - The AI checks the patient against the label and sends tasks to the nurse,
+    biller and front desk.
+  - Pitch it as "doctors don't prescribe new drugs they're afraid won't get paid
+    for, so this removes that fear." CoverMyMeds is a real, successful
+    precedent for a pharma-funded business model like this.
+
+  Things to fix in the docs before judges notice
+
+  - Drop "subtly prioritizes sponsored trials." Pharma compliance people will
+    flinch. Your later version with clearly labeled sponsored placement (the
+    GoodRx model) is the right one.
+  - J3490 isn't always the code. New cancer drugs usually bill under J9999 and
+    biologics under J3590. Pharma judges will catch this.
+  - Keep the billing math out of the LLM. Unit conversions, the 10-to-11-digit
+    NDC format and the JW/JZ waste modifiers should be plain code. The LLM
+    should only pull facts out of the label, with citations. A made-up billing
+    unit is a fraud risk, and saying "AI extracts, code calculates" sounds
+    mature to judges.
+  - Tone down the insurer claim. "Insurers will love this" overstates it.
+    "Cleaner claims mean faster automated processing" is enough.
+  - Check what Impiricus already ships. If they already offer reimbursement or
+    hub-style support messaging, you need to know before you pitch.
+
+  Is either too simple?
+
+  No. The bigger risk is scope: both docs describe more than you can build well
+  in about 36 hours. The past winners were simple ideas executed cleanly. For
+  either idea, pick one polished demo flow of about three minutes, using real
+  public data (ClinicalTrials.gov, or openFDA plus the CMS pricing files) and
+  synthetic patients.
+
+  My recommendation
+
+  I'd lean toward the billing / launch-readiness idea, reframed so the doctor
+  starts the flow. It's more original, and the commercial fit is in the language
+  Impiricus judges speak.
+
+  Pick TrialMatch only if you add the two-sided sponsor dashboard. It's the
+  safer crowd-pleaser, but it will blend in without a twist.
+
+  Last year's Devpost
+
+  Yes, send the link. I can pull the submissions for this track and sort them by
+  category. The most useful thing it would tell us is whether trial matching or
+  anything billing-related was already submitted, and that could settle the
+  decision.
+
+> wait so few questions
+
+  For the weak spot for the billing, what do you mean the main user is a
+  biller? Can you furhter explain? Why can't it be an HCP?
+
+  And what does CoverMyMeds do?
+
+  For the billing, we could implement multiple codes right?
+
+  Another concern is if we went with the clinical trial one, does it feel too
+  simple? We wonder if the UI will feel too simple, just getting patient report
+  and having a RAG model to share the top three trials or something and that's
+  it. Are we thinking of this incorrectly, or are there other things we are
+  gonna dd to make it more useful? Like fullly consider this idea (and the
+  billing one too), and ask questions we may have not asked about it yet either
+
+  If we did the trialmatch one with two sides, will that get furhter away from
+  the prompt and stuff?
+
+  Here's the link to the devpost with all the videos
+
+  https://hackgt-12.devpost.com/submissions/search?utf8=%E2%9C%93&prize_filter%
+  5Bprizes%5D%5B%5D=90499
+
+● Fetch(https://hackgt-12.devpost.com/submissions/search?utf8=%E2%9C%93&prize_fi
+       lter%5Bprizes%5D%5B%5D=90499)
+  ⎿  Received 142KB (200 OK)
+
+● Fetch(https://hackgt-12.devpost.com/submissions/search?page=2&prize_filter%5Bp
+       rizes%5D%5B%5D=90499&utf8=%E2%9C%93)
+  ⎿  Received 143.6KB (200 OK)
+
+● Fetch(https://hackgt-12.devpost.com/submissions/search?page=3&prize_filter%5Bp
+       rizes%5D%5B%5D=90499&utf8=%E2%9C%93)
+  ⎿  Received 146.2KB (200 OK)
+
+● Fetch(https://hackgt-12.devpost.com/prizes)
+  ⎿  Received 0 bytes (404 Not Found)
+
+● Trial-matching was already tried in this track last year. Next I'm opening the
+  most relevant projects to see how far they got.
+
+● Fetch(https://devpost.com/software/trialify-i7w2qk)
+  ⎿  Received 81.1KB (200 OK)
+
+● Fetch(https://devpost.com/software/codeblue)
+  ⎿  Received 93.3KB (200 OK)
+
+● Fetch(https://devpost.com/software/client-shield)
+  ⎿  Received 78.6KB (200 OK)
+
+● Fetch(https://devpost.com/software/curarx-care-made-clear)
+  ⎿  Received 80.7KB (200 OK)
+
+● Fetch(https://devpost.com/software/asap-prior-auth-streamlining-app)
+  ⎿  Received 77.2KB (200 OK)
+
+● Fetch(https://devpost.com/software/medicous)
+  ⎿  Received 82.5KB (200 OK)
+
+● Fetch(https://devpost.com/software/vital-1qsh6u)
+  ⎿  Received 82.7KB (200 OK)
+
+● Fetch(https://devpost.com/software/luma-n98ck7)
+  ⎿  Received 85.2KB (200 OK)
+
+● Last year's Devpost changes the picture, so I'll start there and then answer
+  your questions in order.
+
+  Last year's submissions (71 in that prize filter)
+
+  - Trialify is basically the TrialMatch you described, and it didn't win. The
+    doctor enters patient data or uses voice input, 5 AI agents query
+    ClinicalTrials.gov, and it produces "a clean report displaying the top 3
+    recommended trials." It looks competently built and placed nowhere.
+  - CodeBlue (keeping patients from dropping out of trials) also didn't place.
+  - Prior authorization and insurance were covered:
+    - ASAP embedded prior authorization into the Epic EHR sandbox using
+      healthcare data standards (FHIR). It was very technical and didn't place.
+    - CuraRx did insurance coverage lookups, prior-auth form autofill and
+      plain-language drug explanations. It didn't place.
+  - Nobody touched new-drug launches, clinic reimbursement or billing codes.
+    Your billing idea is open ground.
+  - Why the winners won:
+    - Medicus and Vital both followed the "right info, right provider, right
+      time" idea.
+    - Vital took new guidelines and drug approvals and matched them to the
+      doctor's patient list, in an interactive canvas UI, not a single results
+      page.
+    - Medicus's page thanks "the team at Impiricus for assisting us with
+      feedback and ideas." Go talk to the Impiricus people at their booth early.
+      That clearly helped last year.
+  - Technical depth alone didn't win. ASAP (Epic sandbox, FHIR) and CodeBlue (a
+    fine-tuned medical model) were both impressive and lost.
+
+  1. Why the billing idea's main user is a biller
+
+  Drugs given in the clinic, like cancer infusions and injections, use a model
+  called buy-and-bill:
+  1. The clinic buys the drug up front, often thousands of dollars per dose.
+  2. A nurse gives it to the patient.
+  3. The clinic bills insurance and hopes to get paid back.
+
+  The doctor decides to prescribe. But the codes, units, NDC formatting,
+  modifiers and invoice attachments are handled by billing staff, often a
+  separate person or an outsourced company. Doctors never touch a J-code. Every
+  screen in your current doc (claim templates, NDC formats, wastage modifiers)
+  is biller work.
+
+  In pharma language, "HCP" usually means prescribers (physicians, nurse
+  practitioners, physician assistants), which is who Impiricus targets. Billers
+  aren't HCPs, so a biller-centered demo is weak on "Impact on the HCP."
+
+  It can be HCP-centered. The doctor has real pain here:
+  - The decision: doctors often avoid new drugs because the practice lost money
+    on one before. The physician owns that risk decision.
+  - Documentation: many denials come from missing medical-necessity
+    documentation. Writing the chart note is the doctor's job, so "here's
+    exactly what your note must say for this drug" is doctor value.
+  - Patient eligibility: does this patient match the drug's label (indication,
+    weight-based dose, contraindications)?
+
+  So the doctor starts the flow, and the biller, nurse and front desk get their
+  tasks as a result. Then the doctor is the protagonist and the staff are
+  supporting cast.
+
+  2. What CoverMyMeds does
+
+  CoverMyMeds handles electronic prior authorization. When insurance requires
+  approval before covering a prescription, it replaces faxes and phone calls
+  with an online form. It's free for doctors and pharmacies, and pharma
+  companies pay for it, because a stalled prior authorization means an abandoned
+  prescription and a lost sale. McKesson bought it for about $1.1B.
+
+  It matters to you for two reasons:
+  - It proves the business model: pharma pays for tools that remove access
+    friction for HCPs. That's your billing idea's model.
+  - It shows prior auth is taken. CoverMyMeds owns it, and two teams already
+    built it here last year. Don't let your billing idea drift into prior auth.
+
+  3. Multiple codes: yes, and you should
+
+  One administered dose actually involves several code types:
+
+  Code type: Drug code (HCPCS)
+  Examples: J3490 (unclassified drugs), J3590 (unclassified biologics), J9999
+  (unclassified cancer drugs), later a permanent J-code
+  What it covers: The drug itself
+  ────────────────────────────────────────
+  Code type: Administration code (CPT)
+  Examples: 96413 (chemo infusion, first hour), 96365 (non-chemo IV infusion),
+  96372 (injection)
+  What it covers: The act of giving it. Start and stop times decide which one
+  applies, which is why that documentation matters.
+  ────────────────────────────────────────
+  Code type: Modifiers
+  Examples: JW (drug wasted), JZ (no waste)
+  What it covers: Leftover drug from single-dose vials
+  ────────────────────────────────────────
+  Code type: Diagnosis code (ICD-10)
+  Examples: Varies
+  What it covers: Has to match the drug's approved indication
+
+  A feature idea: when CMS assigns the permanent J-code (codes are updated
+  quarterly), your tool switches every template over automatically. Something
+  like "The day your code changes, your claims change."
+
+  Scope it down: Medicare rules only (they're public; commercial payers vary),
+  and the physician office only (hospital outpatient uses different codes).
+
+  4. Is TrialMatch too simple?
+
+  As written, yes, and Trialify is the proof. "Upload report, get top 3 trials"
+  is a feature, not a product. What's missing is the rest of the real workflow.
+  Here's what's actually hard about trials for a community oncologist:
+
+  - "Almost eligible" is the useful answer. Most patients don't cleanly qualify.
+    Mark each criterion met, not met, or unknown, with evidence quoted from the
+    notes. Turn the unknowns into actions, like "Order a KRAS test and 3 more
+    trials open up."
+  - Timing: many trials exclude patients who had certain treatments in the last
+    N weeks, so the choice made today can close off options. Showing an
+    eligibility deadline is a real, non-obvious feature.
+  - Logistics: the distance to the nearest site that's actually recruiting, and
+    the travel burden. ClinicalTrials.gov has status for each site.
+  - Proactive instead of reactive: scan the doctor's whole patient list and flag
+    "2 of your patients newly qualify for a trial that opened this week."
+    Patients who don't qualify now stay on a watch list. This is the trigger
+    model that fits Impiricus. Caveat: it's close to Vital's winning concept, so
+    judges may compare the two.
+  - Fear of losing the patient: community doctors worry that referring a patient
+    to an academic center means losing them. A referral packet that sets up
+    co-management answers a real emotional objection.
+  - Proof of accuracy: the TREC Clinical Trials benchmark has patient
+    descriptions paired with expert trial relevance labels. Saying "we measured
+    our matcher at X% on TREC" beats every trials project last year on technical
+    execution.
+
+  5. Would a two-sided TrialMatch drift from the prompt?
+
+  Not if you frame it right. The prompt is "HCP engagement," and Impiricus's
+  customers are pharma companies that want to engage HCPs, so a sponsor side is
+  literally Impiricus's business. Medicus was two-sided and won 1st. But Luma
+  was also two-sided and didn't place, so two-sided isn't magic by itself.
+
+  Rules to stay aligned:
+  - About 70% of the demo is the doctor side. The sponsor side is one screen
+    explaining why pharma would pay.
+  - Frame the sponsor side around HCPs: which regions have doctors seeing
+    eligible patients, where to open sites, and live slot availability. Slot
+    availability isn't public on ClinicalTrials.gov, which gives the sponsor
+    side a real reason to exist.
+  - Avoid pure protocol-design analytics, like "which criteria block
+    enrollment." That drifts toward R&D and away from engagement.
+  - Privacy: sponsors only ever see aggregated, de-identified data, and the
+    doctor chooses to send a referral. Judges will ask.
+
+  6. The billing idea, fully fleshed out
+
+  MVP features:
+  1. Doctor's "Start therapy" flow:
+     - Check the patient against the real FDA label from openFDA, with
+       citations.
+     - List the documentation the note must include.
+     - Estimate reimbursement against drug cost. Medicare's ASP pricing file is
+       public, and Medicare pays roughly ASP + 6%.
+     - Give a clear "financially safe to proceed" signal.
+  2. Role board with live updates: the nurse records start/stop times and waste,
+     and the biller's claim fills itself in.
+  3. Claim builder in plain code, not LLM: code selection, units, 11-digit NDC,
+     JW/JZ modifier and the description line that unclassified codes require.
+  4. Pre-submission checker that flags problems before the claim goes out.
+  5. Escalation to the drug maker's field reimbursement manager (FRM), with the
+     problem already packaged.
+  6. Permanent-code switchover (from section 3).
+  7. Optional sponsor view: which clinics are stuck and on what, so the drug
+     maker knows where to send its FRMs.
+
+  Questions you haven't asked yet:
+  - Demo drug: use a real, recently approved, clinic-administered drug that's
+    still on an unclassified code. Check it in CMS's quarterly HCPCS updates,
+    since a real drug makes the demo credible.
+  - Emotional hook: the current doc is dry. Tell a patient story: a community
+    clinic can't risk a $30k dose, so the patient drives 2 hours to a hospital
+    or never gets the drug.
+  - Anti-kickback law: judges may ask whether free, pharma-sponsored billing
+    help is an illegal inducement. Drug makers' patient-support programs do this
+    legally when help stays specific to their product. Keep it that way and
+    have the answer ready.
+  - Does Impiricus already offer reimbursement support? Ask at the booth.
+
+  Updated recommendation
+
+  The Devpost results make me more confident in the billing / launch-readiness
+  idea, with the doctor starting the flow. It's untouched ground, launch uptake
+  is what Impiricus's pharma customers care most about, and the doctor-first
+  flow fixes the HCP weakness.
+
+  TrialMatch can still win, but only as the proactive, "almost eligible,"
+  two-sided version with TREC accuracy numbers. That's a bigger build, and the
+  basic version already lost here.
+
+  Next step: take both ideas to the Impiricus mentors now and ask two questions:
+  - Does launch uptake for clinic-administered drugs matter to their clients?
+  - Do they already offer anything for reimbursement support?
+
+  Their answers could settle this in 10 minutes.
+
+> are you sure you checked all 71 videos?
+
+  Also, I want to write notes to go speak with the impiricus people. For the
+  clinical trials, I wrote this. What could I write for this one, becausee this
+  is a more niche idea they may not know
+  We are hoping to create a product that may fall more in the net-new category,
+  but in a way aligns with Impiricus to potentially provide business and
+  targeted user value
+  Offer both ideas
+  Clinical Trials
+  Features
+  Using patient’s record to find matching trials
+  Generates a patient report for the doctor to more easily empathize and
+  explain the reasons for this
+  Could potentially add a second view where pharmas/sponsors can see
+  demographics on where their trials are getting people from and where it’s not
+  working
+  Other Notes
+  We noted how Impirica is essentially connecting pharmas to doctors. Making a
+  parallel, we think we can connect clinical trials to doctors
+  We noticed a project from last year doing this, but didn’t get too far. They
+  seemed to only find the trials. We wanted to ask from your knowledge, do you
+  think these additional features actually provide real impactful value to the
+  users
+  Temporary Billing Codes
+  Features
+
+● I didn't watch any videos, and I can't. I read the title and tagline of all 71
+  submissions and the text write-ups of about 8 projects. A few taglines were
+  too vague to rule out billing or trials, so I'm checking those write-ups now.
+● Fetch(https://devpost.com/software/carenest-bog73r)
+  ⎿  Received 82.5KB (200 OK)
+
+● Fetch(https://devpost.com/software/baha-761ac3)
+  ⎿  Received 80.2KB (200 OK)
+
+● Fetch(https://devpost.com/software/curamate)
+  ⎿  Received 78.9KB (200 OK)
+
+● Fetch(https://devpost.com/software/vitalicus)
+  ⎿  Received 89.4KB (200 OK)
+
+● Fetch(https://devpost.com/software/ermmmmmm)
+  ⎿  Received 79.5KB (200 OK)
+
+● Fetch(https://devpost.com/software/taskforceai)
+  ⎿  Received 76.2KB (200 OK)
+
+● Fetch(https://devpost.com/software/medigator)
+  ⎿  Received 84.4KB (200 OK)
+
+● Fetch(https://devpost.com/software/betterdoctor)
+  ⎿  Received 85.6KB (200 OK)
+
+● No, I didn't watch any videos, and I can't. Here's what I actually checked:
+  - All 71 titles and taglines, across the 3 listing pages.
+  - The full text write-ups of 16 projects: the ones that looked relevant, plus
+    8 with vague taglines that I just opened.
+
+  I was told a few more trials and billing-related projects, but nothing that
+  changes the conclusion:
+  - APOLLO AI also had trial matching, but only as one feature inside a clinical
+    decision-support tool. That makes 3 trial-related projects, and none
+    placed.
+  - Medigator suggests diagnosis and visit codes from patient intake forms.
+    That's visit coding, not reimbursement for new drugs.
+  - TaskForceAI loosely mentions showing billing data.
+  - Nobody did new-drug launches, clinic-administered drugs or temporary billing
+    codes.
+
+  The remaining risk is a project whose write-up undersells what its video
+  shows. That's unlikely to change anything.
+
+  ---
+
+  Written as your talking notes for the Impiricus mentors. I assumed they know
+  pharma and HCP marketing well but maybe not billing codes, so the notes start
+  with a short explanation of the problem. They follow your format:
+
+  Temporary Billing Codes (New Drug Launch Readiness)
+
+  The problem (quick explainer)
+  - Many new drugs are given in the clinic (infusions, injections). When one
+    launches, it doesn't have its own billing code yet. For months, until CMS
+    assigns a permanent one, clinics bill it under a generic "miscellaneous"
+    code (J3490 / J9999).
+  - Claims under those miscellaneous codes need extra manual details (exact
+    dose, NDC number, invoice) and get denied or delayed a lot.
+  - Clinics pay for these drugs up front (called "buy-and-bill"), sometimes
+    $10k+ per dose, so one denied claim is a real loss.
+  - So many practices hold off on new drugs until the permanent code arrives.
+    Pharma's launch is slower, and patients wait.
+
+  Features
+  - The doctor starts the flow: "Start [patient] on [new drug]."
+    - Checks the patient against the FDA label.
+    - Shows exactly what the doctor's note must document for the claim to get
+      paid.
+    - Shows expected reimbursement vs. the cost of the drug.
+  - Tasks go out automatically to each role:
+    - Nurse: record infusion start/stop times and any wasted drug.
+    - Front desk: storage and handling.
+    - Biller: the claim builds itself.
+  - Claim builder: correct codes, conversion from dose to billing units, NDC
+    formatting and waste modifiers. Regular code does the math; AI only reads
+    the drug label.
+  - A check before submission that catches errors before they turn into denials.
+  - One-click escalation to the drug maker's reimbursement specialist (FRM),
+    with the issue already packaged.
+  - Switches everything over automatically when the permanent code is assigned.
+  - (Maybe) A pharma view showing which clinics are stuck, and on what.
+
+  Other Notes
+  - Parallel to Impiricus: getting the right info to the right HCP at the moment
+    it matters. Here, that moment is the first time a doctor prescribes a new
+    drug.
+  - Commercial fit:
+    - Pharmas already spend heavily on reimbursement support (hub services,
+      FRMs), because launch uptake depends on it.
+    - The business model is like CoverMyMeds: free for providers, paid for by
+      pharma.
+  - Last year's submissions: nobody did anything around new-drug launches or
+    reimbursement. Prior authorization was done twice, so we're deliberately
+    avoiding it.
+
+  Questions for them
+  - Is launch uptake or reimbursement friction something your pharma clients
+    actually talk about? Have you heard of the temporary-code gap as a real pain
+    point?
+  - Does Impiricus already offer anything around reimbursement support or
+    launches?
+  - The doctor starts this flow, but staff do much of the work. Would you still
+    count that as HCP engagement, or should we keep it purely doctor-facing?
+  - Any compliance concerns with pharma sponsoring a tool like this?
+
+  Closing question for both ideas: Between the two, which would be more valuable
+  to your clients, and which excites you more?
+
+  ---
+
+  Small tweaks to your clinical trials notes:
+  - Name the extra features specifically. "Additional features" is vague, and
+    the specifics are what separate you from last year's projects. Add:
+    - "Almost eligible" matches: e.g., "Order a KRAS test and 3 more trials open
+      up."
+    - Proactively scanning the doctor's patient list when new trials open,
+      instead of searching one patient at a time.
+  - Fix the patient report line. The brief is for the patient, in plain
+    language; the doctor hands it over. Right now it reads as a report for the
+    doctor.
+  - Update the "project from last year" line. It was actually 3 projects
+    (Trialify, APOLLO AI and CodeBlue), and none placed.
+  - Add a question: "Are clinical trials relevant to your clients? Recruitment
+    is usually paid for by pharma's R&D side, not the commercial teams you work
+    with."
+  - Fix the typo: "Impirica" should be "Impiricus."
+
+> we don't need to go that deep into the features. Just explain what the
+  product will offer, and a bit on how it could work
+
+● Here's a shorter version, closer to the depth of your trials notes:
+
+  Temporary Billing Codes
+
+  The Problem
+  - When a new drug that's given in the clinic (like an infusion) launches, it
+    doesn't have its own billing code for months. Clinics bill it under a
+    generic "miscellaneous" code, and those claims get denied or delayed a lot.
+  - Clinics pay for these drugs up front, sometimes $10k+ per dose, so many hold
+    off on new drugs until the permanent code arrives. Pharma's launch is
+    slower, and patients wait.
+
+  Features
+  - When a doctor wants to start a patient on a new drug, the tool gives the
+    practice a playbook for getting it paid: what the doctor needs to document,
+    what the nurse needs to record, and a pre-filled claim for the biller.
+  - AI reads the FDA label and CMS billing rules for the drug, then generates
+    each role's checklist and the claim.
+  - If the clinic gets stuck, one click connects them with the drug maker's
+    reimbursement specialist.
+
+  Other Notes
+  - Parallel to Impiricus: getting the right info to the right HCP at the moment
+    it matters. Here, that moment is the first time a doctor prescribes a new
+    drug.
+  - Commercial fit: pharmas already pay for reimbursement support because launch
+    uptake depends on it. The business model is like CoverMyMeds, which is free
+    for providers and paid for by pharma.
+  - No one did anything like this last year.
+  - Questions for them:
+    - Is this a pain point your clients have mentioned?
+    - Does Impiricus already offer anything like it?
+
+> ok still for the features, maybe we are explaining it a little too detailed.
+
+  Here's my question. What do the different generic codes mean? What is the
+  current process for them? Tell me specific documents and stuff and a brief
+  explanation of what they include. And how our AI will do it to automate it
+
+● The generic codes
+
+  Every drug given in a clinic is billed with a HCPCS code, a billing code set
+  run by CMS. Established drugs have their own permanent code. For example,
+  J9271 is Keytruda, billed per 1 mg. A newly approved drug doesn't get its own
+  code until CMS processes an application, which it reviews quarterly. That
+  usually takes months.
+
+  Until then, clinics use a catch-all "not otherwise classified" (NOC) code:
+
+  ┌───────┬─────────────────────────┬───────────────────────────────────────┐
+  │ Code  │         Meaning         │               Used for                │
+  ├───────┼─────────────────────────┼───────────────────────────────────────┤
+  │ J3490 │ Unclassified drugs      │ Most regular (small-molecule) drugs   │
+  ├───────┼─────────────────────────┼───────────────────────────────────────┤
+  │ J3590 │ Unclassified biologics  │ Antibodies, proteins and other        │
+  │       │                         │ biologics                             │
+  ├───────┼─────────────────────────┼───────────────────────────────────────┤
+  │       │ Not otherwise           │                                       │
+  │ J9999 │ classified,             │ Cancer drugs                          │
+  │       │ antineoplastic          │                                       │
+  ├───────┼─────────────────────────┼───────────────────────────────────────┤
+  │       │ Unclassified drugs or   │ The same idea, but for hospital       │
+  │ C9399 │ biologicals             │ outpatient departments (skip this for │
+  │       │                         │  the demo)                            │
+  └───────┴─────────────────────────┴───────────────────────────────────────┘
+
+  The real problem is that these codes say nothing about which drug was given.
+  Hundreds of different drugs share J3490. So the payer can't process the claim
+  automatically. A person has to read the extra details, figure out what the
+  drug is, and decide how much to pay, because there's no set price. Every
+  missing detail means a denial or a delay.
+
+  The current process and the documents involved
+
+  1. Before treatment
+  - Benefits check / prior authorization: does the patient's insurance cover
+    this drug? This is often done through the drug maker's support program
+    ("hub").
+  - Purchase invoice: the clinic buys the drug. The invoice shows the drug name,
+    NDC (the drug's product ID), quantity and the price the clinic paid. Keep
+    it, because payers often ask for it.
+
+  2. Day of treatment
+  - Physician order: drug, dose (often by weight, e.g. mg/kg), route and
+    frequency.
+  - Doctor's progress note: the diagnosis and the reason for the drug. It must
+    match what the drug is FDA-approved for, including required test results
+    (e.g. a biomarker) and prior treatments. This is the "medical necessity"
+    documentation.
+  - Nurse's infusion record:
+    - Drug, NDC and lot number.
+    - Exact dose given and amount wasted. Leftover drug in a single-use vial
+      gets thrown away and must be documented.
+    - Start and stop times. These decide the administration code: an infusion
+      under about 16 minutes counts as a "push," and longer infusions are billed
+      by the hour.
+
+  3. The biller builds the claim. For a physician office this is the CMS-1500
+  form, or its electronic version, the 837P. For a miscellaneous code it needs:
+  - Drug line:
+    - The code (J9999, etc.) plus a waste modifier: JW for the line billing the
+      discarded amount, or JZ meaning nothing was wasted. Medicare requires one
+      of them.
+    - Units. For miscellaneous codes, Medicare contractors typically want 1
+      unit, with the real dose written in the description. Other payers differ,
+      which is one reason errors happen.
+  - NDC section: the NDC converted to an 11-digit format (labels often print 10
+    digits in different layouts), plus a unit type and quantity.
+  - Description field (box 19 / line note): drug name, strength, dose given and
+    route, e.g. "DrugX 500 mg IV." Without it, the payer doesn't know what the
+    drug was.
+  - Diagnosis codes (ICD-10) that match the FDA-approved use.
+  - A separate administration line with its own CPT code (e.g. 96413, chemo
+    infusion, first hour).
+  - Attachments when requested: the invoice, the drug's FDA label and the
+    medical notes.
+
+  4. Payer review. A person reviews the claim manually and sets the payment from
+  the invoice or list price. If anything is missing, they send a request for
+  records or deny it. This takes weeks, while the clinic is already out
+  thousands of dollars.
+
+  5. The permanent code arrives. On its effective date, everything changes: new
+  code, and billing units based on the code's definition. For example, a code
+  "per 1 mg" turns a 500 mg dose into 500 units. A miscellaneous-code claim
+  after that date gets denied.
+
+  A correction to your billing doc: its "500 mg → 500 units" example applies
+  once the permanent code exists. It isn't the usual Medicare rule during the
+  miscellaneous-code period. Double-check this with a Medicare contractor's
+  guidance page before pitching, since exact rules vary by payer.
+
+  How our AI automates it
+
+  - Reads the FDA label from openFDA. It picks the right generic code (cancer
+    drug → J9999, biologic → J3590, otherwise J3490) and pulls out the drug
+    name, strengths, vial sizes, NDCs, approved uses and storage requirements.
+  - Reads the doctor's note and the nurse's record (mock patient records for the
+    demo). It pulls out the dose, waste, times and diagnosis. It also flags
+    what's missing before submission, like a missing stop time or a diagnosis
+    that doesn't match an approved use.
+  - Fills in the claim with regular code, not AI: NDC conversion, units, JW/JZ
+    modifier, the description line and the administration code based on the
+    infusion times.
+  - Assembles the full packet (claim, invoice, label, notes), so nothing gets
+    sent back.
+  - Watches CMS's quarterly code updates and switches everything over when the
+    permanent code goes live.
+
+  In one line for your notes: "Our AI reads the drug label and the patient's
+  chart and produces a complete, correct claim packet for a drug that doesn't
+  have its own billing code yet. It catches missing documentation before the
+  claim gets denied and switches over automatically when the permanent code
+  arrives."
+
+> so bascially, a pharma releases a drug. The clinic buys it and has to ask
+  insurance to reimburse the clinic for it, rather than paying the pharma
+  correct?
+
+  And so because fo this, they gotta include the billing code for the drug when
+  claiming reimbursement. This billing coe if generic, means they gotta share
+  a lot more details about what this drug actually is (what are these details
+  they have to give?). And these details are hard to give? And don't get
+  approved? Look into that for me. And then explain this thing like a detailed
+  timeline
+
+● Web Search("Medicare NOC drug code J3490 J9999 claim requirements drug name
+            dosage NDC box 19 invoice MAC")
+  ⎿  Did 1 search in 7s
+
+● Web Search("miscellaneous J-code J3490 claim denial rate new drug launch
+            permanent J code delay uptake buy and bill")
+  ⎿  Did 1 search in 8s
+
+● Web Search("CMS HCPCS quarterly application cycle drugs biologicals permanent
+            J-code timeline months after FDA approval")
+  ⎿  Did 1 search in 7s
+
+● Fetch(https://www.cms.gov/medicare/coding-billing/healthcare-common-procedure-
+       system/level-ii-coding-process)
+  ⎿  Received 210.4KB (200 OK)
+
+● Fetch(https://www.cms.gov/medicare-coverage-database/view/article.aspx?article
+       id=54880&ver=9)
+  ⎿  Received 158KB (200 OK)
+
+● Web Search("lack of permanent J-code slows adoption new physician-administered
+            drug providers reluctant buy and bill reimbursement uncertainty")
+  ⎿  Did 1 search in 7s
+
+● Fetch(https://www.statnews.com/sponsor/2025/10/27/dont-let-a-billing-code-be-a
+       -barrier-to-treatment/)
+  ⎿  Received 127.6KB (200 OK)
+
+● Fetch(https://www.mmitnetwork.com/thought-leadership/pharma-can-help-providers
+       -get-paid/)
+  ⎿  Received 273.1KB (200 OK)
+● Fetch(https://medicare.fcso.com/claims/billing-unlisted-drug-procedure-codes-j
+       3490-and-j9999)
+  ⎿  Received 150.5KB (200 OK)
+
+● Fetch(https://med.noridianmedicare.com/web/jfb/topics/claim-submission/submiss
+       ion-errors-solutions/unlisted-procedure-and-noc-codes)
+  ⎿  Received 148.7KB (200 OK)
+
+● Mostly right, with one correction: the clinic does pay the pharma company,
+  usually through a specialty distributor, and it pays up front. Then it bills
+  the patient's insurance to get that money back. This model is called
+  buy-and-bill, and it means the clinic carries the cost of the drug until
+  insurance pays.
+
+  The rest is right: the claim needs a billing code, and a generic code forces
+  the clinic to describe the drug by hand.
+
+  What details a generic-code claim needs
+
+  This is from Medicare contractors' official billing guidance:
+
+  Detail: Drug name
+  Where it goes: Item 19 of the CMS-1500 claim form (a free-text box, 80
+  characters max)
+  Why: The code (e.g. J9999) doesn't say what the drug is
+  ────────────────────────────────────────
+  Detail: Strength and dose given (e.g. 500 mg)
+  Where it goes: Item 19
+  Why: So the payer knows how much to pay for
+  ────────────────────────────────────────
+  Detail: Route (IV, injection, etc.)
+  Where it goes: Item 19
+  Why: Part of describing the drug
+  ────────────────────────────────────────
+  Detail: NDC (the drug's 11-digit product ID)
+  Where it goes: NDC section of the claim line
+  Why: Identifies the exact product and package
+  ────────────────────────────────────────
+  Detail: Invoice cost
+  Where it goes: Item 19 or an attachment (some contractors)
+  Why: There's no set price, so the payer uses it to decide how much to pay
+  ────────────────────────────────────────
+  Detail: Units = 1
+  Where it goes: Units field
+  Why: Medicare's rule for generic codes: always 1, no matter the dose. That's
+  the opposite of the permanent-code rule, which trips billers up.
+
+  In Noridian's words (Noridian is a Medicare contractor): "If required
+  information is missing, the code will be deemed unprocessable." The claim gets
+  bounced back unpaid and has to be fixed and resubmitted.
+
+  Are the details hard to give, and do claims get denied?
+
+  None of the details is hard on its own. The problem is that each claim is
+  manual, error-prone and inconsistent:
+  - Someone has to hand-type a description into an 80-character box, correctly,
+    on every claim.
+  - Rules differ by payer. Medicare wants units = 1; commercial payers can want
+    something different.
+  - NDCs are printed in several 10-digit layouts and must be converted to the
+    11-digit format.
+  - No computer can price the claim, so a person reviews it. Billing industry
+    sources put this at 45–90 days with commercial payers, but those are
+    billing-company blogs, not studies.
+  - The rules flip mid-stream. When the permanent code arrives, a claim that
+    still uses the generic code is automatically denied.
+
+  What I couldn't find: a solid public statistic on denial rates for
+  generic-code claims specifically. The closest is MMIT (a pharma market-access
+  analytics firm), which cites practices seeing a 30% jump in denials after
+  payers began requiring NDCs, a related but different issue. Don't put a
+  denial-rate number in your pitch unless the Impiricus mentors give you one.
+  Ask them.
+
+  Evidence that pharma cares, which is your commercial fit:
+  - J&J sponsored a STAT article on exactly this problem ("Don't let a billing
+    code be a barrier to treatment"). It describes "extended processing times
+    and financial strain" for practices billing generic codes.
+  - MMIT says drug makers should "offer providers crosswalk and coding
+    validation tools." It warns that billing confusion can make doctors switch
+    to a competitor's drug. That's close to describing your product.
+
+  The timeline
+
+  Example: FDA approves "DrugX," an infused cancer drug, on February 10.
+
+  The drug's timeline (how long the generic-code period lasts)
+  - Feb 10: FDA approval. Clinics can buy and give the drug immediately, but can
+    only bill it as J9999.
+  - Early April: The drug maker applies to CMS for a permanent code.
+    Applications are due on the first business day of each quarter and require
+    FDA approval first, so they missed January.
+  - April to October: CMS reviews the application.
+  - Oct 1: The permanent code (e.g. "J9xxx, per 1 mg") takes effect.
+  - Result: about 7.5 months on the generic code. Depending on when approval
+    lands relative to a deadline, it's usually about 6 to 9 months, and longer
+    if CMS doesn't approve the first application.
+
+  One patient's timeline (repeats for every patient during those months)
+  1. The doctor decides the patient should get DrugX and writes the order and a
+     note explaining why (diagnosis, test results, prior treatments).
+  2. Insurance check: staff confirm the patient's plan covers it. Commercial
+     plans may require prior authorization, which takes days to weeks.
+  3. The clinic buys DrugX from the distributor, say about $15,000, and keeps
+     the invoice.
+  4. Treatment day: the nurse records the dose given, the amount wasted, and
+     start and stop times.
+  5. The biller builds the claim:
+     - Drug line: J9999, units = 1, plus the waste modifier (JW or JZ).
+     - Item 19: "DrugX 500mg IV" plus the NDC and invoice cost.
+     - Diagnosis code and a separate line for the infusion itself.
+     - Invoice and notes attached if the payer asks.
+  6. The payer reviews it by hand. If anything is missing, the claim is returned
+     as unprocessable, or the payer asks for records. The biller fixes it and
+     resubmits, which adds weeks.
+  7. Payment, often 1.5 to 3 months after treatment. Meanwhile the clinic has
+     already bought doses for the next patients, so it may be carrying tens of
+     thousands of dollars.
+  8. Oct 1, the code switches: every claim for treatment from Oct 1 onward must
+     use the new code, with units = dose ÷ the code's unit (500 mg on a "per 1
+     mg" code = 500 units). A missed switch means an automatic denial.
+
+  The result: a doctor's first experience with a new drug is waiting on money
+  and fighting paperwork. Many practices wait for the permanent code, so the
+  drug's first 6 to 9 months are slower than they should be. That's the gap your
+  product fills.
+
+  Where the AI fits (one line for your notes): it reads the FDA label and the
+  patient's chart, fills in Item 19, the NDC and units for that payer, catches
+  missing details before submission, and switches everything when the permanent
+  code goes live.
+
+  Sources:
+  - Noridian: Unlisted and NOC code billing
+    (https://med.noridianmedicare.com/web/jfb/topics/claim-submission/submission
+    -errors-solutions/unlisted-procedure-and-noc-codes)
+  - FCSO Medicare: Billing unlisted drug codes J3490 and J9999 (https://medicare
+    .fcso.com/claims/billing-unlisted-drug-procedure-codes-j3490-and-j9999)
+  - Find-A-Code: Billing for unlisted drug codes J3490, J9999 and C9399
+    (https://www.findacode.com/articles/billing-for-unlisted-drug-codes-j3490-j9
+    999-and-c9399-31644.html)
+  - CMS: HCPCS Level II coding procedures (quarterly timeline)
+    (https://www.cms.gov/medicare/coding-billing/healthcare-common-procedure-sys
+    tem/level-ii-coding-process)
+  - Sidley Austin: CMS 2020 HCPCS cycle changes
+    (https://www.sidley.com/en/insights/newsupdates/2019/12/cms-implements-signi
+    ficant-updates-to-hcpcs-level-ii-coding-cycles-and-procedures-for-2020)
+  - STAT (sponsored by J&J): Don't let a billing code be a barrier to treatment
+    (https://www.statnews.com/sponsor/2025/10/27/dont-let-a-billing-code-be-a-ba
+    rrier-to-treatment/)
+  - MMIT: Coding Chaos, how pharma can help providers get paid (https://www.mmit
+    network.com/thought-leadership/pharma-can-help-providers-get-paid/)
+  - Med Revenue Hub: J3490 guide (45–90 day processing claim) (https://medrevenu
+    ehub.com/hcpcs-code-j3490-complete-guide-unclassified-drugs/)
+
+> ok. So now that we got that, I'm trying to understand what the AI is
+  automating here. Is it automating making those documents that the clinic
+  needs becuase of this generic billing code? And if that's the case, how would
+  WE get those details about that FDA approved drug ourselves? Where dow e get
+  those details to fill out these forms and stuff? If it's from the doctors
+  and stuff, can't they just do it themselves at that point?
+
+  Like can you list the 10-15 things (or whatever number) needed and is manual,
+  and how the AI will do it? Like go from top to bottom; list tthe parts of
+  this process, then the docs in this process, then the steps/items needed for
+  these things. And for each of these parts, list what the doctors/hospitals do
+  right now, and what the AI will do to automate this if it will, and how it
+  will do it
+
+● The AI doesn't invent any information. It gathers details that are scattered
+  across 5–6 places, applies the billing rules, and checks for mistakes before
+  the claim goes out. So yes, clinics can do all of this themselves, and today
+  they do, by hand. Think of it like TurboTax: you already have all your tax
+  info, but people pay for it because applying the rules correctly is the hard
+  part.
+
+  Where the data comes from
+
+  Information: Drug facts: name, strengths, vial sizes, single- vs multi-dose,
+  storage, approved uses, dosing
+  Source: openFDA drug label API (DailyMed)
+  Available to us?: Yes, free
+  ────────────────────────────────────────
+  Information: NDC product IDs and package sizes
+  Source: openFDA NDC directory API
+  Available to us?: Yes, free
+  ────────────────────────────────────────
+  Information: Whether it's a biologic (determines J3590)
+  Source: openFDA: application number starts with "BLA"
+  Available to us?: Yes, free
+  ────────────────────────────────────────
+  Information: Whether it's a cancer drug (determines J9999)
+  Source: openFDA drug class, e.g. "Kinase Inhibitor"
+  Available to us?: Yes, free
+  ────────────────────────────────────────
+  Information: Whether a permanent code exists or is coming
+  Source: CMS quarterly HCPCS file and CMS's published application summaries
+  Available to us?: Yes, free
+  ────────────────────────────────────────
+  Information: Billing units once the permanent code exists
+  Source: CMS ASP NDC–HCPCS crosswalk file
+  Available to us?: Yes, free
+  ────────────────────────────────────────
+  Information: Medicare billing rules for generic codes
+  Source: Medicare contractor articles, like the Noridian page from before
+  Available to us?: Yes, public (we write the rules into code)
+  ────────────────────────────────────────
+  Information: Patient info: diagnosis, weight, dose, waste, infusion times
+  Source: The clinic's patient records
+  Available to us?: No. We mock it for the demo. A real product would connect to
+
+  the records system.
+  ────────────────────────────────────────
+  Information: Price the clinic paid
+  Source: The clinic's purchase invoice
+  Available to us?: No. The clinic uploads it, and the AI reads it.
+
+  Everything about the drug is public and free. Everything about the patient
+  comes from the clinic.
+
+  Every manual step and how it gets automated
+
+  In the "Type" column:
+  - AI = an LLM reads messy text.
+  - Code = regular logic, no AI. It's more reliable, and judges will like that
+    you chose it deliberately.
+  - Skip = we don't automate it.
+
+  Part A: Setup, once per new drug
+
+  Documents: the FDA label (package insert), the drug maker's billing guide, and
+  the payer's policy.
+
+  #: 1
+  Item: Pick the generic code (J3490 / J3590 / J9999)
+  What clinics do today: Read the drug maker's billing guide PDF or call its
+  support line
+  Type: Code
+  How we automate it: Rules applied to openFDA data: biologic → J3590, cancer
+  drug → J9999, otherwise J3490. Also confirm no permanent code exists yet in
+  the CMS file.
+  ────────────────────────────────────────
+  #: 2
+  Item: Product facts: NDCs, vial sizes, single-dose or not, storage
+  What clinics do today: Read the box and the package insert
+  Type: Code + AI
+  How we automate it: NDCs and packages from the openFDA NDC API. The AI pulls
+  storage rules out of the label text, with a citation.
+  ────────────────────────────────────────
+  #: 3
+  Item: Approved-use checklist (what the patient must have for the drug to be
+  covered)
+  What clinics do today: The doctor roughly knows; staff dig through the label
+  Type: AI
+  How we automate it: The LLM turns the label's approved-use text into a
+  checklist, e.g. "KRAS G12C mutation ✓, at least one prior therapy ✓"
+  ────────────────────────────────────────
+  #: 4
+  Item: Payer rules (units = 1, what goes in Item 19, invoice needed?)
+  What clinics do today: The biller looks each one up or calls
+  Type: Code
+  How we automate it: Medicare rules written in as a rule table. Commercial
+  payers are out of scope for the demo.
+  ────────────────────────────────────────
+  #: 5
+  Item: Watch for the permanent code
+  What clinics do today: Someone has to notice CMS's quarterly update
+  Type: Code
+  How we automate it: Check the CMS files and show a countdown like "Permanent
+  code expected Oct 1"
+
+  Part B: Before treatment, per patient
+
+  Documents: the insurance check / prior authorization and the purchase invoice.
+
+  #: 6
+  Item: Insurance coverage check / prior authorization
+  What clinics do today: Phone calls, payer websites, or the drug maker's
+  support
+  program
+  Type: Skip
+  How we automate it: CoverMyMeds territory. We only flag "prior auth likely
+  needed."
+  ────────────────────────────────────────
+  #: 7
+  Item: Invoice cost, NDC, lot number
+  What clinics do today: File the invoice and dig it up later
+  Type: AI
+  How we automate it: The clinic uploads the invoice. The AI reads it and stores
+
+  the cost per vial.
+
+  Part C: Treatment day
+
+  Documents: the doctor's order and note, and the nurse's infusion record.
+
+  #: 8
+  Item: Doctor's note justifying the drug
+  What clinics do today: The doctor writes it and often leaves out what the
+  payer
+  wants to see
+  Type: AI
+  How we automate it: Compares the note against the checklist from #3 and flags
+  gaps like "No biomarker result documented." It can draft a justification
+  sentence for the doctor to approve. This is the doctor-facing value.
+  ────────────────────────────────────────
+  #: 9
+  Item: Nurse record: dose given, waste, start/stop times, lot
+  What clinics do today: Recorded by hand, and things get missed
+  Type: Code
+  How we automate it: The form requires those fields. Waste = vial amount −
+  dose,
+  calculated automatically. It flags a missing stop time.
+
+  Part D: Building the claim (CMS-1500 form)
+
+  #: 10
+  Item: Waste modifier (JW or JZ)
+  What clinics do today: The biller decides
+  Type: Code
+  How we automate it: Single-dose vial with waste → add a JW line. No waste →
+  JZ.
+  ────────────────────────────────────────
+  #: 11
+  Item: Units
+  What clinics do today: The biller has to remember each payer's rule
+  Type: Code
+  How we automate it: Generic code under Medicare = 1. After the permanent code
+  =
+  dose ÷ the code's unit, from the CMS crosswalk.
+  ────────────────────────────────────────
+  #: 12
+  Item: NDC in 11-digit format
+  What clinics do today: Converted by hand (padding zeros)
+  Type: Code
+  How we automate it: Automatic formatting
+  ────────────────────────────────────────
+  #: 13
+  Item: Item 19 description (name, strength, dose, route, NDC, cost, 80
+  characters max)
+  What clinics do today: Typed by hand on every claim
+  Type: Code
+  How we automate it: Generated from a template, with a length check
+  ────────────────────────────────────────
+  #: 14
+  Item: Diagnosis code and administration code
+  What clinics do today: The coder picks the diagnosis and works out infusion
+  time
+  Type: AI + Code
+  How we automate it: The AI suggests a diagnosis code from the note and checks
+  it matches an approved use. Code picks the infusion code from the start/stop
+  times.
+  ────────────────────────────────────────
+  #: 15
+  Item: Attachments (invoice, label, notes)
+  What clinics do today: Gathered by hand when the payer asks
+  Type: Code
+  How we automate it: Bundled automatically into one PDF
+
+  Part E: After submission
+
+  #: 16
+  Item: Returned or denied claim
+  What clinics do today: Decode the denial reason, fix it, resubmit, or call the
+
+  drug maker's reimbursement specialist
+  Type: AI
+  How we automate it: Explains the denial in plain English and suggests the fix.
+
+  One click sends the full packet to the specialist.
+
+  Summary: of 16 steps, about 11 are regular code, 5 use AI (#2, #3, #7, #8,
+  #14, #16 partly), and 1 is skipped. That's a strong answer to "what's the AI
+  actually doing": it reads unstructured text (drug labels, doctor's notes,
+  invoices, denial letters), and plain code handles the billing math.
+
+  Can't they just do it themselves?
+
+  They can. Some real alternatives already exist:
+  - Drug makers publish billing guide PDFs for each launch, with a sample
+    filled-in claim form.
+  - Drug makers employ reimbursement specialists (FRMs) who visit clinics.
+  - Claim-checking software (Waystar, Availity) catches general formatting
+    errors.
+
+  What those don't do:
+  - The billing guide is a static PDF. It doesn't check this patient's note,
+    dose and waste.
+  - The reimbursement specialists are human and don't scale to every clinic.
+  - Claim-checking software doesn't know anything about new drugs.
+
+  The honest weak spot: once a biller has done 3 claims for DrugX, they can copy
+  the pattern. So the value is concentrated in:
+  - The first claims for each new drug. Dozens of new drugs are approved each
+    year, so a clinic keeps facing this.
+  - Checks specific to each patient, especially #8, the doctor's documentation.
+  - The code switchover (#5 and #11).
+
+  That lines up with what pharma cares about most: the launch window. But be
+  ready for a judge to ask "Wouldn't they just learn it?" The answer is "Yes,
+  for one drug. Not for every new drug, every payer and every code change."

@@ -1,0 +1,35 @@
+What Will This Product Actually Be? (The Look & Feel)
+You are building an AI-orchestrated playbook that acts as a financial and operational safety net for the clinic.
+The Interface (The Multiplayer Canvas): It is a shared React dashboard used by a clinic's entire staff. When a pharma company launches a new drug, they sponsor a "Launch Readiness Board" on Impiricus for clinics.
+What the AI Does: The AI ingests the dense FDA label and CMS billing rules and instantly generates a customized, interactive checklist divided by staff role. This is your "Multiplayer AI" execution:
+For the Doctor/Nurse: The AI extracts the exact clinical documentation required by insurance (e.g., "Warning: You must document exact start and stop times for the infusion, or the CPT administration claim will be denied").
+For the Medical Biller: The AI generates a flawless J3490 billing template. It automatically maps the drug's exact milligrams to the weird billing units payers require, flags the required 11-digit NDC format, and generates a checklist for required invoice attachments.
+For the Front Desk: It lists exactly how the drug must be stored (pulled from the FDA label) so it doesn't spoil and cost the clinic $10,000.
+The Impiricus Integration (Commercial Fit): If the biller gets stuck on a J3490 requirement, they don't have to guess. They click an Impiricus button on the canvas that says: "Connect with [Pharma Brand's] Reimbursement Specialist." Impiricus instantly bridges the clinic's billing staff with the pharma company's internal experts to ensure the claim goes through.
+
+
+This is the exact level of critical thinking you need to win. You are asking the right questions about data feasibility, user mechanics, and industry reaction.
+Let's break this down into exactly how you build it, how it works, and how the industry reacts.
+1. What is the AI actually doing, and where do we get the data?
+You are building an AI operations engine that prevents human error. Here is the exact data pipeline:
+The Data Sources: You do not need to fake the drug data. The US government provides a free, public API called openFDA (DailyMed) that contains the exact structured labels for every approved drug. For the billing rules, CMS (Medicare) publishes a public quarterly file of billing codes.
+What the AI does: The AI uses LangChain to ingest the openFDA JSON label for a newly approved drug. It scans the text and extracts three things:
+Storage: (e.g., "Must be refrigerated between 2°C and 8°C").
+Dosage: (e.g., "5mg per kg of patient weight").
+NDC Code: (The 11-digit National Drug Code required for billing).
+The Math: The AI automatically calculates the billing conversions. If the doctor inputs that they gave a 500mg dose, and the insurance requires billing in "1mg units," the AI automatically generates a claim sheet for 500 units, attaching the exact NDC code and required wastage modifiers (JW/JZ).
+What you mock for the Hackathon: You pull real openFDA data, but you will likely mock a simulated Electronic Health Record (EHR) payload (e.g., a dummy JSON file saying "Patient John Doe received 500mg").
+2. How is this "Multiplayer AI"?
+"Multiplayer" does not mean everyone is chatting with the AI at the exact same time. Think of it like a smart Jira board or a shared Notion workspace for a clinic.
+The Doctor, the Nurse, and the Medical Biller all have access to this shared state.
+The AI as the Connective Tissue: When the Nurse checks off a box saying, "Infusion completed: 500mg given, 50mg wasted," the AI instantly updates the Biller's screen on the other side of the clinic. The AI automatically drafts the J3490 billing claim using the Nurse's numbers and flags the Biller, saying: "Claim ready to submit. Note: 50mg wastage recorded, applying required JW billing modifier."
+It is multiplayer because the AI orchestrates the handoffs between different human roles asynchronously, ensuring no data is dropped.
+3. What does the Pharma Company do?
+Pharmaceutical companies employ entire teams of people called Field Reimbursement Managers (FRMs). Their entire job is to help clinics figure out how to bill for new drugs so the clinic keeps buying them.
+The Sponsorship: When a pharma company launches a new drug, they pay Impiricus to "sponsor" this workspace for clinics.
+The Agentic Handoff: If the clinic's biller gets an insurance denial or is confused about a code, they don't have to wait on hold for an hour. They click a button on the workspace that says "Get Help." Your AI immediately packages the error and uses the Impiricus Ascend network to ping the pharma company's FRM, connecting them instantly to resolve the issue.
+4. How will Insurance (Payers) react to this?
+Insurance companies will actually love this tool.
+Right now, insurance companies spend millions of dollars paying humans to manually review messy J3490 claims because clinics constantly make typos, forget the 11-digit NDC code, or forget to attach the physical invoice.
+If your tool guarantees a "Clean Claim"—meaning the AI ensures all the math is perfect, the FDA documentation is attached, and the codes are exactly right before it is even submitted—the insurance company's automated systems can approve it instantly. It saves the clinic money, and it saves the insurance company administrative overhead.
+

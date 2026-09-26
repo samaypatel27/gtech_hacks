@@ -1,0 +1,40 @@
+## The pharma screen
+
+**Who uses it:** the drug maker's launch team and its reimbursement specialists (FRMs).
+
+**What it shows** (for one drug, e.g. DrugX):
+- **Practices that have started DrugX**, each with a status: 🟢 running smoothly, 🟡 stuck, 🔴 claim denied.
+- **Where each one is stuck:** "claim returned, missing NDC" or "documentation gap: no biomarker result."
+- **Help requests:** practices that clicked "Get help," with the issue already packaged, so the specialist knows the problem before calling.
+- **Patterns across practices:** "40% of first claims are missing biomarker documentation," which tells the drug maker what to proactively tell doctors. Mock numbers for the demo.
+- **A countdown to the permanent code**, with a "notify all practices" button.
+
+**Why it's HCP engagement:** today the drug maker has no idea which practices are struggling with its new drug. This screen tells them **which doctors to reach, when and about what.** That's Impiricus's trigger-based model with a new kind of trigger.
+
+**Privacy:** practice-level information only, never patient details, and only for practices that opted in.
+
+## How the data comes in
+
+**What to say if judges ask:**
+> *"In a real deployment, it connects to the clinic's electronic health record, like Epic, through FHIR, the standard healthcare data API. That's where the doctor's note, the nurse's record and the patient's insurance info already live. For the demo, we're using synthetic patients in that same format."*
+
+That answer is honest and standard; every healthcare hackathon project uses mock patient data.
+
+**Where each input comes from:**
+- **Patient info and insurance:** normally entered by the front desk at check-in. It lives in the health record system; we just read it.
+- **Doctor's note:** from the health record.
+- **Nurse's record:** from the health record.
+- **Invoice:** the clinic uploads it.
+- **The biller doesn't supply anything.** The biller receives the output: the finished claim.
+
+**How to build it for the demo** (not hardcoded text files, because judges should see it's real):
+
+| Input | Format | Why |
+|---|---|---|
+| Patient records | Synthetic patients as JSON in the FHIR format, stored in your database. **Synthea** is a free tool that generates realistic synthetic patients. | Looks like real health-record data and backs up the FHIR answer |
+| Doctor's note | **Free text, editable live** | The AI reading messy text is the point. If a judge deletes the biomarker line and the check turns ✗, they know it's not faked. |
+| Nurse's record | A **small form** (dose, waste, start/stop times) | Simple, and shows the waste and infusion-code math updating live |
+| Invoice | A **real-looking PDF, uploaded live** | Shows the AI reading an actual document |
+| Clinic details (doctor ID number, tax ID) | Config file | Nobody cares about these |
+
+**The key idea:** anything the AI reads should be **editable live in the demo.** Editing the doctor's note live is the single most convincing moment you can show.

@@ -1,0 +1,20 @@
+### **Impiricus**
+
+💡 **Challenge: Invent the Next Way We Engage HCPs**
+
+Scenario: 
+
+Build an HCP engagement tool Impiricus doesn’t offer today or one built on top of what Impiricus already does. This can include net-new channels or new value layered on the existing platform and data. SMS and any existing features Impiricus currently offers or ships today are off-limits.
+
+Your Mission:
+
+- Build a new HCP engagement tool.
+- Create a net-new channel or add new value on top of Impiricus’s existing platform and data.
+- Do not use SMS or recreate any existing Impiricus features.
+
+Projects will be judged on:
+
+- Impact on the HCP.
+- Originality.
+- Technical execution.
+- Commercial fit.

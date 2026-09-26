@@ -1,0 +1,14 @@
+Here is the breakdown of the three winning projects, analyzing their core mechanics and categorizing how they approached the Impiricus prompt.
+1. Medicus (1st Place)
+What it is: A two-sided marketplace and AI search engine. Medical device sales reps upload product specs, clinical research, and safety data. Doctors use an AI search interface to preview this information asynchronously before agreeing to a physical sales visit.
+The Label: New Idea. This is a net-new channel. Instead of relying on Impiricus's existing trigger-based pharmaceutical data, Medicus introduces a completely new workflow focused specifically on the medical device sector, bridging the gap between hardware reps and hospital procurement/doctors.
+Tech Alignment: Building a robust backend with Python data processing and PostgreSQL, connected to a React frontend, fits perfectly into a standard full-stack development rhythm.
+2. Doc McQuery (2nd Place)
+What it is: A highly specialized Point-of-Care Retrieval-Augmented Generation (RAG) system. A doctor inputs a patient's symptoms, and the system uses vector embeddings to instantly pull up identical past case histories from within the hospital's database, alongside highly relevant PubMed medical journals.
+The Label: New Idea. This is entirely independent of Impiricus's commercial pharma data. It acts as a pure clinical decision-support tool, providing a new way to engage doctors by dramatically reducing the time it takes them to research rare or complex patient symptoms.
+Tech Alignment: This relies heavily on orchestrating Python, vector databases (pgvector), and embedding models (Sentence Transformers)—a heavy data pipeline architecture.
+3. Vital (3rd Place)
+What it is: A spatial, drag-and-drop dashboard for doctors. It constantly monitors new medical literature and policy updates, cross-referencing them against the doctor's specific patient list to highlight exactly who is affected by new medical guidelines.
+The Label: Addition to the Impiricus Platform. The submission explicitly states that the "real-time Research Stream is integrated with Impiricus' own data feed." They took existing Impiricus capabilities and layered a highly interactive, agentic canvas on top of it, using context menus ("spells") to trigger actions instead of standard buttons.
+Tech Alignment: Developing a Next.js frontend with Tailwind components and a Supabase backend to orchestrate LLM workflows is a highly effective, fast-shipping architecture for a 36-hour hackathon.
+
