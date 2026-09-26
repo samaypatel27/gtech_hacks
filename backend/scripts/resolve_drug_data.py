@@ -6,8 +6,8 @@ Re-runnable: `python scripts/resolve_drug_data.py` from `backend/`.
 
 Billing-code sourcing: CMS Q1 2026 and Q2 2026 HCPCS application summaries,
 and a Blue Cross Vermont prior-authorization list revised 08/27/2026.
-Note: AVOPEF, FAVLYXA and VYKOURA are expected to receive permanent codes
-J9186, J9191 and J0644 respectively, effective 2026-10-01.
+Note: VYKOURA is expected to receive permanent code J0644, effective
+2026-10-01.
 """
 
 import json
@@ -26,91 +26,22 @@ THROTTLE_SECONDS = 0.3
 # "resolve" means look it up against openFDA.
 DRUGS = [
     # generic (no permanent code yet)
-    dict(brand="AVOPEF", generic="etoposide", pubchem_query="etoposide",
-         application_number="NDA220200", route="IV", billing_code="J9999",
-         approval_date="2026-02-13", code_status="generic"),
-    dict(brand="FAVLYXA", generic="fluorouracil", pubchem_query="fluorouracil",
-         application_number="NDA220201", route="IV", billing_code="J9999",
-         approval_date="2026-02-20", code_status="generic"),
-    dict(brand="VYKOURA", generic="leucovorin calcium", pubchem_query="leucovorin",
-         application_number="NDA220406", route="IV/IM", billing_code="J0644",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="IVRA", generic="melphalan hydrochloride", pubchem_query="melphalan",
-         application_number="resolve", route="IV", billing_code="J9999",
-         approval_date="resolve", code_status="generic"),
     dict(brand="EVDI", generic="trabectedin", pubchem_query="trabectedin",
          application_number="resolve", route="IV", billing_code="J9999",
          approval_date="resolve", code_status="generic"),
-    dict(brand="GRAFAPEX", generic="treosulfan", pubchem_query="treosulfan",
-         application_number="resolve", route="IV", billing_code="J0614",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="UPTRAVI", generic="selexipag", pubchem_query="selexipag",
-         application_number="resolve", route="IV", billing_code="J3490",
-         approval_date="resolve", code_status="generic",
-         search_hint="injection"),
 
     # permanent code
-    dict(brand="CONTEPO", generic="fosfomycin", pubchem_query="fosfomycin",
-         application_number="resolve", route="IV", billing_code="J0528",
-         approval_date="2025-10-22", code_status="permanent"),
-    dict(brand="FERABRIGHT", generic="ferumoxytol", pubchem_query="ferumoxytol",
-         application_number="resolve", route="IV", billing_code="A9574",
-         approval_date="2025-10-16", code_status="permanent"),
-    dict(brand="TYZAVAN", generic="vancomycin", pubchem_query="vancomycin",
-         application_number="NDA211962", route="IV", billing_code="J3375",
-         approval_date="2025-06-27", code_status="permanent"),
-    dict(brand="KYXATA", generic="carboplatin", pubchem_query="carboplatin",
-         application_number="resolve", route="IV", billing_code="J9278",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="AVGEMSI", generic="gemcitabine", pubchem_query="gemcitabine",
-         application_number="resolve", route="IV", billing_code="J9184",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="VELCADE", generic="bortezomib", pubchem_query="bortezomib",
-         application_number="NDA021602", route="IV/SC", billing_code="J9041",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="KYPROLIS", generic="carfilzomib", pubchem_query="carfilzomib",
-         application_number="NDA202714", route="IV", billing_code="J9047",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="JEVTANA", generic="cabazitaxel", pubchem_query="cabazitaxel",
-         application_number="NDA201023", route="IV", billing_code="J9043",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="HALAVEN", generic="eribulin mesylate", pubchem_query="eribulin",
-         application_number="NDA201532", route="IV", billing_code="J9179",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="ZEPZELCA", generic="lurbinectedin", pubchem_query="lurbinectedin",
-         application_number="NDA213702", route="IV", billing_code="J9223",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="FOLOTYN", generic="pralatrexate", pubchem_query="pralatrexate",
-         application_number="NDA022468", route="IV", billing_code="J9307",
+    dict(brand="VYKOURA", generic="leucovorin calcium", pubchem_query="leucovorin",
+         application_number="NDA220406", route="IV/IM", billing_code="J0644",
          approval_date="resolve", code_status="permanent"),
     dict(brand="REZZAYO", generic="rezafungin", pubchem_query="rezafungin",
          application_number="NDA217417", route="IV", billing_code="J0349",
          approval_date="resolve", code_status="permanent"),
-    dict(brand="COSELA", generic="trilaciclib", pubchem_query="trilaciclib",
-         application_number="NDA214200", route="IV", billing_code="J1448",
-         approval_date="resolve", code_status="permanent"),
 ]
 
-SPARES = [
-    dict(brand="PEMRYDI RTU", generic="pemetrexed", pubchem_query="pemetrexed",
-         application_number="resolve", route="IV", billing_code="J9324",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="BORUZU", generic="bortezomib", pubchem_query="bortezomib",
-         application_number="resolve", route="IV", billing_code="J9054",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="BEIZRAY", generic="docetaxel", pubchem_query="docetaxel",
-         application_number="resolve", route="IV", billing_code="J9174",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="BELEODAQ", generic="belinostat", pubchem_query="belinostat",
-         application_number="resolve", route="IV", billing_code="J9032",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="RADICAVA", generic="edaravone", pubchem_query="edaravone",
-         application_number="resolve", route="IV", billing_code="J1301",
-         approval_date="resolve", code_status="permanent"),
-    dict(brand="ZULRESSO", generic="brexanolone", pubchem_query="brexanolone",
-         application_number="resolve", route="IV", billing_code="J1632",
-         approval_date="resolve", code_status="permanent"),
-]
+# Substituted for any DRUGS entry openFDA can't resolve. Left empty so an
+# unresolved drug is dropped rather than replaced with a seed-only one.
+SPARES = []
 
 
 def openfda_search(field, value):
@@ -263,8 +194,7 @@ def main():
         "source_note": (
             "Billing codes from CMS Q1 2026 / Q2 2026 HCPCS application summaries "
             "and a Blue Cross Vermont prior-authorization list revised 08/27/2026. "
-            "AVOPEF, FAVLYXA, VYKOURA get permanent codes J9186, J9191, J0644 "
-            "effective 2026-10-01."
+            "VYKOURA gets permanent code J0644 effective 2026-10-01."
         ),
         "used_spares": used_spares,
         "drugs": results,
