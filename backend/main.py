@@ -6,8 +6,15 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from supabase import create_client
 
 load_dotenv()
+
+# Service role key bypasses RLS; `drugs` has RLS enabled with no policies,
+# so it must only ever be used server-side.
+supabase = create_client(
+    os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+)
 
 app = FastAPI()
 
@@ -147,3 +154,22 @@ async def get_drug_images(brand_name: str):
     ]
 
     return DrugImageResponse(brand_name=brand_name, setid=setid, images=images)
+
+
+@app.get("/api/drugs/search")
+def search_drugs(q: str = "", limit: int = 20):
+    if not q.strip():
+        return []
+
+    try:
+        response = (
+            supabase.table("drugs")
+            .select("*")
+            .ilike("brand_name", f"%{q}%")
+            .limit(limit)
+            .execute()
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Supabase query failed: {e}")
+
+    return response.data
