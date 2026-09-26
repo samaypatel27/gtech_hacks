@@ -1,0 +1,25 @@
+.button {
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f0f0f5;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.button:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: rgba(140, 150, 220, 0.55);
+  box-shadow: 0 0 0 3px rgba(140, 150, 220, 0.14);
+}
