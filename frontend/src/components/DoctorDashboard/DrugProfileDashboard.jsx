@@ -110,7 +110,7 @@ function FieldGroup({ fields }) {
 function BackLink() {
   return (
     <Link
-      to="/doctor"
+      to="/doctor/drugs"
       className="inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
     >
       &larr; Back to all drugs
