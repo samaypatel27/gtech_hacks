@@ -8,20 +8,16 @@ const POLL_MS = 3000
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const KIND_ORDER = ['purchasing', 'receiving', 'nurse_setup', 'billing_setup']
-
+// Valid :role segments on /staff/:role/workspace/:practiceDrugId.
 const ROLE_LABEL = {
   front_desk: 'Front Desk',
   nurse: 'Nurse',
   biller: 'Biller',
 }
 
-// Roles displayed left to right.
-const ROLE_COLUMNS = [
-  { role: 'front_desk', kinds: ['purchasing', 'receiving'] },
-  { role: 'nurse', kinds: ['nurse_setup'] },
-  { role: 'biller', kinds: ['billing_setup'] },
-]
+// Everyone who appears on the board. The doctor route has no :role, so the
+// viewer is 'doctor' there; kept out of ROLE_LABEL so /staff/doctor/... isn't valid.
+const BOARD_ROLE_LABEL = { doctor: 'Doctor', ...ROLE_LABEL }
 
 // ─── Small helpers ────────────────────────────────────────────────────────────
 
@@ -48,20 +44,6 @@ function StatusPill({ status }) {
       {label}
     </span>
   )
-}
-
-/** Compact section label — uppercase, small, muted. */
-function ColumnHeader({ children }) {
-  return (
-    <p className="mb-4 text-[11px] font-semibold tracking-widest text-white/40 uppercase">
-      {children}
-    </p>
-  )
-}
-
-/** Divider line used inside card area. */
-function Divider() {
-  return <div className="my-4 border-t border-white/[0.07]" />
 }
 
 // ─── Readiness strip ──────────────────────────────────────────────────────────
@@ -184,102 +166,36 @@ function DoctorStrip({ practiceDrug }) {
   )
 }
 
-// ─── Task card ────────────────────────────────────────────────────────────────
+// ─── Task board ───────────────────────────────────────────────────────────────
 
-/**
- * Badge for a card's state — plain text, no colour treatment.
- * locked | todo | in_progress | done
- */
-function StateBadge({ state }) {
-  const map = {
-    locked: 'Locked',
-    todo: 'To do',
-    in_progress: 'In progress',
-    done: 'Done',
-  }
+/** One board column: header + an empty card lane. Cards aren't built yet. */
+function BoardColumn({ title, subtitle }) {
   return (
-    <span
-      className={`text-[11px] font-semibold tracking-wider uppercase ${
-        state === 'done' ? 'text-white/30' : state === 'locked' ? 'text-white/25' : 'text-white/50'
-      }`}
-    >
-      {map[state] ?? state}
-    </span>
+    <div className="flex min-h-[420px] flex-col rounded-xl border border-white/10 bg-white/[0.025] px-5 py-5">
+      <p className="text-[11px] font-semibold tracking-widest text-white/40 uppercase">{title}</p>
+      <p className="mt-1 text-[12px] text-white/30">{subtitle}</p>
+      <div className="mt-4 flex flex-1 items-center justify-center rounded-lg border border-dashed border-white/10">
+        <p className="text-[13px] text-white/25">No cards yet</p>
+      </div>
+    </div>
   )
 }
 
-function TaskCard({ task, locked, onMarkDone }) {
-  const [saveError, setSaveError] = useState(null)
-  const [saving, setSaving] = useState(false)
-
-  const state = locked ? 'locked' : task.status === 'done' ? 'done' : task.status === 'in_progress' ? 'in_progress' : 'todo'
-  const collapsed = state === 'done'
-
-  async function handleMarkDone() {
-    if (saving || locked) return
-    setSaving(true)
-    setSaveError(null)
-    try {
-      const res = await fetch(`${API_URL}/api/tasks/${task.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: task.status === 'done' ? 'todo' : 'done' }),
-      })
-      if (!res.ok) throw new Error(`Server error ${res.status}`)
-      const updated = await res.json()
-      onMarkDone(updated)
-    } catch {
-      setSaveError('Save failed — try again')
-    } finally {
-      setSaving(false)
-    }
-  }
+/**
+ * Jira-style board from `viewer`'s point of view: their own tasks in To do,
+ * everyone else's open tasks in Awaiting, and all finished tasks in Complete.
+ * Shell only -- the columns don't render task cards yet.
+ */
+function TaskBoard({ viewer }) {
+  const others = Object.keys(BOARD_ROLE_LABEL)
+    .filter((r) => r !== viewer)
+    .map((r) => BOARD_ROLE_LABEL[r])
 
   return (
-    <div
-      className={`border-b border-white/[0.06] py-5 last:border-b-0 last:pb-0 first:pt-0 transition-opacity ${
-        state === 'locked' ? 'opacity-40' : ''
-      }`}
-    >
-      {/* Title row */}
-      <div className="flex items-start justify-between gap-4">
-        <p
-          className={`text-[15px] font-semibold leading-snug ${
-            state === 'done' ? 'text-white/35' : 'text-white/90'
-          }`}
-        >
-          {task.title}
-        </p>
-        <StateBadge state={state} />
-      </div>
-
-      {/* Body — hidden when done */}
-      {!collapsed && (
-        <div className="mt-3">
-          {locked ? (
-            <p className="text-[13px] text-white/35">
-              Waiting on: Purchasing
-            </p>
-          ) : (
-            <>
-              <p className="text-[13px] leading-[1.7] text-white/50">{task.instruction}</p>
-              <Divider />
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={handleMarkDone}
-                  disabled={saving}
-                  className="text-[13px]"
-                >
-                  {saving ? 'Saving…' : task.status === 'done' ? 'Mark incomplete' : 'Mark complete'}
-                </Button>
-                {saveError && (
-                  <span className="text-[12px] text-white/40">{saveError}</span>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      )}
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <BoardColumn title="To do" subtitle={`Assigned to ${BOARD_ROLE_LABEL[viewer]}`} />
+      <BoardColumn title="Awaiting" subtitle={`Assigned to ${others.join(', ')}`} />
+      <BoardColumn title="Complete" subtitle="Finished by anyone on the team" />
     </div>
   )
 }
@@ -311,8 +227,8 @@ function ReadyBanner({ drugName, holdCount, navigate, backTo, backLabel }) {
 // Serves two routes over the same workspace data (same practice_drugs row,
 // same tasks): /doctor/workspace/:practiceDrugId for the practice's own doctor,
 // and /staff/:role/workspace/:practiceDrugId for nurse/biller/front desk, who
-// each get their own URL. `role` is undefined on the doctor route; so far it
-// only decides where "back" goes -- role-specific card ordering comes later.
+// each get their own URL. `role` is undefined on the doctor route. It decides
+// where "back" goes and whose tasks land in the board's To do column.
 function TeamWorkspacePage() {
   const { practiceDrugId, role } = useParams()
   const navigate = useNavigate()
@@ -359,18 +275,6 @@ function TeamWorkspacePage() {
     }
   }, [practiceDrugId])
 
-  // When a card's PATCH responds, merge the updated task into local state
-  // so the UI updates immediately without waiting for the next poll.
-  function handleTaskUpdate(updatedTask) {
-    setData((prev) => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        tasks: prev.tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
-      }
-    })
-  }
-
   const PAGE = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 xl:px-14'
 
   // An unrecognized :role -- same treatment as StaffWorkspacesPage: send them
@@ -410,8 +314,6 @@ function TeamWorkspacePage() {
   }
 
   const { drug, practice_drug: pd, tasks } = data
-  const byKind = Object.fromEntries((tasks || []).map((t) => [t.kind, t]))
-  const purchasingDone = byKind.purchasing?.status === 'done'
   const isActive = pd?.status === 'active'
 
   return (
@@ -446,35 +348,9 @@ function TeamWorkspacePage() {
         <DoctorStrip practiceDrug={pd} />
       </div>
 
-      {/* Three role columns */}
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {ROLE_COLUMNS.map(({ role, kinds }) => {
-          const roleTasks = kinds
-            .map((k) => byKind[k])
-            .filter(Boolean)
-            .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind))
-
-          return (
-            <div
-              key={role}
-              className="rounded-xl border border-white/10 bg-white/[0.025] px-5 py-5"
-            >
-              <ColumnHeader>{ROLE_LABEL[role] ?? role}</ColumnHeader>
-              {roleTasks.length === 0 ? (
-                <p className="text-[13px] text-white/30">No tasks.</p>
-              ) : (
-                roleTasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    locked={task.kind === 'receiving' && !purchasingDone}
-                    onMarkDone={handleTaskUpdate}
-                  />
-                ))
-              )}
-            </div>
-          )
-        })}
+      {/* Task board, from this viewer's point of view */}
+      <div className="mt-8">
+        <TaskBoard viewer={role ?? 'doctor'} />
       </div>
 
       {/* Ready banner — only when active */}
