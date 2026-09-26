@@ -852,6 +852,23 @@ def team_ready(practice_drug_id: int):
         )
     practice_drug = pd_resp.data[0]
 
+    # Idempotent: if tasks already exist for this practice_drug, return them
+    # without inserting again.  A second click on "Get my team ready" is a
+    # no-op -- the user just gets navigated to the workspace that already exists.
+    existing_resp = (
+        supabase.table("tasks")
+        .select("*")
+        .eq("practice_drug_id", practice_drug_id)
+        .order("id")
+        .execute()
+    )
+    if existing_resp.data:
+        return {
+            "practice_drug_id": practice_drug_id,
+            "status": practice_drug["status"],
+            "tasks": existing_resp.data,
+        }
+
     # Fetch the drug row so we can write instruction text from real field values.
     drug_resp = (
         supabase.table("drugs")
@@ -916,10 +933,11 @@ def team_ready(practice_drug_id: int):
     }
 
 
+
 @app.get("/api/practice-drugs/{practice_drug_id}/tasks")
 def get_practice_drug_tasks(practice_drug_id: int):
-    """Return the tasks for this practice_drugs row plus the drug's brand name,
-    so the workspace page can display both without a separate drug-profile fetch."""
+    """Return tasks plus the full practice_drug context and a drug summary,
+    so the workspace page has everything it needs in one request."""
     pd_resp = (
         supabase.table("practice_drugs")
         .select("*")
@@ -936,12 +954,12 @@ def get_practice_drug_tasks(practice_drug_id: int):
 
     drug_resp = (
         supabase.table("drugs")
-        .select("brand_name")
+        .select("brand_name,application_id,codes,approval_date,storage_requirements")
         .eq("application_id", practice_drug["application_id"])
         .limit(1)
         .execute()
     )
-    drug_name = drug_resp.data[0]["brand_name"] if drug_resp.data else ""
+    drug_row = drug_resp.data[0] if drug_resp.data else {}
 
     tasks_resp = (
         supabase.table("tasks")
@@ -950,31 +968,133 @@ def get_practice_drug_tasks(practice_drug_id: int):
         .order("id")
         .execute()
     )
-    return {"drug_name": drug_name, "tasks": tasks_resp.data}
+
+    hold_list = practice_drug.get("hold_list") or []
+    stock = practice_drug.get("stock_on_hand") or []
+
+    return {
+        # Kept for backward compat with the DrugSearchGrid workspaces list.
+        "drug_name": drug_row.get("brand_name", ""),
+        "drug": {
+            "brand_name": drug_row.get("brand_name", ""),
+            "application_id": drug_row.get("application_id", ""),
+            "codes": drug_row.get("codes") or [],
+            "approval_date": drug_row.get("approval_date"),
+            "storage_requirements": drug_row.get("storage_requirements"),
+        },
+        "practice_drug": {
+            "id": practice_drug["id"],
+            "status": practice_drug["status"],
+            "planned_patients_per_month": practice_drug.get("planned_patients_per_month"),
+            "hold_list_count": len(hold_list),
+            "stock_on_hand": stock,
+            "ready_at": practice_drug.get("ready_at"),
+        },
+        "tasks": tasks_resp.data,
+    }
 
 
+def _recalculate_readiness(practice_drug_id: int) -> None:
+    """After any task update, check whether the workspace has reached 'active'.
+    All 4 tasks done AND stock_on_hand non-empty with total quantity > 0 → active.
+    If a task is un-done and status was active → revert to adopting."""
+    tasks_resp = (
+        supabase.table("tasks")
+        .select("status")
+        .eq("practice_drug_id", practice_drug_id)
+        .execute()
+    )
+    pd_resp = (
+        supabase.table("practice_drugs")
+        .select("status,stock_on_hand")
+        .eq("id", practice_drug_id)
+        .limit(1)
+        .execute()
+    )
+    if not pd_resp.data:
+        return
+
+    practice_drug = pd_resp.data[0]
+    tasks = tasks_resp.data or []
+
+    all_done = tasks and all(t["status"] == "done" for t in tasks)
+    stock = practice_drug.get("stock_on_hand") or []
+    has_stock = bool(stock) and sum(
+        (s.get("quantity") or 0) for s in stock if isinstance(s, dict)
+    ) > 0
+
+    if all_done and has_stock:
+        supabase.table("practice_drugs").update(
+            {
+                "status": "active",
+                "ready_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        ).eq("id", practice_drug_id).execute()
+    elif practice_drug["status"] == "active":
+        # A task was un-done or stock was removed — revert.
+        supabase.table("practice_drugs").update(
+            {
+                "status": "adopting",
+                "ready_at": None,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+        ).eq("id", practice_drug_id).execute()
+
+
+class TaskUpdate(BaseModel):
+    status: Optional[str] = None   # 'todo' | 'in_progress' | 'done'
+    inputs: Optional[dict] = None  # merged non-destructively into existing inputs
+
+
+@app.patch("/api/tasks/{task_id}")
+def update_task(task_id: int, payload: TaskUpdate):
+    """Update a task's status and/or inputs.  Inputs are merged (not replaced):
+    existing keys not in the payload survive.  Recalculates workspace readiness."""
+    if payload.status is not None and payload.status not in ("todo", "in_progress", "done"):
+        raise HTTPException(status_code=422, detail="status must be 'todo', 'in_progress', or 'done'")
+
+    # Fetch the current task to get practice_drug_id and existing inputs.
+    current_resp = supabase.table("tasks").select("*").eq("id", task_id).limit(1).execute()
+    if not current_resp.data:
+        raise HTTPException(status_code=404, detail=f"No task found for id {task_id}")
+    current = current_resp.data[0]
+
+    update: dict = {}
+    if payload.status is not None:
+        update["status"] = payload.status
+        if payload.status == "done":
+            update["completed_at"] = datetime.now(timezone.utc).isoformat()
+        else:
+            update["completed_at"] = None
+
+    if payload.inputs is not None:
+        # Merge: start from existing inputs (may be {} if column missing or new)
+        existing_inputs = current.get("inputs") or {}
+        update["inputs"] = {**existing_inputs, **payload.inputs}
+
+    if not update:
+        return current
+
+    resp = supabase.table("tasks").update(update).eq("id", task_id).execute()
+    if not resp.data:
+        raise HTTPException(status_code=404, detail=f"No task found for id {task_id}")
+
+    _recalculate_readiness(current["practice_drug_id"])
+    return resp.data[0]
+
+
+# Backward-compat alias so the old endpoint keeps working during transition.
 class TaskStatusUpdate(BaseModel):
     status: str  # 'todo' | 'done'
 
 
 @app.patch("/api/tasks/{task_id}/status")
 def update_task_status(task_id: int, payload: TaskStatusUpdate):
-    """Toggle a task between 'todo' and 'done'.  Sets completed_at when done."""
-    if payload.status not in ("todo", "done"):
-        raise HTTPException(
-            status_code=422,
-            detail="status must be 'todo' or 'done'",
-        )
-    update = {"status": payload.status}
-    if payload.status == "done":
-        update["completed_at"] = datetime.now(timezone.utc).isoformat()
-    else:
-        update["completed_at"] = None  # clear when un-checking
+    """Legacy alias for PATCH /api/tasks/{task_id} — kept so existing callers
+    don't break. Delegates to the unified endpoint logic."""
+    return update_task(task_id, TaskUpdate(status=payload.status))
 
-    resp = supabase.table("tasks").update(update).eq("id", task_id).execute()
-    if not resp.data:
-        raise HTTPException(status_code=404, detail=f"No task found for id {task_id}")
-    return resp.data[0]
 
 
 @app.get("/api/practices/{email}/workspaces")
