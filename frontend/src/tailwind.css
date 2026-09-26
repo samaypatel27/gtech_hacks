@@ -1,6 +1,20 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* Preflight is skipped everywhere else in this file (see CLAUDE.md), but
+   without box-sizing: border-box, any element that combines `w-full`/a
+   fixed width with padding or a border renders WIDER than its container
+   under the browser's default content-box model -- e.g. a grid item with
+   `w-full p-5 border` ends up ~42px wider than its grid track, overlapping
+   the next column regardless of `gap`. This rule only changes box-model
+   math, not native control appearance, so it doesn't reintroduce the
+   Preflight resets this file is deliberately avoiding.  */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 @keyframes fade-in-up {
   from {
     opacity: 0;

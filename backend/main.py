@@ -181,6 +181,28 @@ def search_drugs(q: str = "", limit: int = 20):
         raise HTTPException(status_code=500, detail=f"Supabase query failed: {e}")
 
     return response.data
+
+
+@app.get("/api/drugs/profile/{application_id}")
+def get_drug_profile(application_id: str):
+    try:
+        response = (
+            supabase.table("drugs")
+            .select("*")
+            .eq("application_id", application_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Supabase query failed: {e}")
+
+    rows = response.data
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"No drug found for {application_id}")
+
+    return rows[0]
+
+
 class DrugRecord(BaseModel):
     application_id: str
     brand_name: str | None = None

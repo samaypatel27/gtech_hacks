@@ -1,20 +1,14 @@
-import { Link, useParams } from 'react-router-dom'
-import '../tailwind.css'
+import { useParams } from 'react-router-dom'
+import DrugProfileDashboard from '../components/DoctorDashboard/DrugProfileDashboard.jsx'
 
-// Placeholder destination for drug search cards. The real detail page
-// (the "Considering" view for this specific drug) is built separately.
+// The "Considering" detail view for a specific drug -- fetches the full
+// profile for :applicationId and renders it as a bento grid.
 function DrugDetailPage() {
   const { applicationId } = useParams()
 
-  return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 px-6 text-center text-[#f0f0f5]">
-      <p className="text-sm text-white/40">Drug detail page — coming soon</p>
-      <p className="font-mono text-lg">{applicationId}</p>
-      <Link to="/doctor" className="mt-4 text-sm text-indigo-300 hover:text-indigo-200">
-        ← Back to search
-      </Link>
-    </div>
-  )
+  // Keying on applicationId forces a remount (and fresh initial state)
+  // instead of needing to manually reset state inside the fetch effect.
+  return <DrugProfileDashboard key={applicationId} applicationId={applicationId} />
 }
 
 export default DrugDetailPage
