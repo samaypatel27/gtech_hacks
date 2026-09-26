@@ -43,6 +43,8 @@ const SOURCES = [
       infusion_time_minutes: data.infusion_time_minutes,
       preparation_instructions: data.preparation_instructions,
       is_single_dose_vial: data.is_single_dose_vial,
+      typical_adult_dose: data.typical_adult_dose,
+      is_antineoplastic: data.is_antineoplastic,
       approved_uses_and_conditions: data.approved_uses_and_conditions.length
         ? data.approved_uses_and_conditions
         : null,
