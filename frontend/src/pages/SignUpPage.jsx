@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BackButton from '../components/BackButton/BackButton.jsx'
 import Button from '../components/Button/Button.jsx'
+import AuthStatus from '../components/AuthStatus/AuthStatus.jsx'
 import { fetchNpi, savePractice } from '../api/practices.js'
 import { setCurrentPractice } from '../lib/practiceSession.js'
 import { stashPendingSignUp } from '../lib/pendingSignUp.js'
-import { supabase } from '../lib/supabaseClient.js'
+import { signInWithGoogle } from '../lib/supabaseClient.js'
+import { useAuthSession } from '../lib/useAuthSession.js'
 import styles from './SignUpPage.module.css'
 
 // The small set of payers this demo supports (real reference data would
@@ -24,13 +26,7 @@ function SignUpPage() {
   // If someone arrives here via "Sign In -> no account found yet" (see
   // AuthCallbackPage.jsx), their email is already verified -- finishing
   // sign-up shouldn't send them through Google a second time.
-  const [sessionEmail, setSessionEmail] = useState(null)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSessionEmail(data.session?.user?.email ?? null)
-    })
-  }, [])
+  const { email: sessionEmail } = useAuthSession()
 
   const showLookupForm = status === 'idle' || status === 'looking-up' || status === 'error'
   const showConfirmForm = (status === 'found' || status === 'saving') && lookup
@@ -87,10 +83,7 @@ function SignUpPage() {
     // Not signed in yet -- stash this form's data and send them to Google.
     // AuthCallbackPage picks it back up once the email is verified.
     stashPendingSignUp(practiceFields())
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
+    const { error: oauthError } = await signInWithGoogle()
     if (oauthError) {
       setError(oauthError.message)
       setStatus('found')
@@ -100,6 +93,7 @@ function SignUpPage() {
   return (
     <div className={styles.page}>
       <BackButton to="/doctor" />
+      <AuthStatus />
       <div className={styles.panel}>
         <h1 className={styles.title}>Sign up with your NPI</h1>
 

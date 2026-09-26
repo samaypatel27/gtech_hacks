@@ -1,37 +1,28 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BackButton from '../components/BackButton/BackButton.jsx'
-import Button from '../components/Button/Button.jsx'
-import { supabase } from '../lib/supabaseClient.js'
-import { clearCurrentPractice } from '../lib/practiceSession.js'
+import { signInWithGoogle } from '../lib/supabaseClient.js'
+import { useAuthSession } from '../lib/useAuthSession.js'
 import styles from './DoctorChoicePage.module.css'
 
-// Landing page for the Doctor role: browse drugs directly, sign up with an
-// NPI (Phase 2 -- personalizes the Considering page), or sign in directly
-// with Google if already registered.
+// Gate for the Doctor role, not a neutral landing page: already signed in
+// (a session token is present) -> skip straight to the dashboard. Not
+// signed in -> Sign In or Sign Up are the only two entry points. There is
+// no anonymous "browse without an account" option.
 function DoctorChoicePage() {
   const navigate = useNavigate()
+  const { email, loading } = useAuthSession()
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [error, setError] = useState('')
-  const [signedInEmail, setSignedInEmail] = useState(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSignedInEmail(data.session?.user?.email ?? null)
-    })
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSignedInEmail(session?.user?.email ?? null)
-    })
-    return () => subscription.subscription.unsubscribe()
-  }, [])
+    if (!loading && email) navigate('/doctor/drugs', { replace: true })
+  }, [loading, email, navigate])
 
   const handleSignIn = async () => {
     setIsSigningIn(true)
     setError('')
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
+    const { error: oauthError } = await signInWithGoogle()
     if (oauthError) {
       setError(oauthError.message)
       setIsSigningIn(false)
@@ -39,31 +30,29 @@ function DoctorChoicePage() {
     // On success the browser navigates away to Google, so nothing else to do here.
   }
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    clearCurrentPractice()
-  }
+  // Loading (session not yet known) or already signed in (redirect effect
+  // above is about to fire) -- render nothing rather than flash the cards.
+  if (loading || email) return null
 
   return (
     <div className={styles.page}>
       <BackButton />
-      <div className={styles.choices}>
-        <Button onClick={() => navigate('/doctor/drugs')}>View Drugs</Button>
-        <Button onClick={() => navigate('/sign-up')}>Sign Up</Button>
-        <Button onClick={handleSignIn} disabled={isSigningIn}>
-          {isSigningIn ? 'Redirecting…' : 'Sign In'}
-        </Button>
+      <h1 className={styles.title}>Doctor sign-in</h1>
+      <div className={styles.cards}>
+        <button
+          type="button"
+          className={styles.card}
+          onClick={handleSignIn}
+          disabled={isSigningIn}
+        >
+          <span className={styles.cardTitle}>{isSigningIn ? 'Redirecting…' : 'Sign In'}</span>
+          <span className={styles.cardBody}>Already registered? Continue with Google.</span>
+        </button>
+        <button type="button" className={styles.card} onClick={() => navigate('/sign-up')}>
+          <span className={styles.cardTitle}>Sign Up</span>
+          <span className={styles.cardBody}>New practice? Verify your NPI to get started.</span>
+        </button>
       </div>
-
-      {signedInEmail && (
-        <p className={styles.session}>
-          Signed in with Google as {signedInEmail} —{' '}
-          <button type="button" className={styles.signOutLink} onClick={handleSignOut}>
-            sign out
-          </button>
-        </p>
-      )}
-
       {error && <p className={styles.error}>{error}</p>}
     </div>
   )

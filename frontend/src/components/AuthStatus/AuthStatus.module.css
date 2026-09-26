@@ -1,0 +1,29 @@
+.wrap {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.email {
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  color: #9a9ab0;
+}
+
+.error {
+  font-size: 13px;
+  color: #e08b8b;
+}
+
+@media (max-width: 480px) {
+  .email {
+    max-width: 120px;
+  }
+}

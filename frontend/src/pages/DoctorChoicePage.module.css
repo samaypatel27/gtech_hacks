@@ -4,37 +4,66 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #f0f0f5;
+}
+
+.cards {
+  display: flex;
   gap: 16px;
 }
 
-.choices {
+.card {
   display: flex;
-  gap: 12px;
+  width: 220px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.card:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+.card:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cardTitle {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.cardBody {
+  font-size: 13px;
+  color: #9a9ab0;
 }
 
 .error {
   margin: 0;
   font-size: 13px;
   color: #e08b8b;
-}
-
-.session {
-  margin: 0;
-  font-size: 13px;
-  color: #9a9ab0;
-}
-
-.signOutLink {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  font-size: inherit;
-  color: #d8d8e0;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.signOutLink:hover {
-  color: #f0f0f5;
 }
