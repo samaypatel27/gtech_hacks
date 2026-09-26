@@ -1,9 +1,11 @@
 import os
+from typing import Optional
 
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -18,6 +20,14 @@ app.add_middleware(
 )
 
 OPENFDA_BASE_URL = "https://api.fda.gov/drug"
+DAILYMED_BASE_URL = "https://dailymed.nlm.nih.gov/dailymed/services/v2"
+IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
+
+
+class DrugImageResponse(BaseModel):
+    brand_name: str
+    setid: Optional[str] = None
+    images: list[str]
 
 
 @app.get("/")
@@ -107,3 +117,35 @@ async def get_cms_application_status(brand_name: str):
         "expected_effective_date": "2025-10-01",
         "source_document": "CMS_2024_HCPCS_Application_Summary.pdf",
     }
+
+
+@app.get("/api/drugs/{brand_name}/images", response_model=DrugImageResponse)
+async def get_drug_images(brand_name: str):
+    async with httpx.AsyncClient() as client:
+        spls_response = await client.get(
+            f"{DAILYMED_BASE_URL}/spls.json",
+            params={"drug_name": brand_name},
+        )
+        spls_response.raise_for_status()
+
+        spls_results = spls_response.json().get("data", [])
+        if not spls_results:
+            return DrugImageResponse(brand_name=brand_name, images=[])
+
+        setid = spls_results[0].get("setid")
+
+        media_response = await client.get(
+            f"{DAILYMED_BASE_URL}/spls/{setid}/media.json",
+        )
+        media_response.raise_for_status()
+
+    media_data = media_response.json().get("data", [])
+    media_items = media_data.get("media", []) if isinstance(media_data, dict) else media_data
+
+    images = [
+        url
+        for item in media_items
+        if (url := item.get("url", "")).lower().endswith(IMAGE_EXTENSIONS)
+    ]
+
+    return DrugImageResponse(brand_name=brand_name, setid=setid, images=images)
