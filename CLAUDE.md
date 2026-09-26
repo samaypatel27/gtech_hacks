@@ -19,9 +19,11 @@ gtech_hacks/
 ```powershell
 .\venv\Scripts\Activate.ps1
 uvicorn main:app --reload --port 8000
+python -m pytest                                          # all tests (config in pytest.ini)
+python -m pytest tests/test_billing_rules.py -k code_for  # a subset
 ```
 
-No test suite or linter is configured for the backend yet.
+Tests cover only `billing_rules.py` so far. No linter is configured for the backend.
 
 ### Frontend (from `frontend/`)
 
@@ -53,6 +55,8 @@ A Supabase MCP server is configured in `.mcp.json` (docs/account/database/debugg
 ### Backend
 
 Single-file FastAPI app (`backend/main.py`). CORS is the only configured middleware, restricted to `FRONTEND_URL`.
+
+- `backend/billing_rules.py` is the pure billing logic (no DB/HTTP/Claude), tested in `tests/test_billing_rules.py`: `pick_generic_code`, `ndc_10_to_11` (needs hyphenated input), `code_for` (picks the `drugs.codes` entry by **date of service**; a payer-specific entry beats a general one; overlaps raise), `units` (generic → 1, permanent → dose ÷ billing unit rounded up, via `Decimal`), `dose_for` (mg/kg, mg/m²), `vial_mix` (least waste, then fewest vials), `waste_modifier` (JW/JZ), `admin_codes` (push ≤ 15 min; add-on hour after > 30 min) and `item19`. Rules marked "verify" in the docstrings are our reading of CMS/CPT guidance. Nothing calls it yet — the generic-code pick still also lives in `DrugMakerPage.jsx`.
 
 - `GET /api/fda/label/{application_number}` and `GET /api/fda/ndc/{application_number}` proxy openFDA live.
 - `GET /api/fda/label-extraction/{application_number}` sends the label's indications/dosage/supply sections to Claude (`claude-opus-5`, JSON-schema structured output) to extract dosing, infusion time, preparation, single-dose vial, approved uses, antineoplastic flag and per-field label-section citations. Needs `ANTHROPIC_API_KEY`; returns 503 without it.
