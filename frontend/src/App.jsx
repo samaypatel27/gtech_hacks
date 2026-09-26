@@ -3,6 +3,8 @@ import ShaderBackground from './components/ShaderBackground.jsx'
 import Home from './pages/Home.jsx'
 import DrugSearchPage from './pages/DrugSearchPage.jsx'
 import DrugMakerPage from './pages/DrugMakerPage.jsx'
+import DoctorPage from './pages/DoctorPage.jsx'
+import DrugDetailPage from './pages/DrugDetailPage.jsx'
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/temp/drug-search" element={<DrugSearchPage />} />
         <Route path="/drug-maker" element={<DrugMakerPage />} />
+        <Route path="/doctor" element={<DoctorPage />} />
+        <Route path="/drugs/:applicationId" element={<DrugDetailPage />} />
       </Routes>
     </>
   )

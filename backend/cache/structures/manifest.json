@@ -1,0 +1,102 @@
+{
+  "NDA021602": {
+    "fetched_at": "2026-09-26T09:54:04Z",
+    "query_used": "bortezomib",
+    "status": "hit"
+  },
+  "NDA022468": {
+    "fetched_at": "2026-09-26T09:54:09Z",
+    "query_used": "pralatrexate",
+    "status": "hit"
+  },
+  "NDA201023": {
+    "fetched_at": "2026-09-26T09:54:06Z",
+    "query_used": "cabazitaxel",
+    "status": "hit"
+  },
+  "NDA201532": {
+    "fetched_at": "2026-09-26T09:54:07Z",
+    "query_used": "eribulin",
+    "status": "hit"
+  },
+  "NDA202714": {
+    "fetched_at": "2026-09-26T09:54:05Z",
+    "query_used": "carfilzomib",
+    "status": "hit"
+  },
+  "NDA211962": {
+    "fetched_at": "2026-09-26T09:54:00Z",
+    "query_used": "vancomycin",
+    "status": "hit"
+  },
+  "NDA212271": {
+    "fetched_at": "2026-09-26T09:53:58Z",
+    "query_used": "fosfomycin",
+    "status": "hit"
+  },
+  "NDA212782": {
+    "fetched_at": "2026-09-26T09:53:53Z",
+    "query_used": "bortezomib",
+    "status": "hit"
+  },
+  "NDA213702": {
+    "fetched_at": "2026-09-26T09:54:08Z",
+    "query_used": "lurbinectedin",
+    "status": "hit"
+  },
+  "NDA214200": {
+    "fetched_at": "2026-09-26T09:54:11Z",
+    "query_used": "trilaciclib",
+    "status": "hit"
+  },
+  "NDA214275": {
+    "fetched_at": "2026-09-26T09:53:57Z",
+    "query_used": "selexipag",
+    "status": "hit"
+  },
+  "NDA214759": {
+    "fetched_at": "2026-09-26T09:53:56Z",
+    "query_used": "treosulfan",
+    "status": "hit"
+  },
+  "NDA215179": {
+    "fetched_at": "2026-09-26T09:53:52Z",
+    "query_used": "pemetrexed",
+    "status": "hit"
+  },
+  "NDA217417": {
+    "fetched_at": "2026-09-26T09:54:10Z",
+    "query_used": "rezafungin",
+    "status": "hit"
+  },
+  "NDA218711": {
+    "fetched_at": "2026-09-26T09:53:54Z",
+    "query_used": "docetaxel",
+    "status": "hit"
+  },
+  "NDA219868": {
+    "fetched_at": "2026-09-26T09:53:59Z",
+    "query_used": "ferumoxytol",
+    "status": "hit"
+  },
+  "NDA219920": {
+    "fetched_at": "2026-09-26T09:54:03Z",
+    "query_used": "gemcitabine",
+    "status": "hit"
+  },
+  "NDA219921": {
+    "fetched_at": "2026-09-26T09:54:01Z",
+    "query_used": "carboplatin",
+    "status": "hit"
+  },
+  "NDA220406": {
+    "fetched_at": "2026-09-26T09:53:54Z",
+    "query_used": "leucovorin",
+    "status": "hit"
+  },
+  "NDA220837": {
+    "fetched_at": "2026-09-26T09:53:55Z",
+    "query_used": "trabectedin",
+    "status": "hit"
+  }
+}

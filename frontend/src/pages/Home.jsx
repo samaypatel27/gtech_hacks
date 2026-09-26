@@ -14,6 +14,13 @@ function Home() {
       >
         Drug maker
       </button>
+      <button
+        type="button"
+        className={styles.button}
+        onClick={() => navigate('/doctor')}
+      >
+        Doctor
+      </button>
     </div>
   )
 }

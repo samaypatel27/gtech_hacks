@@ -1,0 +1,26 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* While one drug card in the grid is hovered/focused, dim its siblings
+   so the active card reads as the focal point. Plain CSS on purpose —
+   no extra React state needed for a pure hover effect. */
+.drug-grid:hover .drug-card:not(:hover):not(:focus-visible) {
+  opacity: 0.85;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drug-card {
+    transition-property: border-color, box-shadow, opacity;
+  }
+}
