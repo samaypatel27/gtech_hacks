@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BackButton from '../components/BackButton/BackButton.jsx'
 import Button from '../components/Button/Button.jsx'
 import { fetchNpi, savePractice } from '../api/practices.js'
 import { setCurrentPractice } from '../lib/practiceSession.js'
+import { stashPendingSignUp } from '../lib/pendingSignUp.js'
+import { supabase } from '../lib/supabaseClient.js'
 import styles from './SignUpPage.module.css'
 
 // The small set of payers this demo supports (real reference data would
@@ -19,6 +21,16 @@ function SignUpPage() {
   const [payers, setPayers] = useState([])
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
+  // If someone arrives here via "Sign In -> no account found yet" (see
+  // AuthCallbackPage.jsx), their email is already verified -- finishing
+  // sign-up shouldn't send them through Google a second time.
+  const [sessionEmail, setSessionEmail] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSessionEmail(data.session?.user?.email ?? null)
+    })
+  }, [])
 
   const showLookupForm = status === 'idle' || status === 'looking-up' || status === 'error'
   const showConfirmForm = (status === 'found' || status === 'saving') && lookup
@@ -44,23 +56,43 @@ function SignUpPage() {
     setPayers((prev) => (prev.includes(payer) ? prev.filter((p) => p !== payer) : [...prev, payer]))
   }
 
+  const practiceFields = () => ({
+    npi: lookup.npi,
+    name: lookup.name,
+    specialty: lookup.specialty,
+    state: lookup.state,
+    medicare_contractor: lookup.medicare_contractor,
+    capabilities,
+    payers,
+  })
+
   const handleConfirm = async () => {
     setStatus('saving')
     setError('')
-    try {
-      const practice = await savePractice({
-        npi: lookup.npi,
-        name: lookup.name,
-        specialty: lookup.specialty,
-        state: lookup.state,
-        medicare_contractor: lookup.medicare_contractor,
-        capabilities,
-        payers,
-      })
-      setCurrentPractice(practice)
-      navigate('/doctor/drugs')
-    } catch (err) {
-      setError(err.message)
+
+    // Already signed in with Google (arrived via the sign-in path) --
+    // finish saving directly, no OAuth redirect needed.
+    if (sessionEmail) {
+      try {
+        const practice = await savePractice({ ...practiceFields(), email: sessionEmail })
+        setCurrentPractice(practice)
+        navigate('/doctor/drugs')
+      } catch (err) {
+        setError(err.message)
+        setStatus('found')
+      }
+      return
+    }
+
+    // Not signed in yet -- stash this form's data and send them to Google.
+    // AuthCallbackPage picks it back up once the email is verified.
+    stashPendingSignUp(practiceFields())
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (oauthError) {
+      setError(oauthError.message)
       setStatus('found')
     }
   }
@@ -139,7 +171,11 @@ function SignUpPage() {
             </div>
 
             <Button className={styles.submitButton} onClick={handleConfirm} disabled={status === 'saving'}>
-              {status === 'saving' ? 'Saving…' : 'Finish sign up'}
+              {status === 'saving'
+                ? 'Saving…'
+                : sessionEmail
+                  ? 'Finish sign up'
+                  : 'Complete with Google'}
             </Button>
           </div>
         )}

@@ -478,6 +478,10 @@ MEDICARE_CONTRACTOR_BY_STATE = {
 
 
 class PracticeRecord(BaseModel):
+    # Google-verified email, not NPI, is the durable identity going forward
+    # (a doctor's NPI is captured once at sign-up, but repeat sign-ins are
+    # matched on email since that's what Supabase Auth hands back).
+    email: str
     npi: str
     name: str
     specialty: str | None = None
@@ -528,7 +532,7 @@ async def get_npi(number: str):
 @app.post("/api/practices")
 def upsert_practice(practice: PracticeRecord):
     row = practice.model_dump(mode="json", exclude_unset=True)
-    response = supabase.table("practices").upsert(row, on_conflict="npi").execute()
+    response = supabase.table("practices").upsert(row, on_conflict="email").execute()
     return response.data[0]
 
 
@@ -537,4 +541,12 @@ def get_practice_by_npi(npi: str):
     response = supabase.table("practices").select("*").eq("npi", npi).limit(1).execute()
     if not response.data:
         raise HTTPException(status_code=404, detail=f"No practice found for NPI {npi}")
+    return response.data[0]
+
+
+@app.get("/api/practices/by-email/{email}")
+def get_practice_by_email(email: str):
+    response = supabase.table("practices").select("*").eq("email", email).limit(1).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail=f"No practice found for email {email}")
     return response.data[0]

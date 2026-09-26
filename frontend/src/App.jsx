@@ -6,6 +6,7 @@ import DrugMakerPage from './pages/DrugMakerPage.jsx'
 import DoctorChoicePage from './pages/DoctorChoicePage.jsx'
 import DoctorPage from './pages/DoctorPage.jsx'
 import SignUpPage from './pages/SignUpPage.jsx'
+import AuthCallbackPage from './pages/AuthCallbackPage.jsx'
 import DrugDetailPage from './pages/DrugDetailPage.jsx'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/doctor" element={<DoctorChoicePage />} />
         <Route path="/doctor/drugs" element={<DoctorPage />} />
         <Route path="/sign-up" element={<SignUpPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/drugs/:applicationId" element={<DrugDetailPage />} />
       </Routes>
     </>

@@ -4,7 +4,9 @@ async function request(path, options) {
   const response = await fetch(`${API_URL}${path}`, options)
   const body = await response.json().catch(() => null)
   if (!response.ok) {
-    throw new Error(body?.detail ?? `Request failed (${response.status})`)
+    const error = new Error(body?.detail ?? `Request failed (${response.status})`)
+    error.status = response.status
+    throw error
   }
   return body
 }
@@ -17,3 +19,14 @@ export const savePractice = (practice) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(practice),
   })
+
+// Returns null on a 404 (no account for this email yet) instead of
+// throwing, since that's an expected, non-error outcome for callers.
+export const fetchPracticeByEmail = async (email) => {
+  try {
+    return await request(`/api/practices/by-email/${encodeURIComponent(email)}`)
+  } catch (err) {
+    if (err.status === 404) return null
+    throw err
+  }
+}
