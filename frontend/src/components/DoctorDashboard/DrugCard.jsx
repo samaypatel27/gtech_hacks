@@ -1,97 +1,61 @@
-import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
-const API_URL = import.meta.env.VITE_API_URL
-
-function initials(name) {
-  return (name || '').slice(0, 2).toUpperCase()
+// Billing status is derived entirely from fields already on the row
+// (has_permanent_code / generic_billing_code / permanent_hcpcs_code) —
+// no new data, just an accent color for what's already there.
+function getStatusAccent(drug) {
+  const isClassified = Boolean(drug.has_permanent_code)
+  return {
+    isClassified,
+    code: (isClassified ? drug.permanent_hcpcs_code : drug.generic_billing_code) || '—',
+    statusLabel: isClassified ? 'permanent billing code' : 'unclassified billing code',
+    accent: isClassified ? '#34D399' : '#FBBF24',
+    accentSoft: isClassified ? 'rgba(52,211,153,0.5)' : 'rgba(251,191,36,0.5)',
+    accentFaint: isClassified ? 'rgba(52,211,153,0.14)' : 'rgba(251,191,36,0.14)',
+  }
 }
 
-function PillIcon() {
+function ArrowIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      className="h-8 w-8 text-slate-400 dark:text-slate-600"
-      aria-hidden="true"
-    >
-      <rect x="3" y="9" width="18" height="6" rx="3" stroke="currentColor" strokeWidth="1.5" />
-      <line x1="12" y1="9" x2="12" y2="15" stroke="currentColor" strokeWidth="1.5" />
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path
+        d="M6 14L14 6M14 6H8M14 6V12"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }
 
-function DrugCard({ drug, onSelectDrug }) {
-  const [images, setImages] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    setIsLoading(true)
-    setImages(null)
-
-    fetch(`${API_URL}/api/drugs/${encodeURIComponent(drug.brand_name)}/images`, {
-      signal: controller.signal,
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setImages(data?.images ?? []))
-      .catch(() => setImages([]))
-      .finally(() => setIsLoading(false))
-
-    return () => controller.abort()
-  }, [drug.brand_name])
-
-  const badge = drug.has_permanent_code
-    ? {
-        text: drug.permanent_hcpcs_code || 'Permanent code',
-        tone: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
-      }
-    : {
-        text: drug.generic_billing_code || 'Generic code',
-        tone: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
-      }
-
-  const hasImage = !isLoading && images && images.length > 0
-  const showFallback = !isLoading && (!images || images.length === 0)
+function DrugCard({ drug }) {
+  const status = getStatusAccent(drug)
+  const ariaLabel = `${drug.brand_name}, ${drug.application_id}, ${status.statusLabel} ${status.code}`
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelectDrug(drug)}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+    <Link
+      to={`/drugs/${encodeURIComponent(drug.application_id)}`}
+      title={ariaLabel}
+      aria-label={ariaLabel}
+      style={{ '--accent': status.accent, '--accent-soft': status.accentSoft }}
+      className="drug-card group relative isolate flex aspect-[4/5] w-full flex-col justify-between overflow-hidden rounded-2xl border-[1.5px] border-[color:var(--accent-soft)] bg-white/[0.03] p-5 no-underline transition-[transform,box-shadow,border-color,opacity] duration-200 ease-out will-change-transform hover:border-[color:var(--accent)] hover:shadow-[0_18px_40px_rgba(0,0,0,0.5),0_0_0_3px_var(--accent-soft)] focus-visible:border-[color:var(--accent)] focus-visible:shadow-[0_18px_40px_rgba(0,0,0,0.5),0_0_0_3px_var(--accent-soft)] focus-visible:outline-none motion-safe:hover:z-10 motion-safe:hover:scale-[1.04] motion-safe:hover:-translate-y-1.5 motion-safe:focus-visible:z-10 motion-safe:focus-visible:scale-[1.04] motion-safe:focus-visible:-translate-y-1.5"
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-        {isLoading && <div className="absolute inset-0 animate-pulse bg-slate-200 dark:bg-slate-700" />}
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+        style={{ background: `linear-gradient(to top, ${status.accentFaint}, transparent)` }}
+      />
 
-        {hasImage && (
-          <img
-            src={images[0]}
-            alt={drug.brand_name}
-            className="h-full w-full rounded-lg object-cover"
-          />
-        )}
+      <span className="pointer-events-none absolute top-4 right-4 text-white/70 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+        <ArrowIcon />
+      </span>
 
-        {showFallback && (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-600">
-            <PillIcon />
-            <span className="text-lg font-semibold tracking-wide">{initials(drug.brand_name)}</span>
-          </div>
-        )}
-      </div>
+      <p className="line-clamp-2 text-lg leading-snug font-semibold text-[#f0f0f5] sm:text-xl">
+        {drug.brand_name}
+      </p>
 
-      <div className="flex flex-col gap-1.5 p-3">
-        <span className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-          {drug.brand_name}
-        </span>
-        <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-xs text-slate-500 dark:text-slate-400">
-            {drug.application_id}
-          </span>
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${badge.tone}`}>
-            {badge.text}
-          </span>
-        </div>
-      </div>
-    </button>
+      <p className="font-mono text-[13px] text-white/40">{drug.application_id}</p>
+    </Link>
   )
 }
 
