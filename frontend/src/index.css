@@ -1,6 +1,7 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
   font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: #e6e6f0;
 }
 
 body {
