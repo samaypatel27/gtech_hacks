@@ -1,11 +1,9 @@
 import os
-from typing import Optional
 
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 load_dotenv()
 
@@ -20,14 +18,6 @@ app.add_middleware(
 )
 
 OPENFDA_BASE_URL = "https://api.fda.gov/drug"
-DAILYMED_BASE_URL = "https://dailymed.nlm.nih.gov/dailymed/services/v2"
-IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png")
-
-
-class DrugImageResponse(BaseModel):
-    brand_name: str
-    setid: Optional[str] = None
-    images: list[str]
 
 
 @app.get("/")
@@ -54,15 +44,18 @@ async def get_fda_label(application_number: str):
     record = results[0] if results else {}
     openfda = record.get("openfda", {})
 
-    def first_or_default(field):
+    def section(field):
         values = record.get(field, [])
-        return values[0] if values else ""
+        return {
+            "value": values[0] if values else "",
+            "citation": f"openfda_label_section: {field}",
+        }
 
     return {
         "brand_name": (openfda.get("brand_name") or [""])[0],
-        "indications_and_usage": first_or_default("indications_and_usage"),
-        "dosage_and_administration": first_or_default("dosage_and_administration"),
-        "storage_and_handling": first_or_default("storage_and_handling"),
+        "indications_and_usage": section("indications_and_usage"),
+        "dosage_and_administration": section("dosage_and_administration"),
+        "storage_requirements": section("storage_and_handling"),
     }
 
 
@@ -100,52 +93,15 @@ async def get_fda_ndc(application_number: str):
 async def get_cms_hcpcs_status(brand_name: str):
     has_permanent_code = False
 
-    if not has_permanent_code:
-        return {
-            "status": "no_code_found",
-            "message": (
-                f"No permanent HCPCS code was found for '{brand_name}'. "
-                "A generic (miscellaneous) code is required until one is assigned."
-            ),
-        }
+    return {
+        "has_permanent_code": has_permanent_code,
+        "permanent_hcpcs_code": None,
+    }
 
 
 @app.get("/api/cms/application-status/{brand_name}")
 async def get_cms_application_status(brand_name: str):
     return {
-        "application_status": "pending",
-        "expected_effective_date": "2025-10-01",
-        "source_document": "CMS_2024_HCPCS_Application_Summary.pdf",
+        "expected_permanent_code_date": "2025-10-01",
+        "citation": "CMS_2024_HCPCS_Application_Summary.pdf",
     }
-
-
-@app.get("/api/drugs/{brand_name}/images", response_model=DrugImageResponse)
-async def get_drug_images(brand_name: str):
-    async with httpx.AsyncClient() as client:
-        spls_response = await client.get(
-            f"{DAILYMED_BASE_URL}/spls.json",
-            params={"drug_name": brand_name},
-        )
-        spls_response.raise_for_status()
-
-        spls_results = spls_response.json().get("data", [])
-        if not spls_results:
-            return DrugImageResponse(brand_name=brand_name, images=[])
-
-        setid = spls_results[0].get("setid")
-
-        media_response = await client.get(
-            f"{DAILYMED_BASE_URL}/spls/{setid}/media.json",
-        )
-        media_response.raise_for_status()
-
-    media_data = media_response.json().get("data", [])
-    media_items = media_data.get("media", []) if isinstance(media_data, dict) else media_data
-
-    images = [
-        url
-        for item in media_items
-        if (url := item.get("url", "")).lower().endswith(IMAGE_EXTENSIONS)
-    ]
-
-    return DrugImageResponse(brand_name=brand_name, setid=setid, images=images)
