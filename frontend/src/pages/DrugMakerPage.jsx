@@ -6,7 +6,6 @@ import {
   fetchFdaLabelExtraction,
   fetchFdaNdc,
   fetchCmsHcpcsStatus,
-  fetchCmsApplicationStatus,
   saveDrug,
 } from '../api/drugMaker.js'
 import styles from './DrugMakerPage.module.css'
@@ -25,6 +24,7 @@ const SOURCES = [
     summarize: (data) => data.brand_name || 'No brand name on label',
     toColumns: (data) => ({
       brand_name: data.brand_name || null,
+      generic_name: data.generic_name || null,
       route_of_administration: data.route || null,
       storage_requirements: data.storage_requirements?.value || null,
       citations: data.storage_requirements?.value
@@ -69,21 +69,6 @@ const SOURCES = [
       has_permanent_code: data.has_permanent_code ?? null,
       permanent_hcpcs_code: data.permanent_hcpcs_code || null,
       citations: [cite('has_permanent_code', data.citation)],
-    }),
-  },
-  {
-    key: 'application',
-    label: 'CMS application status',
-    fetch: ({ drugName }) => fetchCmsApplicationStatus(drugName),
-    summarize: (data) =>
-      data.expected_permanent_code_date
-        ? `${data.application_status}, expected ${data.expected_permanent_code_date}`
-        : data.application_status,
-    toColumns: (data) => ({
-      expected_permanent_code_date: data.expected_permanent_code_date || null,
-      citations: data.expected_permanent_code_date
-        ? [cite('expected_permanent_code_date', data.citation)]
-        : [],
     }),
   },
 ]

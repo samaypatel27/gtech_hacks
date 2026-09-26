@@ -1,4 +1,7 @@
-"""Replace all rows in the `drugs` table with the resolved seed data.
+"""Upsert the resolved seed data into the `drugs` table.
+
+Upserts rather than replacing the table, so drugs added through the DrugMaker
+pipeline (and pipeline-filled columns on seeded drugs) survive a re-seed.
 
 Re-runnable: `python scripts/seed_drugs.py` from `backend/` (needs
 backend/.env with SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY). Reads the JSON
@@ -60,7 +63,6 @@ def build_row(drug):
         "generic_name": drug["generic"],
         "approval_date": drug["approval_date"],
         "pubchem_query": drug["pubchem_query"],
-        "code_status": drug["code_status"],
     }
 
 
@@ -72,8 +74,7 @@ def main():
         os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     )
 
-    supabase.table("drugs").delete().neq("application_id", "").execute()
-    supabase.table("drugs").insert(rows).execute()
+    supabase.table("drugs").upsert(rows, on_conflict="application_id").execute()
 
     print(f"Seeded {len(rows)} drugs from {SNAPSHOT_PATH.name}")
 

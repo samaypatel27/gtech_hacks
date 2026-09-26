@@ -23,9 +23,6 @@ export const fetchFdaNdc = (applicationId) =>
 export const fetchCmsHcpcsStatus = (drugName) =>
   request(`/api/cms/hcpcs-status/${encode(drugName)}`)
 
-export const fetchCmsApplicationStatus = (drugName) =>
-  request(`/api/cms/application-status/${encode(drugName)}`)
-
 export const saveDrug = (drug) =>
   request('/api/drugs', {
     method: 'POST',

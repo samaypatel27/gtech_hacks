@@ -2,7 +2,6 @@ import csv
 import json
 import os
 from collections import defaultdict
-from datetime import date
 from pathlib import Path
 from typing import Optional
 
@@ -144,7 +143,9 @@ async def get_fda_label(application_number: str):
 
     return {
         "brand_name": (openfda.get("brand_name") or [""])[0],
-        "route": (openfda.get("route") or [""])[0],
+        "generic_name": (openfda.get("generic_name") or [""])[0].lower(),
+        # Multi-route drugs (e.g. leucovorin: IM and IV) list every route.
+        "route": ", ".join(openfda.get("route") or []),
         "indications_and_usage": section("indications_and_usage"),
         "dosage_and_administration": section("dosage_and_administration"),
         "storage_requirements": section("storage_and_handling", "how_supplied"),
@@ -311,7 +312,7 @@ async def get_fda_ndc(application_number: str):
     response.raise_for_status()
 
     results = response.json().get("results", [])
-    route = next((r["route"][0] for r in results if r.get("route")), "")
+    route = ", ".join(sorted({route for r in results for route in r.get("route", [])}))
     ndcs = []
     for result in results:
         for package in result.get("packaging", []):
@@ -353,24 +354,6 @@ async def get_cms_hcpcs_status(brand_name: str):
         "message": f"'{brand_name}' bills under {code_list} per the {CROSSWALK_CITATION}.",
         "citation": CROSSWALK_CITATION,
         "payment_limit_citation": PAYMENT_LIMIT_CITATION,
-    }
-
-
-@app.get("/api/cms/application-status/{brand_name}")
-async def get_cms_application_status(brand_name: str):
-    # A drug that already has its code isn't waiting on an application.
-    if find_permanent_codes(brand_name):
-        return {
-            "application_status": "code_assigned",
-            "expected_permanent_code_date": None,
-            "citation": CROSSWALK_CITATION,
-        }
-
-    # Stub pending the CMS HCPCS application summary (PDF) integration.
-    return {
-        "application_status": "pending",
-        "expected_permanent_code_date": "2025-10-01",
-        "citation": "CMS_2024_HCPCS_Application_Summary.pdf",
     }
 
 
@@ -442,8 +425,8 @@ def get_drug_profile(application_id: str):
 class DrugRecord(BaseModel):
     application_id: str
     brand_name: str | None = None
+    generic_name: str | None = None
     generic_billing_code: str | None = None
-    expected_permanent_code_date: date | None = None
     dosing_formula: str | None = None
     route_of_administration: str | None = None
     infusion_time_minutes: int | None = None

@@ -40,14 +40,6 @@ function DashValue() {
   )
 }
 
-function formatShortDate(dateStr) {
-  try {
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(dateStr))
-  } catch {
-    return dateStr
-  }
-}
-
 function FieldValue({ value }) {
   if (isEmptyValue(value)) return <DashValue />
   if (typeof value === 'boolean') return <span>{value ? 'Yes' : 'No'}</span>
@@ -326,16 +318,11 @@ function DrugProfileDashboard({ applicationId }) {
               headline={
                 isPermanent
                   ? `Permanent code ${drug.permanent_hcpcs_code || '—'}`
-                  : `Generic code ${drug.generic_billing_code || '—'}${
-                      drug.expected_permanent_code_date
-                        ? `, permanent code due ${formatShortDate(drug.expected_permanent_code_date)}`
-                        : ''
-                    }`
+                  : `Generic code ${drug.generic_billing_code || '—'}`
               }
               fields={[
                 { label: 'Has Permanent Code', value: drug.has_permanent_code },
                 { label: 'Generic Billing Code', value: drug.generic_billing_code, mono: true },
-                { label: 'Expected Permanent Code Date', value: drug.expected_permanent_code_date, mono: true },
                 { label: 'Permanent HCPCS Code', value: drug.permanent_hcpcs_code, mono: true },
               ]}
               delayMs={0}
