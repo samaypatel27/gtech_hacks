@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BackButton from '../components/BackButton/BackButton.jsx'
 import DrugMaker from '../components/DrugMaker/DrugMaker.jsx'
 import {
   fetchFdaLabel,
@@ -223,6 +224,7 @@ function DrugMakerPage() {
 
   return (
     <div className={styles.page}>
+      <BackButton />
       <DrugMaker
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}

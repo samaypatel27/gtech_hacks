@@ -1,0 +1,4 @@
+/* Clears the absolutely positioned back button above the grid. */
+.page {
+  padding-top: 40px;
+}

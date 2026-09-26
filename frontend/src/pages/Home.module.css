@@ -1,0 +1,8 @@
+.page {
+  padding: 24px 48px;
+}
+
+.roles {
+  display: flex;
+  gap: 12px;
+}

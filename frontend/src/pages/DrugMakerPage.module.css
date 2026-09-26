@@ -4,6 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  /* Extra top padding clears the absolutely positioned back button. */
+  padding: 76px 24px 24px;
   box-sizing: border-box;
 }
