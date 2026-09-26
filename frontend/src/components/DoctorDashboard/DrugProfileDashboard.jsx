@@ -118,7 +118,7 @@ function BackLink() {
   )
 }
 
-function HeroPanel({ drug, image, entranceOn }) {
+function HeroPanel({ drug, entranceOn }) {
   const isPermanent = Boolean(drug.has_permanent_code)
   const status = isPermanent ? STATUS_COLORS.permanent : STATUS_COLORS.generic
   const summary = `${drug.brand_name || 'Unknown drug'}, ${drug.generic_name || 'generic name not yet available'}, ${
@@ -151,14 +151,6 @@ function HeroPanel({ drug, image, entranceOn }) {
           {isEmptyValue(drug.generic_name) ? <DashValue /> : drug.generic_name}
         </p>
         <p className="font-mono text-xs text-white/40">{drug.application_id}</p>
-        {image && (
-          <img
-            src={image}
-            alt=""
-            title="Packaging image"
-            className="mt-1 h-5 w-5 rounded object-cover opacity-80"
-          />
-        )}
       </div>
     </section>
   )
@@ -236,7 +228,6 @@ function DrugProfileDashboard({ applicationId }) {
   const [drug, setDrug] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [image, setImage] = useState(null)
   const reducedMotion = useMemo(() => usesReducedMotion(), [])
 
   useEffect(() => {
@@ -254,15 +245,6 @@ function DrugProfileDashboard({ applicationId }) {
       .then((data) => {
         if (cancelled || !data) return
         setDrug(data)
-
-        if (data.brand_name) {
-          fetch(`${API_URL}/api/drugs/${encodeURIComponent(data.brand_name)}/images`)
-            .then((res) => (res.ok ? res.json() : null))
-            .then((imgData) => {
-              if (!cancelled && imgData?.images?.length) setImage(imgData.images[0])
-            })
-            .catch(() => {})
-        }
       })
       .catch(() => {
         if (!cancelled) setNotFound(true)
@@ -309,10 +291,10 @@ function DrugProfileDashboard({ applicationId }) {
       <BackLink />
 
       <div className="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-6 min-[900px]:grid-cols-[38%_62%]">
-        <HeroPanel drug={drug} image={image} entranceOn={entranceOn} />
+        <HeroPanel drug={drug} entranceOn={entranceOn} />
 
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pr-2 sm:pr-4 [mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]">
-          <div className="flex flex-col space-y-10">
+          <div className="flex flex-col space-y-10 pb-10">
             <DocumentSection
               title="Billing Path"
               headline={
