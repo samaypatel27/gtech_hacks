@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link, Navigate } from 'react-router-dom'
 import Button from '../components/Button/Button.jsx'
 import '../tailwind.css'
 
@@ -286,7 +286,7 @@ function TaskCard({ task, locked, onMarkDone }) {
 
 // ─── Ready banner ─────────────────────────────────────────────────────────────
 
-function ReadyBanner({ drugName, holdCount, navigate }) {
+function ReadyBanner({ drugName, holdCount, navigate, backTo, backLabel }) {
   return (
     <div className="mt-10 rounded-lg border border-white/20 bg-white/[0.04] px-7 py-6">
       <p className="text-[18px] font-semibold text-white">
@@ -298,8 +298,8 @@ function ReadyBanner({ drugName, holdCount, navigate }) {
         </p>
       )}
       <div className="mt-4">
-        <Button onClick={() => navigate('/doctor/drugs')} className="text-[13px]">
-          Back to all drugs
+        <Button onClick={() => navigate(backTo)} className="text-[13px]">
+          {backLabel}
         </Button>
       </div>
     </div>
@@ -308,8 +308,13 @@ function ReadyBanner({ drugName, holdCount, navigate }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+// Serves two routes over the same workspace data (same practice_drugs row,
+// same tasks): /doctor/workspace/:practiceDrugId for the practice's own doctor,
+// and /staff/:role/workspace/:practiceDrugId for nurse/biller/front desk, who
+// each get their own URL. `role` is undefined on the doctor route; so far it
+// only decides where "back" goes -- role-specific card ordering comes later.
 function TeamWorkspacePage() {
-  const { practiceDrugId } = useParams()
+  const { practiceDrugId, role } = useParams()
   const navigate = useNavigate()
 
   const [data, setData] = useState(null) // full GET response
@@ -368,14 +373,22 @@ function TeamWorkspacePage() {
 
   const PAGE = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 xl:px-14'
 
+  // An unrecognized :role -- same treatment as StaffWorkspacesPage: send them
+  // home rather than render a page whose back link points nowhere.
+  if (role && !ROLE_LABEL[role]) return <Navigate to="/" replace />
+
+  // Staff came from their own role listing; the doctor came from the drug grid.
+  const backTo = role ? `/staff/${role}` : '/doctor/drugs'
+  const backLabel = role ? `Back to ${ROLE_LABEL[role]} workspaces` : 'Back to all drugs'
+
   if (isLoading) {
     return (
       <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
         <Link
-          to="/doctor/drugs"
+          to={backTo}
           className="text-sm font-medium text-white/50 transition-colors hover:text-white"
         >
-          &larr; Back to all drugs
+          &larr; {backLabel}
         </Link>
         <p className="mt-10 text-[14px] text-white/35">Loading workspace&hellip;</p>
       </div>
@@ -386,10 +399,10 @@ function TeamWorkspacePage() {
     return (
       <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
         <Link
-          to="/doctor/drugs"
+          to={backTo}
           className="text-sm font-medium text-white/50 transition-colors hover:text-white"
         >
-          &larr; Back to all drugs
+          &larr; {backLabel}
         </Link>
         <p className="mt-10 text-[14px] text-white/35">Could not load workspace: {error}</p>
       </div>
@@ -405,10 +418,10 @@ function TeamWorkspacePage() {
     <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
       {/* Back link */}
       <Link
-        to="/doctor/drugs"
+        to={backTo}
         className="text-sm font-medium text-white/50 transition-colors hover:text-white"
       >
-        &larr; Back to all drugs
+        &larr; {backLabel}
       </Link>
 
       {/* Header */}
@@ -470,6 +483,8 @@ function TeamWorkspacePage() {
           drugName={drug?.brand_name ?? 'This drug'}
           holdCount={pd?.hold_list_count ?? 0}
           navigate={navigate}
+          backTo={backTo}
+          backLabel={backLabel}
         />
       )}
     </div>

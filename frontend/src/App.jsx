@@ -9,6 +9,7 @@ import SignUpPage from './pages/SignUpPage.jsx'
 import AuthCallbackPage from './pages/AuthCallbackPage.jsx'
 import DrugDetailPage from './pages/DrugDetailPage.jsx'
 import TeamWorkspacePage from './pages/TeamWorkspacePage.jsx'
+import StaffWorkspacesPage from './pages/StaffWorkspacesPage.jsx'
 
 function App() {
   return (
@@ -24,6 +25,10 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/drugs/:applicationId" element={<DrugDetailPage />} />
         <Route path="/doctor/workspace/:practiceDrugId" element={<TeamWorkspacePage />} />
+        <Route path="/staff/:role" element={<StaffWorkspacesPage />} />
+        {/* Same page/data as the doctor's workspace route above -- the :role
+            segment only records who opened it, so each role gets its own URL. */}
+        <Route path="/staff/:role/workspace/:practiceDrugId" element={<TeamWorkspacePage />} />
       </Routes>
     </>
   )

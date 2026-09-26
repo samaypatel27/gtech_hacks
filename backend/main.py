@@ -1174,3 +1174,75 @@ def get_practice_workspaces(email: str):
             }
         )
     return result
+
+
+@app.get("/api/workspaces/by-role/{role}")
+def get_workspaces_by_role(role: str):
+    """List every practice_drugs workspace, across ALL practices, that has at
+    least one task for this role. Unlike /api/practices/{email}/workspaces,
+    this is not scoped to a single practice -- it backs the unauthenticated
+    Nurse/Biller tabs, which have no session to scope by. Task counts are
+    limited to this role's own tasks, not the workspace's full task list."""
+    if role not in ("front_desk", "nurse", "biller"):
+        raise HTTPException(status_code=400, detail=f"Unknown role {role}")
+
+    tasks_resp = (
+        supabase.table("tasks")
+        .select("practice_drug_id,status")
+        .eq("role", role)
+        .execute()
+    )
+    if not tasks_resp.data:
+        return []
+
+    counts: dict[int, dict] = {}
+    for t in tasks_resp.data:
+        pid = t["practice_drug_id"]
+        if pid not in counts:
+            counts[pid] = {"total": 0, "done": 0}
+        counts[pid]["total"] += 1
+        if t["status"] == "done":
+            counts[pid]["done"] += 1
+
+    pd_resp = (
+        supabase.table("practice_drugs")
+        .select("id,application_id,status,practice_id")
+        .in_("id", list(counts.keys()))
+        .execute()
+    )
+    pd_rows = pd_resp.data or []
+    if not pd_rows:
+        return []
+
+    app_ids = [row["application_id"] for row in pd_rows]
+    drugs_resp = (
+        supabase.table("drugs")
+        .select("application_id,brand_name")
+        .in_("application_id", app_ids)
+        .execute()
+    )
+    brand_by_app = {d["application_id"]: d["brand_name"] for d in (drugs_resp.data or [])}
+
+    practice_ids = [row["practice_id"] for row in pd_rows]
+    practices_resp = (
+        supabase.table("practices")
+        .select("id,name")
+        .in_("id", practice_ids)
+        .execute()
+    )
+    name_by_practice = {p["id"]: p["name"] for p in (practices_resp.data or [])}
+
+    result = [
+        {
+            "practice_drug_id": row["id"],
+            "application_id": row["application_id"],
+            "status": row["status"],
+            "brand_name": brand_by_app.get(row["application_id"], ""),
+            "practice_name": name_by_practice.get(row["practice_id"], ""),
+            "tasks_done": counts[row["id"]]["done"],
+            "tasks_total": counts[row["id"]]["total"],
+        }
+        for row in pd_rows
+    ]
+    result.sort(key=lambda r: r["brand_name"] or "")
+    return result

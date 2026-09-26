@@ -11,6 +11,9 @@ function Home() {
       <div className={styles.roles}>
         <Button onClick={() => navigate('/drug-maker')}>Drug maker</Button>
         <Button onClick={() => navigate('/doctor')}>Doctor</Button>
+        <Button onClick={() => navigate('/staff/nurse')}>Nurse</Button>
+        <Button onClick={() => navigate('/staff/biller')}>Biller</Button>
+        <Button onClick={() => navigate('/staff/front_desk')}>Front Desk</Button>
       </div>
     </div>
   )

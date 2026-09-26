@@ -9,7 +9,8 @@ import styles from './DoctorPage.module.css'
 import '../tailwind.css'
 
 // The dashboard is not public -- anonymous visitors are bounced back to the
-// /doctor gate, which offers Sign In / Sign Up.
+// /doctor gate, which offers Sign In / Sign Up. (Nurse/Biller/Front Desk have
+// their own unauthenticated entry points from Home -- see StaffWorkspacesPage.)
 function DoctorPage() {
   const navigate = useNavigate()
   const { email, loading } = useAuthSession()
