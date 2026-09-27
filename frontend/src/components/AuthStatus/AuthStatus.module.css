@@ -1,19 +1,22 @@
 .wrap {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
 }
 
-/* When rendered inside a parent navbar, opt into inline layout. */
-.inline {
-  position: static;
-  top: auto;
-  right: auto;
-  z-index: auto;
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
+  font-weight: 600;
 }
 
 .email {
@@ -21,17 +24,17 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 13px;
-  color: #9a9ab0;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
 }
 
 .error {
-  font-size: 13px;
-  color: #e08b8b;
+  font-size: var(--fs-sm);
+  color: var(--danger);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .email {
-    max-width: 120px;
+    display: none;
   }
 }

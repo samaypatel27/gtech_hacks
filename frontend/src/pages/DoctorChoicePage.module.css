@@ -1,80 +1,20 @@
-.page {
+.actions,
+.signUp {
   display: flex;
-  min-height: 100vh;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-  box-sizing: border-box;
+  gap: 12px;
 }
 
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 20px;
+.full {
   width: 100%;
-  max-width: 456px;
-  box-sizing: border-box;
 }
 
-.title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #f0f0f5;
+.divider {
+  height: 1px;
+  background: var(--border);
 }
 
-.cards {
-  display: flex;
-  gap: 16px;
-}
-
-.card {
-  display: flex;
-  width: 220px;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 20px;
-  border-radius: 16px;
-  border: 1px solid #ffffff;
-  background: transparent;
-  color: #ffffff;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background 160ms ease,
-    opacity 160ms ease;
-}
-
-.card:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.card:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
-}
-
-.card:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.cardTitle {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.cardBody {
-  font-size: 13px;
-  color: #9a9ab0;
-}
-
-.error {
-  margin: 0;
-  font-size: 13px;
-  color: #e08b8b;
+.signUpText {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
 }

@@ -1,11 +1,33 @@
+import { Link } from 'react-router-dom'
 import styles from './Button.module.css'
 
-// The single button component for the whole app -- see Button.module.css
-// for why there are no primary/secondary variants. `className` is for
-// layout only (width, margin, flex-grow); it never overrides the button's
-// own skin since it's appended after `styles.button`.
-function Button({ className = '', type = 'button', ...props }) {
-  return <button type={type} className={`${styles.button} ${className}`.trim()} {...props} />
+// variant: primary (one per view), secondary, ghost, danger. size: sm | md.
+// Pass `to` to render a router link styled as a button. `className` is for
+// layout only (width, margin), never the button's own skin.
+function Button({
+  variant = 'secondary',
+  size = 'md',
+  to,
+  className = '',
+  type = 'button',
+  children,
+  ...props
+}) {
+  const cls = `${styles.button} ${styles[variant]} ${styles[size]} ${className}`.trim()
+
+  if (to) {
+    return (
+      <Link to={to} className={cls} {...props}>
+        {children}
+      </Link>
+    )
+  }
+
+  return (
+    <button type={type} className={cls} {...props}>
+      {children}
+    </button>
+  )
 }
 
 export default Button

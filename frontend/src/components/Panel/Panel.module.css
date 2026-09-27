@@ -1,0 +1,49 @@
+.panel {
+  min-width: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px 0;
+}
+
+.headings {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--fs-md);
+  line-height: 24px;
+}
+
+.description {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.body {
+  padding: 16px 20px 20px;
+}
+
+.flush {
+  padding-top: 12px;
+}
+
+.header + .flush {
+  padding-top: 12px;
+}

@@ -1,24 +1,20 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import BackButton from '../components/BackButton/BackButton.jsx'
-import AuthStatus from '../components/AuthStatus/AuthStatus.jsx'
-import SegmentedControl from '../components/SegmentedControl/SegmentedControl.jsx'
+import { useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import AppShell from '../components/AppShell/AppShell.jsx'
+import PageHeader from '../components/PageHeader/PageHeader.jsx'
 import DrugSearchGrid from '../components/DoctorDashboard/DrugSearchGrid.jsx'
 import { useAuthSession } from '../lib/useAuthSession.js'
-import styles from './DoctorPage.module.css'
-
-const VIEW_OPTIONS = [
-  { value: 'drugs', label: 'Drugs' },
-  { value: 'tasks', label: 'Workspaces' },
-]
 
 // The dashboard is not public -- anonymous visitors are bounced back to the
 // /doctor gate, which offers Sign In / Sign Up. (Nurse/Biller/Front Desk have
 // their own unauthenticated entry points from Home -- see StaffWorkspacesPage.)
+// `?view=workspaces` switches from the drug list to the practice's workspaces;
+// the sidebar links to both.
 function DoctorPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { email, loading } = useAuthSession()
-  const [view, setView] = useState('drugs') // 'drugs' | 'tasks'
+  const showWorkspaces = searchParams.get('view') === 'workspaces'
 
   useEffect(() => {
     if (!loading && !email) navigate('/doctor', { replace: true })
@@ -27,31 +23,17 @@ function DoctorPage() {
   if (loading || !email) return null
 
   return (
-    <div className={styles.page}>
-      <div className="w-full px-4 sm:px-8">
-        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
-          <nav className={styles.navbar}>
-            <div className={styles.navLeft}>
-              <BackButton inline />
-            </div>
-
-            <div className={styles.navCenter}>
-              <SegmentedControl
-                options={VIEW_OPTIONS}
-                value={view}
-                onChange={setView}
-              />
-            </div>
-
-            <div className={styles.navRight}>
-              <AuthStatus inline />
-            </div>
-          </nav>
-        </div>
-      </div>
-
-      <DrugSearchGrid view={view} email={email} />
-    </div>
+    <AppShell role="doctor" breadcrumbs={[{ label: showWorkspaces ? 'Workspaces' : 'Drugs' }]}>
+      {showWorkspaces ? (
+        <PageHeader title="Workspaces" meta="Drugs your team is preparing to use, and how far along each one is." />
+      ) : (
+        <PageHeader
+          title="Drugs"
+          meta="Newly approved drugs, the billing code each bills under today, and when that code changes."
+        />
+      )}
+      <DrugSearchGrid view={showWorkspaces ? 'tasks' : 'drugs'} email={email} />
+    </AppShell>
   )
 }
 

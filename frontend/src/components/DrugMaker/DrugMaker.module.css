@@ -1,381 +1,74 @@
-.stage {
-  position: relative;
-  width: 100%;
-  max-width: 640px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.panel {
-  width: 100%;
-  max-width: 640px;
-  padding: 40px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  display: flex;
-  flex-direction: column;
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
-  box-sizing: border-box;
-  animation: panelFadeIn 220ms ease;
-  transition:
-    opacity 230ms ease,
-    transform 230ms ease;
+  align-items: start;
 }
 
-.panelExiting {
-  opacity: 0;
-  transform: scale(0.96);
-  pointer-events: none;
-}
-
-@keyframes panelFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.title {
-  margin: 0 0 8px;
-  text-align: center;
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  color: #f3f3f8;
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .label {
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: #74748c;
-  padding: 0 4px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
 }
 
-.input {
-  padding: 14px 18px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  outline: none;
-  font-family: inherit;
-  font-size: 15px;
-  color: #f0f0f5;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    box-shadow 160ms ease;
+.result {
+  margin-top: 16px;
 }
 
-.input:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-.input:focus {
-  border-color: rgba(140, 150, 220, 0.55);
-  box-shadow: 0 0 0 3px rgba(140, 150, 220, 0.14);
-}
-
-/* Skin comes from the shared Button component -- this is layout only. */
-.launchButton {
-  margin-top: 4px;
-  width: 100%;
-}
-
-/* Debug log: same status data as before, now pinned to the bottom-right of
-   the viewport so it stays visible across every launch state instead of
-   living inside the form (which unmounts once a launch starts). Sized
-   down and muted since it's a debug overlay, not primary UI; pointer-events
-   is off so it never intercepts clicks meant for the main UI beneath it. */
-.debugLog {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 50;
+.sources {
   margin: 0;
-  padding: 10px 12px;
-  width: min(320px, calc(100vw - 32px));
-  max-height: 200px;
-  overflow-y: auto;
+  padding: 0;
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: #8a8aa0;
-  background: rgba(10, 10, 16, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  pointer-events: none;
-  box-sizing: border-box;
 }
 
-.statusRow {
+.sourceRow {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
 }
 
-.dot {
-  margin-top: 4px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #4a4a5c;
-  flex-shrink: 0;
+.sourceRow:first-child {
+  padding-top: 0;
+  border-top: none;
 }
 
-.loading {
-  background: #c9b458;
+.sourceRow:last-child {
+  padding-bottom: 0;
 }
 
-.success {
-  background: #5fbf8a;
+.sourceText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.error {
-  background: #e06b6b;
+.sourceLabel {
+  font-weight: 500;
 }
 
-.statusLabel {
-  color: #9a9ab0;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.statusMessage {
-  color: #75758a;
+.sourceMessage {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
   overflow-wrap: anywhere;
 }
 
-/* --- Launch status animation (spinner / success check / error x) --- */
-
-.resultStage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 40px 20px;
-  opacity: 0;
-  animation: resultFadeIn 300ms ease forwards;
-}
-
-@keyframes resultFadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-.iconStage {
-  position: relative;
-  width: 96px;
-  height: 96px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.iconStage.pop {
-  animation: iconPop 250ms ease;
-}
-
-@keyframes iconPop {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.08);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.ringSvg {
-  position: absolute;
-  inset: 0;
-  width: 96px;
-  height: 96px;
-}
-
-.track {
-  fill: none;
-  stroke: rgba(140, 150, 220, 0.18);
-  stroke-width: 3;
-}
-
-.arc {
-  fill: none;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-dasharray: 1;
-  transform-origin: 50% 50%;
-}
-
-.spinning {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.checkSvg {
-  position: absolute;
-  width: 78px;
-  height: 78px;
-}
-
-.xDraw {
-  animation: drawX 300ms ease-out forwards;
-}
-
-@keyframes drawX {
-  from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.successText {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: #f0f0f5;
-  text-align: center;
-  opacity: 0;
-  animation: textFadeUp 250ms ease forwards;
-}
-
-/* Skin comes from the shared Button component -- this is layout/entrance
-   animation only. */
-.launchAnotherButton {
-  margin-top: 6px;
-  opacity: 0;
-  animation: textFadeUp 250ms ease forwards;
-  animation-delay: 80ms;
-}
-
-@keyframes textFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.errorText {
-  margin: 0;
-  font-size: 27px;
-  font-weight: 600;
-  color: #f0f0f5;
-  text-align: center;
-}
-
-.errorReason {
-  margin: 0;
-  font-size: 13px;
-  color: #b98a8a;
-  text-align: center;
-  max-width: 420px;
-}
-
-/* Skin comes from the shared Button component -- this is layout only. */
-.tryAgainButton {
-  margin-top: 6px;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-@media (max-width: 560px) {
-  .panel {
-    padding: 28px 20px;
-    border-radius: 16px;
-  }
-
-  .title {
-    font-size: 24px;
-  }
-}
-
-@keyframes panelFadeInReduced {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .panel {
-    animation: panelFadeInReduced 200ms ease;
-    transition: opacity 200ms ease;
-  }
-
-  .panelExiting {
-    transform: none;
-    transition: opacity 200ms ease;
-  }
-
-  .spinning {
-    animation: none;
-  }
-
-  .iconStage.pop {
-    animation: none;
-  }
-
-  .successText,
-  .launchAnotherButton {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  .xDraw {
-    animation: none;
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

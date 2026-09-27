@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import BackButton from '../components/BackButton/BackButton.jsx'
+import AuthLayout from '../components/AuthLayout/AuthLayout.jsx'
 import Button from '../components/Button/Button.jsx'
-import AuthStatus from '../components/AuthStatus/AuthStatus.jsx'
+import Alert from '../components/Alert/Alert.jsx'
 import { fetchNpi, savePractice } from '../api/practices.js'
 import { setCurrentPractice } from '../lib/practiceSession.js'
 import { stashPendingSignUp } from '../lib/pendingSignUp.js'
@@ -91,95 +91,108 @@ function SignUpPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <div className={styles.topBar}>
-          <BackButton to="/doctor" inline />
-          <AuthStatus inline />
-        </div>
-        <div className={styles.panel}>
-          <h1 className={styles.title}>Sign up with your NPI</h1>
+    <AuthLayout
+      backTo="/doctor"
+      backLabel="Sign in instead"
+      width={480}
+      title="Create practice account"
+      description={showConfirmForm ? 'Step 2 of 2 · Confirm your practice' : 'Step 1 of 2 · Verify your NPI'}
+    >
+      {sessionEmail && (
+        <p className={styles.signedIn}>
+          Signed in as <strong>{sessionEmail}</strong>
+        </p>
+      )}
 
-        {showLookupForm && (
-          <form className={styles.field} onSubmit={handleLookup}>
-            <span className={styles.label}>NPI Number</span>
+      {showLookupForm && (
+        <form className={styles.form} onSubmit={handleLookup}>
+          <label className={styles.field}>
+            <span className={styles.label}>NPI number</span>
             <input
               type="text"
-              className={styles.input}
-              placeholder="e.g. 1881942746"
+              inputMode="numeric"
+              className="mono"
+              placeholder="10 digits, e.g. 1881942746"
               value={npi}
               onChange={(e) => setNpi(e.target.value)}
             />
-            <Button
-              type="submit"
-              className={styles.submitButton}
-              disabled={!npi.trim() || status === 'looking-up'}
-            >
-              {status === 'looking-up' ? 'Looking up…' : 'Look up NPI'}
-            </Button>
-          </form>
-        )}
+            <span className={styles.help}>We look it up in the national NPPES registry.</span>
+          </label>
+          <Button
+            type="submit"
+            variant="primary"
+            className={styles.full}
+            disabled={!npi.trim() || status === 'looking-up'}
+          >
+            {status === 'looking-up' ? 'Looking up…' : 'Look up NPI'}
+          </Button>
+        </form>
+      )}
 
-        {error && <p className={styles.error}>{error}</p>}
+      {error && <Alert tone="danger">{error}</Alert>}
 
-        {showConfirmForm && (
-          <div className={styles.confirm}>
-            <p className={styles.confirmName}>{lookup.name}</p>
-            <p className={styles.confirmMeta}>{lookup.specialty || 'Specialty not on file'}</p>
-            <p className={styles.confirmMeta}>{lookup.state}</p>
-            <p className={styles.confirmMeta}>Medicare contractor: {lookup.medicare_contractor}</p>
-
-            <div className={styles.group}>
-              <span className={styles.label}>Capabilities</span>
-              <label className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={capabilities.infusion_chairs}
-                  onChange={(e) =>
-                    setCapabilities((c) => ({ ...c, infusion_chairs: e.target.checked }))
-                  }
-                />
-                Infusion chairs
-              </label>
-              <label className={styles.checkboxRow}>
-                <input
-                  type="checkbox"
-                  checked={capabilities.refrigeration}
-                  onChange={(e) =>
-                    setCapabilities((c) => ({ ...c, refrigeration: e.target.checked }))
-                  }
-                />
-                Refrigeration (2–8°C)
-              </label>
+      {showConfirmForm && (
+        <div className={styles.form}>
+          <dl className={styles.details}>
+            <div>
+              <dt>Practice</dt>
+              <dd>{lookup.name}</dd>
             </div>
-
-            <div className={styles.group}>
-              <span className={styles.label}>Payers</span>
-              {PAYER_OPTIONS.map((payer) => (
-                <label key={payer} className={styles.checkboxRow}>
-                  <input
-                    type="checkbox"
-                    checked={payers.includes(payer)}
-                    onChange={() => togglePayer(payer)}
-                  />
-                  {payer}
-                </label>
-              ))}
+            <div>
+              <dt>NPI</dt>
+              <dd className="mono">{lookup.npi}</dd>
             </div>
+            <div>
+              <dt>Specialty</dt>
+              <dd>{lookup.specialty || 'Not on file'}</dd>
+            </div>
+            <div>
+              <dt>State</dt>
+              <dd>{lookup.state}</dd>
+            </div>
+            <div>
+              <dt>Medicare contractor</dt>
+              <dd>{lookup.medicare_contractor}</dd>
+            </div>
+          </dl>
 
-            <Button className={styles.submitButton} onClick={handleConfirm} disabled={status === 'saving'}>
-              {status === 'saving'
-                ? 'Saving…'
-                : sessionEmail
-                  ? 'Finish sign up'
-                  : 'Complete with Google'}
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-)
+          <fieldset className={styles.group}>
+            <legend className={styles.label}>Capabilities</legend>
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={capabilities.infusion_chairs}
+                onChange={(e) => setCapabilities((c) => ({ ...c, infusion_chairs: e.target.checked }))}
+              />
+              Infusion chairs
+            </label>
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={capabilities.refrigeration}
+                onChange={(e) => setCapabilities((c) => ({ ...c, refrigeration: e.target.checked }))}
+              />
+              Refrigeration (2–8°C)
+            </label>
+          </fieldset>
+
+          <fieldset className={styles.group}>
+            <legend className={styles.label}>Payers you bill</legend>
+            {PAYER_OPTIONS.map((payer) => (
+              <label key={payer} className={styles.checkboxRow}>
+                <input type="checkbox" checked={payers.includes(payer)} onChange={() => togglePayer(payer)} />
+                {payer}
+              </label>
+            ))}
+          </fieldset>
+
+          <Button variant="primary" className={styles.full} onClick={handleConfirm} disabled={status === 'saving'}>
+            {status === 'saving' ? 'Saving…' : sessionEmail ? 'Finish sign up' : 'Continue with Google'}
+          </Button>
+        </div>
+      )}
+    </AuthLayout>
+  )
 }
 
 export default SignUpPage
