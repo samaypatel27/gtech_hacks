@@ -24,3 +24,16 @@ export const fetchClaim = (treatmentId) =>
 // (window.print()) that the claim page triggers after this succeeds.
 export const exportClaim = (treatmentId) =>
   request(`/api/treatments/${encodeURIComponent(treatmentId)}/export`, { method: 'POST' })
+
+// POST .../recode: "Build corrected claim" for a claim Switch flagged as
+// exported with an outdated code. Returns the rebuilt claim, marked as a
+// replacement of the original (Box 22, resubmission code 7).
+export const recodeClaim = (treatmentId) =>
+  request(`/api/treatments/${encodeURIComponent(treatmentId)}/recode`, { method: 'POST' })
+
+// GET .../code-status: the billing-code change notice for a drug's workspace
+// (countdown before a change, "since <date>" after it). Opening it also runs
+// the once-per-change reactions: flagging claims to recode and the biller's
+// and doctor's code-change cards.
+export const fetchCodeStatus = (practiceDrugId) =>
+  request(`/api/practice-drugs/${encodeURIComponent(practiceDrugId)}/code-status`)

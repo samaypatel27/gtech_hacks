@@ -10,6 +10,7 @@ import Spinner from '../components/Spinner/Spinner.jsx'
 import Icon from '../components/Icon/Icon.jsx'
 import { fetchClaim, exportClaim } from '../api/claims.js'
 import { formatDate } from '../lib/format.js'
+import { fetchClaim, exportClaim, recodeClaim } from '../api/claims.js'
 import styles from './ClaimPage.module.css'
 
 // The 8 pre-submission checks, in the order ProductSpec2 §7 Step 11 lists
@@ -86,6 +87,7 @@ function ClaimPage() {
   const [exportError, setExportError] = useState(null)
   const [highlightId, setHighlightId] = useState(null)
   const highlightTimer = useRef(null)
+  const [recoding, setRecoding] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -135,6 +137,20 @@ function ClaimPage() {
     { label: 'Workspaces', to: '/staff/biller' },
     { label: claim?.patient?.name ? `Claim · ${claim.patient.name}` : `Claim ${treatmentId}` },
   ]
+  // Switch flagged this claim: it went out with a code that turned out to be
+  // outdated for its date of service. Rebuild it as a corrected claim (Box 22,
+  // resubmission code 7); it then goes through the checks and Export again.
+  const handleRecode = async () => {
+    setRecoding(true)
+    setExportError(null)
+    try {
+      setClaim(await recodeClaim(treatmentId))
+    } catch (err) {
+      setExportError(err.message)
+    } finally {
+      setRecoding(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -165,11 +181,23 @@ function ClaimPage() {
     checks = [],
     status,
   } = claim
+  const { patient, drug, item19, admin_codes: adminCodes, diagnosis_code: diagnosisCode,
+    provider_npi: providerNpi, date_of_service: dateOfService, checks = [], status,
+    code_note: codeNote, resubmission } = claim
 
   const allPassed = checks.length > 0 && checks.every((c) => c.passed)
   const passedCount = checks.filter((c) => c.passed).length
   const exported = status === 'exported'
   const f = (id) => ({ id, highlighted: highlightId === id })
+  const needsRecoding = status === 'needs_recoding'
+  const statusLabel = exported
+    ? 'Exported'
+    : needsRecoding
+      ? 'Needs corrected claim'
+      : resubmission
+        ? 'Corrected claim — ready for review'
+        : 'Ready for review'
+  const codeKind = drug?.code_kind ?? (drug?.code_type === 'generic' ? 'generic' : 'permanent')
 
   return (
     <AppShell role="biller" breadcrumbs={breadcrumbs}>
@@ -326,6 +354,111 @@ function ClaimPage() {
           <section
             id="field-attachments"
             className={`${styles.section} ${highlightId === 'field-attachments' ? styles.highlighted : ''}`}
+      <div className={styles.header}>
+        <h1 className={styles.title}>Claim — {patient?.name ?? `Treatment #${treatmentId}`}</h1>
+        <span className={exported ? `${styles.statusPill} ${styles.statusExported}` : styles.statusPill}>
+          {statusLabel}
+        </span>
+      </div>
+
+      {needsRecoding && (
+        <div role="alert" className={`${styles.recodeBanner} ${styles.printHide}`}>
+          <p className={styles.recodeText}>
+            This claim was exported with {drug?.code}, but a new billing code was already in effect on the date
+            of service. Build a corrected claim to replace it.
+          </p>
+          <Button className={styles.recodeButton} onClick={handleRecode} disabled={recoding}>
+            {recoding ? 'Building…' : 'Build corrected claim'}
+          </Button>
+        </div>
+      )}
+
+      <div className={styles.form}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Patient &amp; provider</h2>
+          <div className={styles.grid}>
+            <Field id="field-patient" label="Patient" value={patient?.name} />
+            <Field id="field-member" label="Member ID" value={patient?.member_id} />
+            <Field id="field-insurance" label="Insurer" value={patient?.insurance} />
+            <Field id="field-npi" label="Provider NPI (24J / 33)" value={providerNpi} generated why="From your verified sign-up" />
+            <Field id="field-dos" label="Date of service" value={dateOfService} />
+            <Field
+              id="field-diagnosis"
+              label="Item 21 — Diagnosis"
+              value={diagnosisCode}
+              generated
+              why="Suggested from the visit note, confirmed by the doctor"
+            />
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Drug line</h2>
+          <div className={styles.grid}>
+            <Field id="field-code" label="HCPCS code" value={drug?.code} generated why={`${codeKind[0].toUpperCase()}${codeKind.slice(1)} code in effect on the date of service, from the drug's dated code list`} />
+            <Field id="field-units" label="Units" value={drug?.units} generated why="units (billing_rules.py) — 1 for a generic code, else dose ÷ billing unit" />
+            <Field
+              id="field-waste_modifier"
+              label="JW / JZ"
+              value={drug?.jw_jz ? `${drug.jw_jz} (${drug?.waste_mg ?? 0} mg discarded)` : 'JZ (no waste)'}
+              generated
+              why="waste_modifier (billing_rules.py), from the single-dose vial mix and the dose given"
+            />
+            <Field id="field-ndc" label="NDC (N4)" value={drug?.ndc_11} generated why="Converted to 11-digit 5-4-2 format (ndc_10_to_11)" />
+            {resubmission && (
+              <Field
+                id="field-resubmission"
+                label="Item 22 — Resubmission"
+                value={`7 (replaces the ${resubmission.original_code} claim)`}
+                generated
+                why={`Corrected claim: replaces the version exported ${resubmission.original_exported_at?.slice(0, 10) ?? ''}`}
+              />
+            )}
+          </div>
+          {codeNote && <p className={styles.codeNote}>{codeNote}</p>}
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Item 19 &amp; administration</h2>
+          <div className={styles.grid}>
+            <Field id="field-item19" label="Item 19" value={item19} generated why="Built from the drug name, strength, NDC and invoice price" />
+            <Field
+              id="field-admin_code"
+              label="Administration"
+              value={adminCodes?.join(' + ')}
+              generated
+              why="admin_codes (billing_rules.py) — from the infusion start/stop times"
+            />
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Attachments</h2>
+          <p className={styles.attachmentsNote}>
+            Invoice, FDA label and the signed note are bundled into one packet automatically.
+          </p>
+          <div id="field-attachments" />
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Pre-submission checks</h2>
+          <ul className={styles.checkList}>
+            {checks.map((check) => (
+              <CheckRow key={check.id} check={check} onFix={scrollToField} />
+            ))}
+          </ul>
+        </section>
+
+        {exportError && <p className={styles.error}>{exportError}</p>}
+
+        <div className={styles.actions}>
+          <Link to="/staff/biller" className={styles.secondaryLink}>
+            Back to workspaces
+          </Link>
+          <Button
+            className={styles.exportButton}
+            onClick={handleExport}
+            disabled={!allPassed || exporting || needsRecoding}
           >
             <h2 className={styles.sectionTitle}>Attachments</h2>
             <p className={styles.attachments}>

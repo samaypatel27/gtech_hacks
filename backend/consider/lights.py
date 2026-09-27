@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from billing_rules import code_kind_label, code_timeline, is_generic
+from core.clock import today
 from core.db import supabase
 
 router = APIRouter()
@@ -23,7 +25,57 @@ def _citations_for(drug, fields):
     return [c["citation"] for c in citations if c.get("field") in fields]
 
 
+def _day(d) -> str:
+    return f"{d:%b} {d.day}, {d.year}"
+
+
 def _billing_path_light(drug):
+    """Reads the drug's dated `codes` list for today (core.clock.today, which
+    DEMO_TODAY can override), so the light counts down to a code change and
+    turns green once a product-specific code is in effect. Drugs without a
+    `codes` list fall back to the pipeline's has_permanent_code fields."""
+    codes = drug.get("codes") or []
+    if codes:
+        try:
+            t = code_timeline(codes, today())
+        except ValueError:
+            t = None
+        if t:
+            return _billing_path_from_timeline(t, drug)
+    return _billing_path_from_fields(drug)
+
+
+def _billing_path_from_timeline(t, drug):
+    current, upcoming = t["current"], t["next"]
+    sources = _citations_for(drug, ["generic_billing_code", "has_permanent_code", "permanent_hcpcs_code"])
+    if current is None:
+        when = f" until {upcoming['code']} takes effect {_day(t['changes_on'])}" if upcoming else ""
+        return {"color": "gray", "text": f"No billing code in effect yet{when}.", "sources": sources}
+    if is_generic(current):
+        after = (
+            f" until {upcoming['code']} takes effect {_day(t['changes_on'])} (in {t['days_until_next']} days)"
+            if upcoming
+            else " until a permanent code is assigned"
+        )
+        return {
+            "color": "yellow",
+            "text": (
+                f"Billed under generic code {current['code']}{after}. Claims need a drug description, "
+                "the 11-digit NDC and the invoice: we can draft and check these for you, and switch "
+                "codes automatically by the date each dose is given."
+            ),
+            "sources": sources,
+        }
+    since = f" since {_day(t['changed_on'])}" if t["changed_on"] else ""
+    unit = f", billed per {current['unit'].lower()}" if current.get("unit") else ""
+    return {
+        "color": "green",
+        "text": f"Bills under its {code_kind_label(current)} code {current['code']}{since}{unit}.",
+        "sources": sources,
+    }
+
+
+def _billing_path_from_fields(drug):
     if drug.get("has_permanent_code"):
         code = drug.get("permanent_hcpcs_code") or "—"
         return {

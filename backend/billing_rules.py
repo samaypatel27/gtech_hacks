@@ -89,6 +89,78 @@ def code_for(codes: list[dict], payer: Optional[str], date_of_service) -> Option
     return None
 
 
+def is_generic(code: dict) -> bool:
+    """Generic ("not otherwise classified") codes bill 1 unit and need Item 19 and
+    the invoice. Product-specific codes -- temporary (e.g. a Q-code) or permanent
+    -- bill dose ÷ their billing unit and need neither."""
+    return code["type"] == "generic"
+
+
+def code_kind_label(code: dict) -> str:
+    """How to describe a code on screen: generic / temporary / permanent."""
+    return {"generic": "generic", "temporary": "temporary product-specific"}.get(code["type"], "permanent")
+
+
+def _billing_key(entry: Optional[dict]):
+    """What makes two code entries bill differently: the code, its kind, its unit."""
+    return (entry["code"], entry["type"], entry.get("unit")) if entry else None
+
+
+def code_timeline(codes: list[dict], day, payer: Optional[str] = None) -> dict:
+    """Where a drug stands on its billing codes on `day`, for notices and lights:
+
+    {"current": entry in effect on `day` (or None),
+     "previous": what it billed as before the last change (or None if no change yet),
+     "changed_on": date the last change took effect (or None),
+     "next": what it will bill as after the next change (or None),
+     "changes_on": date the next change takes effect (or None),
+     "days_since_change", "days_until_next": whole days (or None)}
+
+    Built on `code_for`, so it follows the same rules: the date decides, and a
+    payer-specific entry wins (falling back to the general ones on dates it
+    doesn't cover). A "change" is any new code, kind or billing unit -- generic
+    to permanent, generic to a temporary Q-code, a temporary code to a
+    permanent one, or the same code with a new unit.
+    """
+    day = _as_date(day)
+    relevant = [
+        c for c in codes if c.get("payer") is None or (payer and (c.get("payer") or "").lower() == payer.lower())
+    ]
+    # The only days the effective code can change: an entry starting or ending.
+    boundaries = sorted(
+        {_as_date(c["from"]) for c in relevant}
+        | {_as_date(c["to"]) + timedelta(days=1) for c in relevant if c.get("to")}
+    )
+
+    def on(d):
+        return code_for(codes, payer, d)
+
+    current = on(day)
+    changed_on = previous = None
+    for boundary in reversed([b for b in boundaries if b <= day]):
+        before = on(boundary - timedelta(days=1))
+        if _billing_key(before) != _billing_key(on(boundary)):
+            if before is not None:
+                changed_on, previous = boundary, before
+            break
+
+    changes_on = upcoming = None
+    for boundary in (b for b in boundaries if b > day):
+        if _billing_key(on(boundary)) != _billing_key(current):
+            changes_on, upcoming = boundary, on(boundary)
+            break
+
+    return {
+        "current": current,
+        "previous": previous,
+        "changed_on": changed_on,
+        "next": upcoming,
+        "changes_on": changes_on,
+        "days_since_change": (day - changed_on).days if changed_on else None,
+        "days_until_next": (changes_on - day).days if changes_on else None,
+    }
+
+
 # ---------------------------------------------------------------------------
 # NDCs
 # ---------------------------------------------------------------------------

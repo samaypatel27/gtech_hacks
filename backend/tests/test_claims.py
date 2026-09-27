@@ -229,3 +229,39 @@ def test_build_claim_does_not_change_its_inputs():
     before = (copy.deepcopy(t), copy.deepcopy(ws))
     build_claim(t, ws, MARIA, PASATRU, PRACTICE, None)
     assert (t, ws) == before
+
+
+# --- Switch: how a claim explains and handles a code change ------------------
+
+def test_code_note_explains_a_dose_given_before_the_switch():
+    note = claim_for(treatment(date_of_service="2026-09-28"))["code_note"]
+    assert note.startswith("Given Sep 28, 2026, before J0289 takes effect Oct 1, 2026: billed as generic J3590")
+
+
+def test_code_note_explains_a_dose_given_after_the_switch():
+    claim = claim_for(treatment(date_of_service="2026-10-02"))
+    assert claim["drug"]["code_kind"] == "permanent"
+    assert "on or after J0289 took effect Oct 1, 2026 (replacing generic J3590)" in claim["code_note"]
+
+
+def test_permanent_code_claim_passes_without_an_invoice():
+    no_invoice = {**WORKSPACE, "invoices": []}
+    claim = claim_for(treatment(date_of_service="2026-10-02"), workspace=no_invoice)
+    assert check(claim, "ndc")["passed"] and check(claim, "attachments")["passed"]
+    assert check(claim, "item19")["passed"]
+
+
+def test_generic_code_claim_still_needs_the_invoice():
+    no_invoice = {**WORKSPACE, "invoices": []}
+    claim = claim_for(treatment(date_of_service="2026-09-28"), workspace=no_invoice)
+    assert not check(claim, "attachments")["passed"] and "invoice" in check(claim, "attachments")["message"]
+
+
+def test_corrected_claim_carries_resubmission_code_7():
+    original = {"billing_code": "J3590", "exported_at": "2026-10-03T12:00:00+00:00"}
+    claim = build_claim(treatment(date_of_service="2026-10-02"), WORKSPACE, MARIA, PASATRU, PRACTICE, None, original)
+    assert claim["resubmission"] == {
+        "code": "7", "original_code": "J3590", "original_exported_at": "2026-10-03T12:00:00+00:00",
+    }
+    assert claim["drug"]["code"] == "J0289"
+    assert claim_for()["resubmission"] is None
