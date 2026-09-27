@@ -33,7 +33,7 @@ def get_practice_drug_tasks(practice_drug_id: int):
 
     drug_resp = (
         supabase.table("drugs")
-        .select("brand_name,application_id,codes,approval_date,storage_requirements")
+        .select("brand_name,application_id,codes,approval_date,storage_requirements,distributors,ndcs")
         .eq("application_id", practice_drug["application_id"])
         .limit(1)
         .execute()
@@ -71,6 +71,16 @@ def get_practice_drug_tasks(practice_drug_id: int):
             "codes": drug_row.get("codes") or [],
             "approval_date": drug_row.get("approval_date"),
             "storage_requirements": drug_row.get("storage_requirements"),
+            # For the invoice form's dropdowns (Receive & store, Buy for this patient).
+            "distributors": [
+                d.get("name", str(d)) if isinstance(d, dict) else str(d)
+                for d in drug_row.get("distributors") or []
+            ],
+            "packages": [
+                {"ndc_11": n["ndc_11"], "strength_mg": n.get("strength_mg")}
+                for n in drug_row.get("ndcs") or []
+                if isinstance(n, dict) and n.get("ndc_11")
+            ],
         },
         "practice_drug": {
             "id": practice_drug["id"],
@@ -167,6 +177,16 @@ def update_task(task_id: int, payload: TaskUpdate):
         and not {**(current.get("inputs") or {}), **(payload.inputs or {})}.get("auth_number")
     ):
         raise HTTPException(status_code=422, detail="Enter the authorization number first")
+    if payload.status == "done" and current["kind"] == "plan_patients":
+        planned = (
+            supabase.table("practice_drugs")
+            .select("planned_patients_per_month")
+            .eq("id", current["practice_drug_id"])
+            .execute()
+            .data[0]["planned_patients_per_month"]
+        )
+        if not planned:
+            raise HTTPException(status_code=422, detail="Enter planned patients per month first")
     if payload.status == "done" and current["kind"] == "receiving":
         # "Receive & store" is done once the invoice is entered (stock > 0)
         # and the drug is marked stored -- completing the card is the latter.
@@ -207,6 +227,45 @@ def update_task(task_id: int, payload: TaskUpdate):
 
     _recalculate_readiness(current["practice_drug_id"])
     return resp.data[0]
+
+
+class PracticeDrugUpdate(BaseModel):
+    planned_patients_per_month: int
+
+
+# The doctor's input (WorkspacePlan.md Layer 2). Saved in its real home on
+# practice_drugs (DataContract.md rule 1); a number above 0 is what completes
+# the "Set planned patients" card, and clearing it reopens the card.
+@router.patch("/api/practice-drugs/{practice_drug_id}")
+def update_practice_drug(practice_drug_id: int, payload: PracticeDrugUpdate):
+    if payload.planned_patients_per_month < 0:
+        raise HTTPException(status_code=422, detail="Planned patients can't be negative")
+    now = datetime.now(timezone.utc).isoformat()
+    resp = (
+        supabase.table("practice_drugs")
+        .update({"planned_patients_per_month": payload.planned_patients_per_month, "updated_at": now})
+        .eq("id", practice_drug_id)
+        .execute()
+    )
+    if not resp.data:
+        raise HTTPException(status_code=404, detail=f"No practice_drugs row found for id {practice_drug_id}")
+
+    planned = payload.planned_patients_per_month > 0
+    supabase.table("tasks").update(
+        {"status": "done" if planned else "todo", "completed_at": now if planned else None}
+    ).eq("practice_drug_id", practice_drug_id).eq("kind", "plan_patients").neq(
+        "status", "done" if planned else "todo"
+    ).execute()
+
+    _recalculate_readiness(practice_drug_id)
+    row = (
+        supabase.table("practice_drugs")
+        .select("id,status,planned_patients_per_month")
+        .eq("id", practice_drug_id)
+        .execute()
+        .data[0]
+    )
+    return row
 
 
 # Backward-compat alias so the old endpoint keeps working during transition.

@@ -30,6 +30,10 @@ const jsonHeaders = { 'Content-Type': 'application/json' }
 export const fetchPatient = (patientId) =>
   request(`/api/patients/${encodeURIComponent(patientId)}`)
 
+// GET every patient of the signed-in practice -- the workspace's "Start first
+// patient" list.
+export const fetchPatients = () => request('/api/patients')
+
 // PATCH the visit note. Called on every edit (debounced by the page) so the
 // documentation check can be re-run live -- deleting a line should flip a
 // check to ✗, per ProductSpec2's demo note.
