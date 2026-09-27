@@ -1,8 +1,101 @@
 .page {
-  padding: 24px 48px;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  box-sizing: border-box;
 }
 
-.roles {
+.hero {
+  text-align: center;
+  max-width: 600px;
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 10px;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 3.5vw, 38px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #f0f0f5;
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.grid {
   display: flex;
+  flex-direction: column;
   gap: 12px;
+  width: 100%;
+  max-width: 540px;
+}
+
+.roleCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.roleCard:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.roleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.roleLabel {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.roleDesc {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.roleButton {
+  flex-shrink: 0;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 13px;
+  border-radius: 12px;
 }

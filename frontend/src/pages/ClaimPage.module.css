@@ -1,0 +1,243 @@
+.page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 40px 24px 48px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.topContainer {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 16px auto;
+  display: flex;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.status {
+  margin-top: 40px;
+  font-size: 14px;
+  color: rgba(240, 240, 245, 0.55);
+}
+
+.header {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #f3f3f8;
+}
+
+.statusPill {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #d8b86a;
+  background: rgba(216, 184, 106, 0.12);
+  border: 1px solid rgba(216, 184, 106, 0.3);
+}
+
+.statusExported {
+  color: #7fd8a8;
+  background: rgba(127, 216, 168, 0.12);
+  border-color: rgba(127, 216, 168, 0.32);
+}
+
+.form {
+  width: 100%;
+  max-width: 720px;
+  padding: 32px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  box-sizing: border-box;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #74748c;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 12px;
+  padding: 10px 4px;
+  scroll-margin-top: 100px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  color: #74748c;
+}
+
+.fieldValue {
+  font-size: 15px;
+  color: #f0f0f5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A value the app computed rather than one entered directly. Hover shows a
+   native tooltip ("why this value") via the title attribute. */
+.generated {
+  padding: 2px 8px;
+  margin-left: -8px;
+  width: fit-content;
+  border-radius: 8px;
+  background: rgba(140, 150, 220, 0.14);
+  border: 1px solid rgba(140, 150, 220, 0.3);
+  cursor: help;
+}
+
+.attachmentsNote {
+  margin: 0;
+  font-size: 13px;
+  color: #9a9ab0;
+}
+
+.checkList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #d8d8e0;
+}
+
+.checkDot {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f1a12;
+  background: #7fd8a8;
+}
+
+.checkDotFail {
+  color: #2a0f0f;
+  background: #e08b8b;
+}
+
+.checkLabel {
+  flex: 1;
+}
+
+.fixLink {
+  border: none;
+  background: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d8b86a;
+  background: rgba(216, 184, 106, 0.12);
+  cursor: pointer;
+}
+
+.fixLink:hover {
+  background: rgba(216, 184, 106, 0.2);
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: #e08b8b;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: #9a9ab0;
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.secondaryLink {
+  font-size: 13px;
+  color: rgba(240, 240, 245, 0.55);
+  text-decoration: none;
+}
+
+.secondaryLink:hover {
+  color: #f0f0f5;
+}
+
+.exportButton {
+  min-width: 220px;
+}
+
+/* Printing to PDF (Export) should look like the claim, not the app chrome. */
+@media print {
+  .printHide,
+  .actions,
+  .hint {
+    display: none;
+  }
+
+  .form {
+    box-shadow: none;
+    border: none;
+    backdrop-filter: none;
+    background: none;
+  }
+}

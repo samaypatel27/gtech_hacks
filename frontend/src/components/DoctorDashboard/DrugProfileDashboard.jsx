@@ -1,12 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Button from '../Button/Button.jsx'
+import BackButton from '../BackButton/BackButton.jsx'
 import DrugVial from './DrugVial.jsx'
+import LoadingOverlay from '../LoadingOverlay/LoadingOverlay.jsx'
 import { useAuthSession } from '../../lib/useAuthSession.js'
 import '../../tailwind.css'
 
 
 const API_URL = import.meta.env.VITE_API_URL
+
+// "Get my team ready" transition timings: the whole screen fades out over
+// EXIT_MS, then the loading overlay holds for at least WORKSPACE_LOADING_MS
+// regardless of how fast the real request settles, then fades out over
+// EXIT_MS again before handing off to the workspace route.
+const EXIT_MS = 220
+const WORKSPACE_LOADING_MS = 3000
 
 const STATUS_COLORS = {
   permanent: { css: '#34D399', hex: 0x34d399 },
@@ -14,9 +23,8 @@ const STATUS_COLORS = {
 }
 
 // Shared outer measurements so the loading, not-found, and real states all
-// line up: centered, max 1280px, with responsive edge padding so nothing
-// ever touches the screen edge (20px mobile / 32px default / 48px wide).
-const PAGE_CONTAINER = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 xl:px-12'
+// line up: centered, max-w-6xl, with responsive edge padding matching the dashboard.
+const PAGE_CONTAINER = 'mx-auto w-full max-w-6xl px-4 sm:px-8'
 
 function usesReducedMotion() {
   return (
@@ -111,12 +119,9 @@ function FieldGroup({ fields }) {
 
 function BackLink() {
   return (
-    <Link
-      to="/doctor/drugs"
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
-    >
-      &larr; Back to all drugs
-    </Link>
+    <div className="flex items-center pb-2">
+      <BackButton to="/doctor/drugs" inline />
+    </div>
   )
 }
 
@@ -190,39 +195,12 @@ function DocumentSection({ title, headline, fields, delayMs, entranceOn }) {
 // Same two actions as the orphaned ConsideringDashboard.tsx mock -- the
 // only ones of the four spec'd actions that already exist anywhere in the
 // app. Uses the shared Button component, like every other button in the app.
-function ActionsSection({ drug, email, delayMs, entranceOn }) {
-  const navigate = useNavigate()
-  const [busy, setBusy] = useState(false)
-
-  async function handleGetTeamReady() {
-    if (busy || !email || !drug) return
-    setBusy(true)
-    try {
-      // Step 1: get or create the practice_drugs row and read its id.
-      const consideringRes = await fetch(`${API_URL}/api/practice-drugs/considering`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, application_id: drug.application_id }),
-      })
-      if (!consideringRes.ok) throw new Error('Could not find practice record')
-      const pd = await consideringRes.json()
-
-      // Step 2: create the four tasks and advance status to adopting.
-      const teamRes = await fetch(
-        `${API_URL}/api/practice-drugs/${pd.id}/team-ready`,
-        { method: 'POST' },
-      )
-      if (!teamRes.ok) throw new Error('team-ready call failed')
-
-      navigate(`/doctor/workspace/${pd.id}`)
-    } catch {
-      // Leave busy=true so the button stays disabled; re-enable on next render
-      // by resetting. A simple alert keeps this minimal -- no extra UI yet.
-      alert('Something went wrong. Please try again.')
-      setBusy(false)
-    }
-  }
-
+//
+// The team-ready request and the full-page transition around it now live in
+// the parent (DrugProfileDashboard), since the whole screen fades out on
+// click, not just this section -- this component just renders the button
+// off the `busy` flag the parent hands it.
+function ActionsSection({ email, busy, onGetTeamReady, delayMs, entranceOn }) {
   return (
     <section
       className={entranceOn ? 'animate-[fade-in-up_280ms_ease-out_forwards]' : ''}
@@ -230,7 +208,7 @@ function ActionsSection({ drug, email, delayMs, entranceOn }) {
     >
       <SectionHeading>Actions</SectionHeading>
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <Button className="flex-1" onClick={handleGetTeamReady} disabled={busy || !email}>
+        <Button className="flex-1" onClick={onGetTeamReady} disabled={busy || !email}>
           {busy ? 'Working\u2026' : 'Get my team ready'}
         </Button>
         <Button className="flex-1">Add patients to hold list</Button>
@@ -267,6 +245,13 @@ function DrugProfileDashboard({ applicationId }) {
   const [lights, setLights] = useState(null)
   const reducedMotion = useMemo(() => usesReducedMotion(), [])
   const { email } = useAuthSession()
+  const navigate = useNavigate()
+
+  // "Get my team ready" transition: 'idle' (normal page) -> 'exiting' (page
+  // fading out) -> 'loading' (full-page spinner, request running in the
+  // background) -> 'overlay-exiting' (spinner fading out) -> navigate away.
+  const [phase, setPhase] = useState('idle')
+  const loadingStartRef = useRef(0)
 
   useEffect(() => {
     let cancelled = false
@@ -324,6 +309,61 @@ function DrugProfileDashboard({ applicationId }) {
     }
   }, [applicationId, email])
 
+  // "Get my team ready": the whole screen fades out, a full-page spinner
+  // holds for at least WORKSPACE_LOADING_MS while the real request runs in
+  // the background, then it fades out and the workspace route takes over.
+  // Reduced motion skips the fade delays (0ms) but keeps the fixed hold time.
+  function handleGetTeamReady() {
+    if (phase !== 'idle' || !email || !drug) return
+
+    const exitDelay = reducedMotion ? 0 : EXIT_MS
+    setPhase('exiting')
+
+    setTimeout(() => {
+      setPhase('loading')
+      loadingStartRef.current = Date.now()
+      runTeamReady()
+    }, exitDelay)
+  }
+
+  async function runTeamReady() {
+    try {
+      // Step 1: get or create the practice_drugs row and read its id.
+      const consideringRes = await fetch(`${API_URL}/api/practice-drugs/considering`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, application_id: drug.application_id }),
+      })
+      if (!consideringRes.ok) throw new Error('Could not find practice record')
+      const pd = await consideringRes.json()
+
+      // Step 2: create the four tasks and advance status to adopting.
+      const teamRes = await fetch(`${API_URL}/api/practice-drugs/${pd.id}/team-ready`, {
+        method: 'POST',
+      })
+      if (!teamRes.ok) throw new Error('team-ready call failed')
+
+      // Always hold the loading screen for at least WORKSPACE_LOADING_MS,
+      // however fast the request actually was, then fade it out and hand
+      // off to the workspace route.
+      const elapsed = Date.now() - loadingStartRef.current
+      const remaining = Math.max(0, WORKSPACE_LOADING_MS - elapsed)
+      setTimeout(() => {
+        const fadeOutDelay = reducedMotion ? 0 : EXIT_MS
+        setPhase('overlay-exiting')
+        setTimeout(() => navigate(`/doctor/workspace/${pd.id}`), fadeOutDelay)
+      }, remaining)
+    } catch {
+      // Per spec: on failure the loading screen stays up (no fade back to
+      // the page) and the existing error handling runs as-is.
+      alert('Something went wrong. Please try again.')
+    }
+  }
+
+  if (phase === 'loading' || phase === 'overlay-exiting') {
+    return <LoadingOverlay message="Creating Workspace…" exiting={phase === 'overlay-exiting'} />
+  }
+
   if (isLoading) {
     return (
       <div className={`flex h-dvh w-full flex-col overflow-hidden py-6 text-[#f0f0f5] ${PAGE_CONTAINER}`}>
@@ -349,10 +389,19 @@ function DrugProfileDashboard({ applicationId }) {
 
   const isPermanent = Boolean(drug.has_permanent_code)
   const entranceOn = !reducedMotion
+  // Whole-screen fade-out while phase is 'exiting', ahead of the loading
+  // overlay taking over. Reduced motion skips the transition entirely
+  // (exitDelay is 0ms in handleGetTeamReady, so this barely renders anyway).
+  const exitClass =
+    phase === 'exiting'
+      ? reducedMotion
+        ? 'opacity-0'
+        : 'opacity-0 transition-opacity duration-[220ms] ease-out'
+      : ''
 
   return (
     <div
-      className={`flex min-h-screen w-full flex-col overflow-visible py-4 text-[#f0f0f5] min-[900px]:h-dvh min-[900px]:overflow-hidden min-[900px]:py-6 ${PAGE_CONTAINER}`}
+      className={`flex min-h-screen w-full flex-col overflow-visible py-4 text-[#f0f0f5] min-[900px]:h-dvh min-[900px]:overflow-hidden min-[900px]:py-6 ${PAGE_CONTAINER} ${exitClass}`}
     >
       <BackLink />
 
@@ -437,7 +486,13 @@ function DrugProfileDashboard({ applicationId }) {
               entranceOn={entranceOn}
             />
 
-            <ActionsSection drug={drug} email={email} delayMs={360} entranceOn={entranceOn} />
+            <ActionsSection
+              email={email}
+              busy={phase !== 'idle'}
+              onGetTeamReady={handleGetTeamReady}
+              delayMs={360}
+              entranceOn={entranceOn}
+            />
           </div>
         </div>
       </div>

@@ -4,7 +4,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  padding: 40px 24px;
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+  max-width: 456px;
+  box-sizing: border-box;
 }
 
 .title {

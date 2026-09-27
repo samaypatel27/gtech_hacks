@@ -1,6 +1,61 @@
+/* Circular back button with a left arrow and no text.
+   Default state: grey circle border and grey arrow.
+   Hover state: turns crisp white with subtle glass glow. */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 0;
+  box-sizing: border-box;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.button:hover {
+  border-color: #ffffff;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18), 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.button:active {
+  background: rgba(255, 255, 255, 0.16);
+  transform: scale(0.95);
+}
+
+.button:focus-visible {
+  outline: none;
+  border-color: #ffffff;
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+/* Standalone / floating positioning on pages without a navbar */
 .back {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  top: 20px;
+  left: 24px;
   z-index: 10;
+}
+
+/* Navbar / inline positioning */
+.inline {
+  position: static;
+  top: auto;
+  left: auto;
+  z-index: auto;
 }

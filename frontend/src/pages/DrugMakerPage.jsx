@@ -211,13 +211,17 @@ function DrugMakerPage() {
 
   return (
     <div className={styles.page}>
-      <BackButton />
-      <DrugMaker
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-        results={results}
-        saveResult={saveResult}
-      />
+      <div className={styles.container}>
+        <div className={styles.backRow}>
+          <BackButton inline />
+        </div>
+        <DrugMaker
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          results={results}
+          saveResult={saveResult}
+        />
+      </div>
     </div>
   )
 }

@@ -1,32 +1,33 @@
 .page {
-  display: flex;
   min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
+  width: 100%;
+  padding: 40px 24px 48px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .container {
   width: 100%;
-  max-width: 480px;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  align-items: flex-start;
   box-sizing: border-box;
 }
 
-.topBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+.status {
+  margin-top: 40px;
+  font-size: 14px;
+  color: rgba(240, 240, 245, 0.55);
 }
 
 .panel {
   width: 100%;
-  max-width: 480px;
-  padding: 40px;
+  max-width: 640px;
+  padding: 32px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.09);
@@ -35,25 +36,37 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  box-sizing: border-box;
+  gap: 28px;
 }
 
 .title {
-  margin: 0 0 8px;
-  text-align: center;
-  font-size: 24px;
+  margin: 0;
+  font-size: clamp(20px, 2.6vw, 28px);
   font-weight: 600;
   letter-spacing: -0.3px;
   color: #f3f3f8;
 }
 
-.field {
+.meta {
+  margin: -20px 0 0;
+  font-size: 13px;
+  color: #9a9ab0;
+}
+
+.section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section:first-of-type {
+  padding-top: 0;
+  border-top: none;
 }
 
 .label {
@@ -62,18 +75,46 @@
   letter-spacing: 1.2px;
   text-transform: uppercase;
   color: #74748c;
-  padding: 0 4px;
+}
+
+.dosCallout {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #d8b86a;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(216, 184, 106, 0.1);
+  border: 1px solid rgba(216, 184, 106, 0.25);
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  color: #74748c;
 }
 
 .input {
-  padding: 14px 18px;
-  border-radius: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   outline: none;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: #f0f0f5;
+  box-sizing: border-box;
   transition:
     border-color 160ms ease,
     background 160ms ease,
@@ -90,9 +131,8 @@
   box-shadow: 0 0 0 3px rgba(140, 150, 220, 0.14);
 }
 
-.submitButton {
-  margin-top: 4px;
-  width: 100%;
+.saveButton {
+  align-self: flex-start;
 }
 
 .error {
@@ -101,36 +141,8 @@
   color: #e08b8b;
 }
 
-.confirm {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.confirmName {
+.resultLine {
   margin: 0;
-  font-size: 19px;
-  font-weight: 600;
-  color: #f0f0f5;
-}
-
-.confirmMeta {
-  margin: 0;
-  font-size: 13px;
-  color: #9a9ab0;
-}
-
-.group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.checkboxRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #d8d8e0;
-  cursor: pointer;
+  font-size: 13.5px;
+  color: #7fd8a8;
 }

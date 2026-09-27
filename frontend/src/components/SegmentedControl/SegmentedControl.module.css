@@ -1,0 +1,71 @@
+/* Reusable segmented control — a single rounded rectangle with two or more
+   segments separated by thin vertical dividers.  Only the outer edges are
+   rounded; inner edges are square.
+
+   Matches the shared Button skin: same height, border, background, font and
+   colours so it looks like a native part of the app.  The active segment
+   gets a subtle white fill; inactive segments dim on idle and brighten on
+   hover/press. */
+
+.control {
+  display: inline-flex;
+  align-items: stretch;
+  height: 44px;
+  border: 1px solid #ffffff;
+  border-radius: 14px;
+  background: transparent;
+  overflow: hidden;             /* clips children to the parent radius */
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  border: none;
+  border-radius: 0;            /* square inner edges */
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* Thin vertical divider between segments — drawn as a pseudo-element on
+   every segment except the first, so there's no extra DOM node. */
+.segment + .segment::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.segment:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.segment:active:not(.active) {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: default;
+}
+
+.segment:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+}

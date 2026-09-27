@@ -11,7 +11,10 @@ import styles from './AuthStatus.module.css'
 // "signed in" and "signed out" can never both render at once -- it's a
 // single if/else branch in one place rather than a rule each page has to
 // separately maintain.
-function AuthStatus() {
+//
+// Pass `inline` to disable the fixed positioning (e.g. when placing it
+// inside a flex navbar).
+function AuthStatus({ inline = false }) {
   const navigate = useNavigate()
   const { email, loading } = useAuthSession()
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -39,19 +42,19 @@ function AuthStatus() {
   }
 
   return (
-    <div className={styles.wrap}>
+    <div className={`${styles.wrap} ${inline ? styles.inline : ''}`.trim()}>
       {email ? (
         <>
           <span className={styles.email} title={email}>
             {email}
           </span>
           <Button onClick={handleSignOut} disabled={isSigningOut}>
-            {isSigningOut ? 'Signing out…' : 'Sign Out'}
+            {isSigningOut ? 'Signing out\u2026' : 'Sign Out'}
           </Button>
         </>
       ) : (
         <Button onClick={handleSignIn} disabled={isSigningIn}>
-          {isSigningIn ? 'Redirecting…' : 'Sign In'}
+          {isSigningIn ? 'Redirecting\u2026' : 'Sign In'}
         </Button>
       )}
       {error && <span className={styles.error}>{error}</span>}
