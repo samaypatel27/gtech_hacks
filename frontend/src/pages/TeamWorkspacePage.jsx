@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, Navigate } from 'react-router-dom'
 import BackButton from '../components/BackButton/BackButton.jsx'
+import CodeChangeNotice from '../components/CodeChangeNotice/CodeChangeNotice.jsx'
 import '../tailwind.css'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -731,6 +732,7 @@ function TeamWorkspacePage() {
           <h1 className="text-[clamp(22px,2.8vw,34px)] font-semibold leading-tight text-white">
             {drug?.brand_name ?? 'Team workspace'}
           </h1>
+          <CodeChangeNotice practiceDrugId={practiceDrugId} />
         </div>
 
         {role ? (

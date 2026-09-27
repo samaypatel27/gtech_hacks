@@ -67,7 +67,9 @@ FastAPI app split into one folder per product stage. `backend/main.py` only crea
 | `consider/` | `practices.py` (NPI lookup, practices), `pins.py`, `lights.py` (the "considering" lights) |
 | `workspace/` | `setup.py` ("Get my team ready" + setup task text), `tasks.py` (board, waiting, readiness, workspace lists), `receiving.py` (invoice entry → stock) |
 | `treat_and_bill/` | `patients.py`, `orders.py` (create/sign order, patient task chain, tracker), `doc_check.py`, `nurse.py` (preparation + administration), `claims.py` (claim builder, 8 checks, export), `shared.py` (helpers used by several of these: loading a treatment bundle, the page-shaped views, completing tasks) |
-| `billing_rules.py` | Pure billing math (below), imported by the stage modules |
+| `switch/code_changes.py` | Stage 4, billing-code changes. `GET /api/practice-drugs/{id}/code-status` returns the notice (countdown before a change in the drug's dated `codes` list, "since <date>" for 60 days after) and, the first time it's called on/after a change, flags exported claims whose code is wrong for their date of service as `needs_recoding`, adds the biller's `recode_claims` card (its `inputs.changed_on` marks the change as handled) and, if the hold list isn't empty, the doctor's `review_hold_list` card. `POST /api/treatments/{id}/recode` (in `claims.py`) rebuilds a flagged claim as a corrected claim (old version kept in `claim_versions`, Box 22 resubmission code 7) |
+| `core/clock.py` | `today()`: the date everything date-dependent uses. Set `DEMO_TODAY=YYYY-MM-DD` in `backend/.env` to demo the state before/after a code change without waiting for the real date |
+| `billing_rules.py` | Pure billing math (below), imported by the stage modules. Also `code_timeline` (current / previous / next code around a day, built on `code_for`), `is_generic` and `code_kind_label` (generic / temporary product-specific / permanent) |
 
 Shared helpers have no leading underscore; helpers used only inside one file keep it.
 

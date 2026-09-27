@@ -5,7 +5,10 @@ import pytest
 from billing_rules import (
     admin_codes,
     code_for,
+    code_kind_label,
+    code_timeline,
     dose_for,
+    is_generic,
     item19,
     ndc_10_to_11,
     parse_billing_unit,
@@ -280,3 +283,61 @@ def test_item19_length_limit_boundary():
 def test_item19_rejects_10_digit_ndc():
     with pytest.raises(ValueError):
         item19("DrugX", 500, "mg", "IV", "12345-678-90")
+
+
+# --- code_timeline / is_generic (Switch) ------------------------------------
+
+
+def test_timeline_counts_down_to_the_permanent_code():
+    t = code_timeline(CODES, "2026-09-27")
+    assert t["current"]["code"] == "J3490" and t["previous"] is None
+    assert t["next"]["code"] == "J0644" and t["changes_on"] == date(2026, 10, 1)
+    assert t["days_until_next"] == 4
+
+
+def test_timeline_after_the_switch_remembers_what_it_replaced():
+    t = code_timeline(CODES, "2026-10-02")
+    assert t["current"]["code"] == "J0644"
+    assert t["previous"]["code"] == "J3490" and t["changed_on"] == date(2026, 10, 1)
+    assert t["days_since_change"] == 1 and t["next"] is None
+
+
+def test_timeline_for_a_payer_that_adopts_the_code_a_quarter_later():
+    t = code_timeline(CODES, "2026-10-02", payer="Aetna")
+    assert t["current"]["code"] == "J3490" and t["previous"] is None  # still generic for Aetna
+    assert t["next"]["code"] == "J0644" and t["changes_on"] == date(2027, 1, 1)
+
+
+def test_timeline_before_approval_has_no_current_code():
+    t = code_timeline(CODES, "2026-01-15")
+    assert t["current"] is None and t["previous"] is None
+    assert t["next"]["code"] == "J3490" and t["changes_on"] == date(2026, 2, 3)
+
+
+TEMP_TO_TEMP = [
+    {"code": "J3590", "type": "generic", "unit": None, "from": "2026-02-01", "to": "2026-06-30"},
+    {"code": "Q5999", "type": "temporary", "unit": "10 MG", "from": "2026-07-01", "to": "2026-09-30"},
+    {"code": "J0289", "type": "permanent", "unit": "1 MG", "from": "2026-10-01"},
+]
+
+
+def test_timeline_generic_to_temporary_to_permanent():
+    t = code_timeline(TEMP_TO_TEMP, "2026-08-15")
+    assert t["previous"]["code"] == "J3590" and t["current"]["code"] == "Q5999"
+    assert t["next"]["code"] == "J0289" and t["changes_on"] == date(2026, 10, 1)
+    assert not is_generic(t["current"]) and code_kind_label(t["current"]) == "temporary product-specific"
+    assert units(680, "mg", t["current"]) == 68  # a temporary code still bills by its unit
+
+
+def test_same_code_with_a_new_billing_unit_counts_as_a_change():
+    codes = [
+        {"code": "J0289", "type": "permanent", "unit": "1 MG", "from": "2026-10-01", "to": "2026-12-31"},
+        {"code": "J0289", "type": "permanent", "unit": "10 MG", "from": "2027-01-01"},
+    ]
+    t = code_timeline(codes, "2026-11-01")
+    assert t["next"]["unit"] == "10 MG" and t["changes_on"] == date(2027, 1, 1)
+
+
+def test_code_kinds():
+    assert is_generic(GENERIC) and not is_generic(PERMANENT)
+    assert code_kind_label(GENERIC) == "generic" and code_kind_label(PERMANENT) == "permanent"

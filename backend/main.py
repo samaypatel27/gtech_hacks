@@ -6,6 +6,7 @@ The code lives in one folder per product stage:
   consider/        Stage 1: sign-up (NPI), pins, the "can my practice use this?" lights
   workspace/       Stage 2 (Prepare): "Get my team ready", the team board
   treat_and_bill/  Stage 3: patients, orders + signing, documentation check, nurse record, claims
+  switch/          Stage 4: billing-code changes (notices, flagging claims to recode, hold-list review)
 """
 
 import os
@@ -16,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from consider import lights, pins, practices
 from drug_engine import cms, drugs, fda
+from switch import code_changes
 from treat_and_bill import claims, doc_check, nurse, orders, patients
 from workspace import receiving, setup, tasks
 
@@ -44,5 +46,6 @@ for module in (
     practices, pins, lights,                       # consider
     setup, tasks, receiving,                       # workspace
     patients, orders, doc_check, nurse, claims,    # treat & bill
+    code_changes,                                  # switch
 ):
     app.include_router(module.router)

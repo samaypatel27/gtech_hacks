@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import BackButton from '../components/BackButton/BackButton.jsx'
 import Button from '../components/Button/Button.jsx'
-import { fetchClaim, exportClaim } from '../api/claims.js'
+import { fetchClaim, exportClaim, recodeClaim } from '../api/claims.js'
 import styles from './ClaimPage.module.css'
 
 // The 8 pre-submission checks, in the order ProductSpec2 §7 Step 11 lists
@@ -65,6 +65,7 @@ function ClaimPage() {
   const [error, setError] = useState(null)
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState(null)
+  const [recoding, setRecoding] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -105,6 +106,21 @@ function ClaimPage() {
     }
   }
 
+  // Switch flagged this claim: it went out with a code that turned out to be
+  // outdated for its date of service. Rebuild it as a corrected claim (Box 22,
+  // resubmission code 7); it then goes through the checks and Export again.
+  const handleRecode = async () => {
+    setRecoding(true)
+    setExportError(null)
+    try {
+      setClaim(await recodeClaim(treatmentId))
+    } catch (err) {
+      setExportError(err.message)
+    } finally {
+      setRecoding(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -132,10 +148,20 @@ function ClaimPage() {
   }
 
   const { patient, drug, item19, admin_codes: adminCodes, diagnosis_code: diagnosisCode,
-    provider_npi: providerNpi, date_of_service: dateOfService, checks = [], status } = claim
+    provider_npi: providerNpi, date_of_service: dateOfService, checks = [], status,
+    code_note: codeNote, resubmission } = claim
 
   const allPassed = checks.length > 0 && checks.every((c) => c.passed)
   const exported = status === 'exported'
+  const needsRecoding = status === 'needs_recoding'
+  const statusLabel = exported
+    ? 'Exported'
+    : needsRecoding
+      ? 'Needs corrected claim'
+      : resubmission
+        ? 'Corrected claim — ready for review'
+        : 'Ready for review'
+  const codeKind = drug?.code_kind ?? (drug?.code_type === 'generic' ? 'generic' : 'permanent')
 
   return (
     <div className={styles.page}>
@@ -146,9 +172,21 @@ function ClaimPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Claim — {patient?.name ?? `Treatment #${treatmentId}`}</h1>
         <span className={exported ? `${styles.statusPill} ${styles.statusExported}` : styles.statusPill}>
-          {exported ? 'Exported' : 'Ready for review'}
+          {statusLabel}
         </span>
       </div>
+
+      {needsRecoding && (
+        <div role="alert" className={`${styles.recodeBanner} ${styles.printHide}`}>
+          <p className={styles.recodeText}>
+            This claim was exported with {drug?.code}, but a new billing code was already in effect on the date
+            of service. Build a corrected claim to replace it.
+          </p>
+          <Button className={styles.recodeButton} onClick={handleRecode} disabled={recoding}>
+            {recoding ? 'Building…' : 'Build corrected claim'}
+          </Button>
+        </div>
+      )}
 
       <div className={styles.form}>
         <section className={styles.section}>
@@ -172,7 +210,7 @@ function ClaimPage() {
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Drug line</h2>
           <div className={styles.grid}>
-            <Field id="field-code" label="HCPCS code" value={drug?.code} generated why={`${drug?.code_type === 'permanent' ? 'Permanent' : 'Generic'} code, from the drug's coding rules`} />
+            <Field id="field-code" label="HCPCS code" value={drug?.code} generated why={`${codeKind[0].toUpperCase()}${codeKind.slice(1)} code in effect on the date of service, from the drug's dated code list`} />
             <Field id="field-units" label="Units" value={drug?.units} generated why="units (billing_rules.py) — 1 for a generic code, else dose ÷ billing unit" />
             <Field
               id="field-waste_modifier"
@@ -182,7 +220,17 @@ function ClaimPage() {
               why="waste_modifier (billing_rules.py), from the single-dose vial mix and the dose given"
             />
             <Field id="field-ndc" label="NDC (N4)" value={drug?.ndc_11} generated why="Converted to 11-digit 5-4-2 format (ndc_10_to_11)" />
+            {resubmission && (
+              <Field
+                id="field-resubmission"
+                label="Item 22 — Resubmission"
+                value={`7 (replaces the ${resubmission.original_code} claim)`}
+                generated
+                why={`Corrected claim: replaces the version exported ${resubmission.original_exported_at?.slice(0, 10) ?? ''}`}
+              />
+            )}
           </div>
+          {codeNote && <p className={styles.codeNote}>{codeNote}</p>}
         </section>
 
         <section className={styles.section}>
@@ -225,7 +273,7 @@ function ClaimPage() {
           <Button
             className={styles.exportButton}
             onClick={handleExport}
-            disabled={!allPassed || exporting}
+            disabled={!allPassed || exporting || needsRecoding}
           >
             {exported ? 'Exported — print again' : exporting ? 'Exporting…' : 'Export for clearinghouse'}
           </Button>

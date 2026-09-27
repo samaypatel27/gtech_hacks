@@ -241,3 +241,38 @@
     background: none;
   }
 }
+
+/* Switch: why this code (the date of service decides it) */
+.codeNote {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(240, 240, 245, 0.6);
+}
+
+/* Switch: a claim exported with a code that was already outdated */
+.recodeBanner {
+  width: 100%;
+  max-width: 720px;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(224, 107, 107, 0.1);
+  border: 1px solid rgba(224, 107, 107, 0.35);
+}
+
+.recodeText {
+  margin: 0;
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(240, 240, 245, 0.88);
+}
+
+.recodeButton {
+  flex-shrink: 0;
+}
