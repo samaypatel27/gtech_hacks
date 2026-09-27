@@ -925,13 +925,41 @@ def team_ready(practice_drug_id: int):
         },
     ]
     task_resp = supabase.table("tasks").insert(tasks).execute()
+    created = task_resp.data
+
+    # Dependencies need the new ids, so they're set after the insert:
+    # Receiving waits on Purchasing.
+    id_by_kind = {t["kind"]: t["id"] for t in created}
+    receiving = next(t for t in created if t["kind"] == "receiving")
+    receiving["waits_on"] = [id_by_kind["purchasing"]]
+    supabase.table("tasks").update({"waits_on": receiving["waits_on"]}).eq(
+        "id", receiving["id"]
+    ).execute()
 
     return {
         "practice_drug_id": practice_drug_id,
         "status": "adopting",
-        "tasks": task_resp.data,
+        "tasks": created,
     }
 
+
+
+ROLE_LABELS = {"doctor": "Doctor", "front_desk": "Front Desk", "nurse": "Nurse", "biller": "Biller"}
+
+
+def _task_label(task: dict) -> str:
+    return f"{task['title']} ({ROLE_LABELS.get(task['role'], task['role'])})"
+
+
+def _waiting_on(task: dict, tasks_by_id: dict[int, dict]) -> list[str]:
+    """Labels of the tasks in `waits_on` that aren't done yet -- the card's
+    "Waiting on: ..." line. Empty means the task can be worked on now. A
+    dependency that no longer exists doesn't block."""
+    return [
+        _task_label(tasks_by_id[dep])
+        for dep in (int(d) for d in task.get("waits_on") or [])
+        if dep in tasks_by_id and tasks_by_id[dep]["status"] != "done"
+    ]
 
 
 @app.get("/api/practice-drugs/{practice_drug_id}/tasks")
@@ -969,6 +997,11 @@ def get_practice_drug_tasks(practice_drug_id: int):
         .execute()
     )
 
+    tasks = tasks_resp.data or []
+    tasks_by_id = {t["id"]: t for t in tasks}
+    for t in tasks:
+        t["waiting_on"] = _waiting_on(t, tasks_by_id)
+
     hold_list = practice_drug.get("hold_list") or []
     stock = practice_drug.get("stock_on_hand") or []
 
@@ -990,18 +1023,21 @@ def get_practice_drug_tasks(practice_drug_id: int):
             "stock_on_hand": stock,
             "ready_at": practice_drug.get("ready_at"),
         },
-        "tasks": tasks_resp.data,
+        "tasks": tasks,
     }
 
 
 def _recalculate_readiness(practice_drug_id: int) -> None:
     """After any task update, check whether the workspace has reached 'active'.
-    All 4 tasks done AND stock_on_hand non-empty with total quantity > 0 → active.
-    If a task is un-done and status was active → revert to adopting."""
+    All setup (stage='prepare') tasks done AND stock_on_hand non-empty with total
+    quantity > 0 → active. If a setup task is un-done and status was active →
+    revert to adopting. Per-patient and Switch tasks don't count: an open
+    "Give Maria's infusion" must not knock the drug out of Ready."""
     tasks_resp = (
         supabase.table("tasks")
         .select("status")
         .eq("practice_drug_id", practice_drug_id)
+        .eq("stage", "prepare")
         .execute()
     )
     pd_resp = (
@@ -1043,7 +1079,7 @@ def _recalculate_readiness(practice_drug_id: int) -> None:
 
 
 class TaskUpdate(BaseModel):
-    status: Optional[str] = None   # 'todo' | 'in_progress' | 'done'
+    status: Optional[str] = None   # 'todo' | 'done' (tasks_status_check allows only these)
     inputs: Optional[dict] = None  # merged non-destructively into existing inputs
 
 
@@ -1051,14 +1087,26 @@ class TaskUpdate(BaseModel):
 def update_task(task_id: int, payload: TaskUpdate):
     """Update a task's status and/or inputs.  Inputs are merged (not replaced):
     existing keys not in the payload survive.  Recalculates workspace readiness."""
-    if payload.status is not None and payload.status not in ("todo", "in_progress", "done"):
-        raise HTTPException(status_code=422, detail="status must be 'todo', 'in_progress', or 'done'")
+    if payload.status is not None and payload.status not in ("todo", "done"):
+        raise HTTPException(status_code=422, detail="status must be 'todo' or 'done'")
 
     # Fetch the current task to get practice_drug_id and existing inputs.
     current_resp = supabase.table("tasks").select("*").eq("id", task_id).limit(1).execute()
     if not current_resp.data:
         raise HTTPException(status_code=404, detail=f"No task found for id {task_id}")
     current = current_resp.data[0]
+
+    # A task can't be finished while anything it waits on is unfinished.
+    if payload.status == "done" and current.get("waits_on"):
+        deps_resp = (
+            supabase.table("tasks")
+            .select("id,title,role,status")
+            .in_("id", [int(d) for d in current["waits_on"]])
+            .execute()
+        )
+        waiting_on = _waiting_on(current, {t["id"]: t for t in deps_resp.data or []})
+        if waiting_on:
+            raise HTTPException(status_code=409, detail=f"Waiting on: {', '.join(waiting_on)}")
 
     update: dict = {}
     if payload.status is not None:
@@ -1246,3 +1294,64 @@ def get_workspaces_by_role(role: str):
     ]
     result.sort(key=lambda r: r["brand_name"] or "")
     return result
+
+
+# ---------------------------------------------------------------------------
+# Treat & Bill: patients
+# ---------------------------------------------------------------------------
+# Patient data is the practice-only tier, so every query here is scoped to the
+# signed-in practice via `current_practice` -- another practice's patient ids
+# 404 exactly like missing ones.
+
+
+def _practice_patient(patient_id: int, practice: dict) -> dict:
+    response = (
+        supabase.table("patients")
+        .select("*")
+        .eq("id", patient_id)
+        .eq("practice_id", practice["id"])
+        .limit(1)
+        .execute()
+    )
+    if not response.data:
+        raise HTTPException(status_code=404, detail=f"No patient found for id {patient_id}")
+    return response.data[0]
+
+
+@app.get("/api/patients")
+def list_patients(practice: dict = Depends(current_practice)):
+    response = (
+        supabase.table("patients")
+        .select("*")
+        .eq("practice_id", practice["id"])
+        .order("last_name")
+        .execute()
+    )
+    return response.data
+
+
+@app.get("/api/patients/{patient_id}")
+def get_patient(patient_id: int, practice: dict = Depends(current_practice)):
+    return _practice_patient(patient_id, practice)
+
+
+class VisitNoteUpdate(BaseModel):
+    visit_note: str
+
+
+# The note is edited live in the demo (delete a line -> the documentation
+# check flips to a gap), so it's its own small endpoint.
+@app.patch("/api/patients/{patient_id}/note")
+def update_visit_note(
+    patient_id: int, payload: VisitNoteUpdate, practice: dict = Depends(current_practice)
+):
+    _practice_patient(patient_id, practice)
+    response = (
+        supabase.table("patients")
+        .update(
+            {"visit_note": payload.visit_note, "updated_at": datetime.now(timezone.utc).isoformat()}
+        )
+        .eq("id", patient_id)
+        .execute()
+    )
+    return response.data[0]
