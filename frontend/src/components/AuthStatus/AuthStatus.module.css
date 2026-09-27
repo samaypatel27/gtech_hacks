@@ -8,6 +8,14 @@
   gap: 10px;
 }
 
+/* When rendered inside a parent navbar, opt into inline layout. */
+.inline {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: auto;
+}
+
 .email {
   max-width: 220px;
   overflow: hidden;
