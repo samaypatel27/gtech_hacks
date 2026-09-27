@@ -34,8 +34,9 @@ const KIND_ORDER = ['purchasing', 'receiving', 'nurse_setup', 'billing_setup']
 // identity of their own otherwise.
 //
 // `droppable` is what staff are allowed to move a card INTO: To Do and
-// Complete only. Awaiting is display-only -- a card already sitting there can
-// still be moved out of it, but nothing can be dropped back in.
+// Complete only. Awaiting is frozen in both directions -- nothing can be
+// dropped into it, and a card already sitting there can't be dragged or
+// keyboard-moved out either. Only To Do <-> Complete is ever staff-movable.
 const BOARD_COLUMNS = [
   { key: 'todo', label: 'To Do', droppable: true },
   { key: 'awaiting', label: 'Awaiting', droppable: false },
@@ -198,8 +199,13 @@ const CARD_GLASS =
 /**
  * A staff card in its column. `state` is 'idle', 'ghost' (it's the card being
  * dragged, so its slot shows a dashed outline) or 'landing' (just dropped here).
+ * `locked` is the specific "waiting on Purchasing" case (shows that message);
+ * `frozen` is the broader "this card can't be moved right now" state, which
+ * is also true for any card sitting in Awaiting -- locked cards are always
+ * frozen, but a card can be frozen (just parked in Awaiting) without being
+ * the locked one.
  */
-function BoardCard({ task, column, locked, state, onPressStart, onKeyMove, onLanded }) {
+function BoardCard({ task, column, locked, frozen, state, onPressStart, onKeyMove, onLanded }) {
   const label = columnOf(column).label
 
   function handleKeyDown(e) {
@@ -212,7 +218,7 @@ function BoardCard({ task, column, locked, state, onPressStart, onKeyMove, onLan
   let skin
   if (state === 'ghost') {
     skin = 'border-dashed border-white/25 bg-white/[0.02]'
-  } else if (locked) {
+  } else if (frozen) {
     skin = `${CARD_GLASS} cursor-not-allowed opacity-50`
   } else {
     skin =
@@ -225,15 +231,17 @@ function BoardCard({ task, column, locked, state, onPressStart, onKeyMove, onLan
   return (
     <div
       data-task-id={task.id}
-      tabIndex={locked ? -1 : 0}
-      aria-disabled={locked || undefined}
+      tabIndex={frozen ? -1 : 0}
+      aria-disabled={frozen || undefined}
       aria-label={
         locked
           ? `${task.title}, in ${label}. Locked until Purchasing is complete.`
-          : `${task.title}, in ${label}. Drag to another column, or press left or right arrow to move.`
+          : frozen
+            ? `${task.title}, in ${label}. Awaiting is read-only and can't be moved.`
+            : `${task.title}, in ${label}. Drag to another column, or press left or right arrow to move.`
       }
-      onPointerDown={locked ? undefined : (e) => onPressStart(e, task, column)}
-      onKeyDown={locked ? undefined : handleKeyDown}
+      onPointerDown={frozen ? undefined : (e) => onPressStart(e, task, column)}
+      onKeyDown={frozen ? undefined : handleKeyDown}
       onAnimationEnd={state === 'landing' ? onLanded : undefined}
       className={`${CARD_BASE} ${skin}`}
     >
@@ -242,7 +250,7 @@ function BoardCard({ task, column, locked, state, onPressStart, onKeyMove, onLan
           task={task}
           column={column}
           locked={locked}
-          accessory={locked ? <LockIcon /> : <GripIcon />}
+          accessory={frozen ? <LockIcon /> : <GripIcon />}
         />
       </div>
     </div>
@@ -345,7 +353,12 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
 
   const commitMove = useCallback(
     (task, from, to) => {
-      if (!to || to === from || !columnOf(to).droppable) return
+      // Awaiting is frozen on both sides: nothing can be dropped into it
+      // (checked via `to`), and a card already sitting there can't leave it
+      // by drag or keyboard either (checked via `from`) -- BoardCard already
+      // keeps a frozen card from starting a drag or a keyboard move, but this
+      // guard keeps the invariant true even if something else calls in.
+      if (!to || to === from || from === 'awaiting' || !columnOf(to).droppable) return
       onMove(task, to)
       setLandingId(task.id)
       setAnnouncement(`Moved ${task.title} to ${columnOf(to).label}.`)
@@ -490,24 +503,32 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
               </div>
 
               <div className="flex flex-1 flex-col gap-3">
-                {cards.map((task) => (
-                  <BoardCard
-                    key={task.id}
-                    task={task}
-                    column={key}
-                    locked={task.kind === 'receiving' && !purchasingDone}
-                    state={
-                      dragging && drag.task.id === task.id
-                        ? 'ghost'
-                        : landingId === task.id
-                          ? 'landing'
-                          : 'idle'
-                    }
-                    onPressStart={handlePressStart}
-                    onKeyMove={handleKeyMove}
-                    onLanded={() => setLandingId(null)}
-                  />
-                ))}
+                {cards.map((task) => {
+                  const locked = task.kind === 'receiving' && !purchasingDone
+                  // Every card rendered in the Awaiting column is frozen, not
+                  // just the receiving/purchasing special case -- see the
+                  // BOARD_COLUMNS comment above.
+                  const frozen = locked || key === 'awaiting'
+                  return (
+                    <BoardCard
+                      key={task.id}
+                      task={task}
+                      column={key}
+                      locked={locked}
+                      frozen={frozen}
+                      state={
+                        dragging && drag.task.id === task.id
+                          ? 'ghost'
+                          : landingId === task.id
+                            ? 'landing'
+                            : 'idle'
+                      }
+                      onPressStart={handlePressStart}
+                      onKeyMove={handleKeyMove}
+                      onLanded={() => setLandingId(null)}
+                    />
+                  )
+                })}
 
                 {isTarget ? (
                   <div className="flex min-h-20 items-center justify-center rounded-2xl border-2 border-dashed border-emerald-300/60 p-4 text-center text-[12px] font-medium text-emerald-100/90">
@@ -654,7 +675,12 @@ function TeamWorkspacePage() {
     }
   }
 
-  const PAGE = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 xl:px-12'
+  // Landing here from "Get my team ready" 's loading overlay (see
+  // DrugProfileDashboard.jsx) should read as the tail end of that fade, not
+  // a hard cut -- reuses the same fade-in-up keyframe (tailwind.css) other
+  // entrances in the app already use. motion-safe: only applies it when the
+  // user hasn't asked for reduced motion (see e.g. the drag preview above).
+  const FADE_IN = 'motion-safe:animate-[fade-in-up_320ms_ease-out_forwards]'
 
   // An unrecognized :role -- same treatment as StaffWorkspacesPage: send them
   // home rather than render a page whose back link points nowhere.
@@ -662,30 +688,29 @@ function TeamWorkspacePage() {
 
   // Staff came from their own role listing; the doctor came from the drug grid.
   const backTo = role ? `/staff/${role}` : '/doctor/drugs'
-  const backTitle = role ? `${ROLE_LABEL[role]} workspaces` : 'All drugs'
 
   if (isLoading) {
     return (
-      <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-        <div className="pb-2">
-          <BackButton to={backTo} inline>
-            {backTitle}
-          </BackButton>
+      <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
+        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
+          <div className="pb-4">
+            <BackButton to={backTo} inline />
+          </div>
+          <p className="mt-10 text-[14px] text-white/35">Loading workspace&hellip;</p>
         </div>
-        <p className="mt-10 text-[14px] text-white/35">Loading workspace&hellip;</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-        <div className="pb-2">
-          <BackButton to={backTo} inline>
-            {backTitle}
-          </BackButton>
+      <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
+        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
+          <div className="pb-4">
+            <BackButton to={backTo} inline />
+          </div>
+          <p className="mt-10 text-[14px] text-white/35">Could not load workspace: {error}</p>
         </div>
-        <p className="mt-10 text-[14px] text-white/35">Could not load workspace: {error}</p>
       </div>
     )
   }
@@ -696,36 +721,31 @@ function TeamWorkspacePage() {
   const purchasingDone = byKind.purchasing?.status === 'done'
 
   return (
-    <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-      <div className="pb-2">
-        <BackButton to={backTo} inline>
-          {backTitle}
-        </BackButton>
-      </div>
+    <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
+      <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
+        <div className="pb-4">
+          <BackButton to={backTo} inline />
+        </div>
 
-      <div className="mt-6 flex flex-wrap items-baseline gap-2">
-        <h1 className="text-[clamp(22px,2.8vw,34px)] font-semibold leading-tight text-white">
-          {drug?.brand_name ?? 'Team workspace'}
-        </h1>
-        {role && <span className="text-[13px] font-medium text-white/40">{ROLE_LABEL[role]} board</span>}
-      </div>
+        <div className="mb-8">
+          <h1 className="text-[clamp(22px,2.8vw,34px)] font-semibold leading-tight text-white">
+            {drug?.brand_name ?? 'Team workspace'}
+          </h1>
+        </div>
 
-      {role ? (
-        <>
-          <p className="mt-1.5 text-[13px] text-white/40">
-            Drag a card between To Do and Complete, or move a focused card with the ← → keys.
-            Awaiting is read-only.
-          </p>
-          {moveError && (
-            <p role="alert" className="mt-3 text-[13px] text-amber-200/90">
-              {moveError}
-            </p>
-          )}
-          <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
-        </>
-      ) : (
-        <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
-      )}
+        {role ? (
+          <>
+            {moveError && (
+              <p role="alert" className="mb-4 text-[13px] text-amber-200/90">
+                {moveError}
+              </p>
+            )}
+            <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
+          </>
+        ) : (
+          <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
+        )}
+      </div>
     </div>
   )
 }

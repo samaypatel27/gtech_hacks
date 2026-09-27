@@ -1,0 +1,87 @@
+/* Full-page transition overlay: a big spinner + message, no background fill
+   (the fixed ShaderBackground stays visible through it, like every other
+   page). See DrugMaker.module.css's .ringSvg/.track/.arc for the same ring
+   visual at its normal (96px) size -- this is the same design, just larger. */
+.overlay {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 24px;
+  opacity: 0;
+  animation: overlayFadeIn 300ms ease forwards;
+}
+
+@keyframes overlayFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.overlay.exiting {
+  animation: overlayFadeOut 220ms ease forwards;
+}
+
+@keyframes overlayFadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+.ringSvg {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.track {
+  fill: none;
+  stroke: rgba(140, 150, 220, 0.18);
+  stroke-width: 3;
+}
+
+.arc {
+  fill: none;
+  stroke: #8c96dc;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  transform-origin: 50% 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: #f0f0f5;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+    opacity: 1;
+  }
+
+  .overlay.exiting {
+    animation: none;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  .arc {
+    animation: none;
+  }
+}

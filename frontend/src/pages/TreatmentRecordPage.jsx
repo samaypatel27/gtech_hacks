@@ -93,8 +93,10 @@ function TreatmentRecordPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <BackButton to="/staff/nurse" />
-        <p className={styles.status}>Loading treatment…</p>
+        <div className={styles.container}>
+          <BackButton to="/staff/nurse" inline />
+          <p className={styles.status}>Loading treatment…</p>
+        </div>
       </div>
     )
   }
@@ -102,8 +104,10 @@ function TreatmentRecordPage() {
   if (loadError || !treatment) {
     return (
       <div className={styles.page}>
-        <BackButton to="/staff/nurse" />
-        <p className={styles.status}>Could not load treatment: {loadError ?? 'not found'}</p>
+        <div className={styles.container}>
+          <BackButton to="/staff/nurse" inline />
+          <p className={styles.status}>Could not load treatment: {loadError ?? 'not found'}</p>
+        </div>
       </div>
     )
   }
@@ -112,10 +116,11 @@ function TreatmentRecordPage() {
 
   return (
     <div className={styles.page}>
-      <BackButton to="/staff/nurse" />
+      <div className={styles.container}>
+        <BackButton to="/staff/nurse" inline />
 
-      <div className={styles.panel}>
-        <h1 className={styles.title}>{drug?.brand_name ?? 'Treatment record'}</h1>
+        <div className={styles.panel}>
+          <h1 className={styles.title}>{drug?.brand_name ?? 'Treatment record'}</h1>
         <p className={styles.meta}>
           {patient?.name}
           {dose?.amount != null ? ` · ${dose.amount} ${dose.unit ?? 'mg'} ordered` : null}
@@ -218,7 +223,8 @@ function TreatmentRecordPage() {
         </section>
       </div>
     </div>
-  )
+  </div>
+)
 }
 
 export default TreatmentRecordPage

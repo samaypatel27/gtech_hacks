@@ -1,7 +1,17 @@
 .page {
   min-height: 100vh;
   width: 100%;
-  padding: 76px 24px 48px;
+  padding: 40px 24px 48px;
+  box-sizing: border-box;
+}
+
+.header {
+  max-width: 1080px;
+  margin: 0 auto 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   box-sizing: border-box;
 }
 

@@ -3,8 +3,24 @@
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 40px 24px;
   box-sizing: border-box;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .panel {

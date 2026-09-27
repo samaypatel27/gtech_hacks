@@ -4,7 +4,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Extra top padding clears the absolutely positioned back button. */
-  padding: 76px 24px 24px;
+  padding: 40px 24px;
   box-sizing: border-box;
+}
+
+.container {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.backRow {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
 }

@@ -8,8 +8,8 @@ import { useAuthSession } from '../lib/useAuthSession.js'
 import styles from './DoctorPage.module.css'
 
 const VIEW_OPTIONS = [
-  { value: 'drugs', label: 'View Drugs' },
-  { value: 'tasks', label: 'View Tasks' },
+  { value: 'drugs', label: 'Drugs' },
+  { value: 'tasks', label: 'Workspaces' },
 ]
 
 // The dashboard is not public -- anonymous visitors are bounced back to the
@@ -28,25 +28,27 @@ function DoctorPage() {
 
   return (
     <div className={styles.page}>
-      {/* Unified top navbar — back, segmented control, auth status, all
-          on one row, vertically centred, nothing floating or clipped. */}
-      <nav className={styles.navbar}>
-        <div className={styles.navLeft}>
-          <BackButton inline />
-        </div>
+      <div className="w-full px-4 sm:px-8">
+        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
+          <nav className={styles.navbar}>
+            <div className={styles.navLeft}>
+              <BackButton inline />
+            </div>
 
-        <div className={styles.navCenter}>
-          <SegmentedControl
-            options={VIEW_OPTIONS}
-            value={view}
-            onChange={setView}
-          />
-        </div>
+            <div className={styles.navCenter}>
+              <SegmentedControl
+                options={VIEW_OPTIONS}
+                value={view}
+                onChange={setView}
+              />
+            </div>
 
-        <div className={styles.navRight}>
-          <AuthStatus inline />
+            <div className={styles.navRight}>
+              <AuthStatus inline />
+            </div>
+          </nav>
         </div>
-      </nav>
+      </div>
 
       <DrugSearchGrid view={view} email={email} />
     </div>

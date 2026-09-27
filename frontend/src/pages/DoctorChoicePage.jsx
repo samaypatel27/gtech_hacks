@@ -36,24 +36,26 @@ function DoctorChoicePage() {
 
   return (
     <div className={styles.page}>
-      <BackButton />
-      <h1 className={styles.title}>Doctor sign-in</h1>
-      <div className={styles.cards}>
-        <button
-          type="button"
-          className={styles.card}
-          onClick={handleSignIn}
-          disabled={isSigningIn}
-        >
-          <span className={styles.cardTitle}>{isSigningIn ? 'Redirecting…' : 'Sign In'}</span>
-          <span className={styles.cardBody}>Already registered? Continue with Google.</span>
-        </button>
-        <button type="button" className={styles.card} onClick={() => navigate('/sign-up')}>
-          <span className={styles.cardTitle}>Sign Up</span>
-          <span className={styles.cardBody}>New practice? Verify your NPI to get started.</span>
-        </button>
+      <div className={styles.container}>
+        <BackButton inline />
+        <h1 className={styles.title}>Doctor sign-in</h1>
+        <div className={styles.cards}>
+          <button
+            type="button"
+            className={styles.card}
+            onClick={handleSignIn}
+            disabled={isSigningIn}
+          >
+            <span className={styles.cardTitle}>{isSigningIn ? 'Redirecting…' : 'Sign In'}</span>
+            <span className={styles.cardBody}>Already registered? Continue with Google.</span>
+          </button>
+          <button type="button" className={styles.card} onClick={() => navigate('/sign-up')}>
+            <span className={styles.cardTitle}>Sign Up</span>
+            <span className={styles.cardBody}>New practice? Verify your NPI to get started.</span>
+          </button>
+        </div>
+        {error && <p className={styles.error}>{error}</p>}
       </div>
-      {error && <p className={styles.error}>{error}</p>}
     </div>
   )
 }
