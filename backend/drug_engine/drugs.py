@@ -241,3 +241,11 @@ def upsert_drug(drug: DrugRecord):
             application_id=saved["application_id"],
         )
     return saved
+
+
+@router.delete("/api/drugs/{application_id}")
+def delete_drug(application_id: str):
+    response = supabase.table("drugs").delete().eq("application_id", application_id).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail=f"No drug found for {application_id}")
+    return {"deleted": application_id}
