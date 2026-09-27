@@ -9,6 +9,49 @@ from core.db import supabase
 router = APIRouter()
 
 
+def _build_plan_patients_instruction(drug: dict) -> str:
+    brand = drug.get("brand_name") or "this drug"
+    return (
+        f"How many patients a month do you plan to start on {brand}? "
+        "Purchasing uses this number to work out how much to order."
+    )
+
+
+def _policy_status(policy: dict) -> str:
+    if policy.get("covered") is False:
+        status = "not covered"
+    elif policy.get("covered") is None:
+        status = "policy under review"
+    else:
+        status = "covered for approved uses"
+    if policy.get("prior_auth"):
+        status += ", prior authorization required"
+    return status
+
+
+def _build_payer_review_instruction(drug: dict, practice: dict) -> str:
+    brand = drug.get("brand_name") or "this drug"
+    payers = practice.get("payers") or []
+    if not payers:
+        return (
+            "Your practice profile lists no insurers. Add them, then review each one's "
+            f"policy for {brand}."
+        )
+    policies = {(p.get("payer") or "").lower(): p for p in drug.get("payer_policies") or []}
+    rows = []
+    for payer in payers:
+        policy = policies.get(payer.lower())
+        if policy:
+            notes = f" ({policy['notes']})" if policy.get("notes") else ""
+            rows.append(f"{payer}: {_policy_status(policy)}{notes}")
+        else:
+            rows.append(f"{payer}: no policy on file, verify coverage before the first treatment")
+    return (
+        f"Review how each of your insurers covers {brand}, then mark each one reviewed. "
+        + " · ".join(rows)
+    )
+
+
 def _build_purchasing_instruction(drug: dict) -> str:
     brand = drug.get("brand_name") or "this drug"
     distributors = drug.get("distributors")
@@ -73,8 +116,16 @@ def _build_billing_instruction(drug: dict) -> str:
     else:
         code = drug.get("generic_billing_code") or "not yet available"
         code_note = f"generic (miscellaneous) billing code {code} until a permanent code is assigned"
+    permanent = next((c for c in drug.get("codes") or [] if c.get("type") == "permanent"), None)
+    permanent_note = (
+        f"Permanent code {permanent['code']} takes effect {permanent['from']}; claims switch "
+        "automatically by date of service. "
+        if permanent and not drug.get("has_permanent_code")
+        else ""
+    )
     return (
         f"{brand} bills under {code_note}. "
+        f"{permanent_note}"
         "Units: 1 for a generic code; for a permanent code, units equal dose divided by the "
         "billing unit rounded up. "
         "Include the 11-digit NDC on every claim line. "
@@ -127,63 +178,49 @@ def team_ready(practice_drug_id: int):
         .execute()
     )
     drug = drug_resp.data[0] if drug_resp.data else {}
+    practice = (
+        supabase.table("practices").select("payers").eq("id", practice_drug["practice_id"]).execute().data[0]
+    )
 
     # Advance the practice's status with this drug to 'adopting'.
     supabase.table("practice_drugs").update(
         {"status": "adopting", "updated_at": datetime.now(timezone.utc).isoformat()}
     ).eq("id", practice_drug_id).execute()
 
-    # Insert the four prepare-stage task cards.  `status` defaults to 'todo'
-    # in the DB, but we set it explicitly so the insert is self-documenting.
+    # The six setup tasks from Comp_Details/DataContract.md §3 (kind, role,
+    # title), in board order. `status` defaults to 'todo' in the DB, but it's
+    # set explicitly so the insert is self-documenting.
+    setup = [
+        ("plan_patients", "doctor", "Set planned patients", _build_plan_patients_instruction(drug)),
+        ("purchasing", "front_desk", "Place the order", _build_purchasing_instruction(drug)),
+        ("receiving", "front_desk", "Receive & store", _build_receiving_instruction(drug)),
+        ("nurse_setup", "nurse", "Nurse setup", _build_nurse_instruction(drug)),
+        ("payer_review", "biller", "Review insurers", _build_payer_review_instruction(drug, practice)),
+        ("billing_setup", "biller", "Confirm billing setup", _build_billing_instruction(drug)),
+    ]
     tasks = [
         {
             "practice_drug_id": practice_drug_id,
             "stage": "prepare",
-            "role": "front_desk",
-            "kind": "purchasing",
-            "title": "Purchasing",
-            "instruction": _build_purchasing_instruction(drug),
+            "role": role,
+            "kind": kind,
+            "title": title,
+            "instruction": instruction,
             "status": "todo",
-        },
-        {
-            "practice_drug_id": practice_drug_id,
-            "stage": "prepare",
-            "role": "front_desk",
-            "kind": "receiving",
-            "title": "Receiving",
-            "instruction": _build_receiving_instruction(drug),
-            "status": "todo",
-        },
-        {
-            "practice_drug_id": practice_drug_id,
-            "stage": "prepare",
-            "role": "nurse",
-            "kind": "nurse_setup",
-            "title": "Nurse setup",
-            "instruction": _build_nurse_instruction(drug),
-            "status": "todo",
-        },
-        {
-            "practice_drug_id": practice_drug_id,
-            "stage": "prepare",
-            "role": "biller",
-            "kind": "billing_setup",
-            "title": "Billing setup",
-            "instruction": _build_billing_instruction(drug),
-            "status": "todo",
-        },
+        }
+        for kind, role, title, instruction in setup
     ]
-    task_resp = supabase.table("tasks").insert(tasks).execute()
-    created = task_resp.data
+    created = supabase.table("tasks").insert(tasks).execute().data
 
-    # Dependencies need the new ids, so they're set after the insert:
-    # Receiving waits on Purchasing.
+    # What each task waits for (DataContract.md §7). Dependencies need the new
+    # ids, so they're set after the insert. Nurse setup and Review insurers
+    # can start right away.
+    waits = {"purchasing": "plan_patients", "receiving": "purchasing", "billing_setup": "receiving"}
     id_by_kind = {t["kind"]: t["id"] for t in created}
-    receiving = next(t for t in created if t["kind"] == "receiving")
-    receiving["waits_on"] = [id_by_kind["purchasing"]]
-    supabase.table("tasks").update({"waits_on": receiving["waits_on"]}).eq(
-        "id", receiving["id"]
-    ).execute()
+    for task in created:
+        if task["kind"] in waits:
+            task["waits_on"] = [id_by_kind[waits[task["kind"]]]]
+            supabase.table("tasks").update({"waits_on": task["waits_on"]}).eq("id", task["id"]).execute()
 
     return {
         "practice_drug_id": practice_drug_id,
