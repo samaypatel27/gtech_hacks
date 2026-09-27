@@ -44,41 +44,39 @@
 
 | # | Task (`kind`) | `role` | Person enters | **Saved to (real home)** | In `tasks.inputs` | Used later by |
 |---|---|---|---|---|---|---|
-| 1 | Set planned patients (`plan_patients`)* | doctor | Patients per month | `practice_drugs.planned_patients_per_month` | — | Purchasing quantities |
-| 2 | Place the order (`purchasing`) | front_desk | Distributor, optional PO number, "order placed" | — | `{distributor, po_number, order_placed_at, quantities:[{ndc_11, vials}], waits_for}` | Unlocks Receiving |
-| 3 | Receive & store (`receiving`) | front_desk | Invoice file + lines, "stored" | **`practice_drugs.invoices`** + **`practice_drugs.stock_on_hand`** | `{invoice_id, stored_at, waits_for}` | **Claim** (price, invoice attachment), nurse's vial picker, readiness |
-| 4 | Nurse setup (`nurse_setup`) | nurse | Supplies checked, guide reviewed | — | `{supplies_confirmed:[...], guide_reviewed:true}` | Readiness |
-| 5 | Review insurers (`payer_review`)* | biller | "Reviewed" per insurer | — | `{payers_reviewed:{"Medicare":"<time>"}}` | Readiness |
-| 6 | Confirm billing setup (`billing_setup`) | biller | Confirm | — | `{confirmed_at, waits_for}` | Readiness |
+| 1 | Set planned patients (`plan_patients`) | doctor | Patients per month, via `PATCH /api/practice-drugs/{id}` (a number > 0 completes the card) | `practice_drugs.planned_patients_per_month` | — | Purchasing quantities |
+| 2 | Place the order (`purchasing`) | front_desk | Distributor, optional PO number, "order placed" | — | `{distributor, po_number, order_placed_at, quantities:[{ndc_11, vials}]}` *(card form not built yet)* | Unlocks Receiving |
+| 3 | Receive & store (`receiving`) | front_desk | Invoice lines via `POST /api/practice-drugs/{id}/invoices`, then "stored" (completing the card, refused until an invoice is on file) | **`practice_drugs.invoices`** + **`practice_drugs.stock_on_hand`** | `{invoice_recorded_at}` | **Claim** (price, invoice attachment), nurse's vial picker, readiness |
+| 4 | Nurse setup (`nurse_setup`) | nurse | Supplies checked, guide reviewed | — | `{supplies_confirmed:[...], guide_reviewed:true}` *(not built yet)* | Readiness |
+| 5 | Review insurers (`payer_review`) | biller | "Reviewed" per insurer | — | `{payers_reviewed:{"Medicare":"<time>"}}` *(not built yet)* | Readiness |
+| 6 | Confirm billing setup (`billing_setup`) | biller | Confirm | — | `{confirmed_at}` *(not built yet)* | Readiness |
 
-\* **Not yet allowed by the `tasks.kind` check constraint.** See section 8.
+All six are created by `POST /api/practice-drugs/{id}/team-ready` (`backend/workspace/setup.py`). There is **no** `tasks.kind` check constraint (checked against Postgres), so any kind is allowed. What each task waits for is in the `tasks.waits_on` column (section 7), not in `inputs`.
 
 **Only task #3 (Receiving) feeds the claim.**
 
 ### Invoice and stock shapes (must match exactly)
-The columns exist; this agrees on what goes inside them.
+The columns exist; this is what the code writes and reads today (`backend/workspace/receiving.py` writes, `backend/treat_and_bill/claims.py` reads).
 
 ```jsonc
-// practice_drugs.invoices  — one object per uploaded invoice
+// practice_drugs.invoices  — one object per invoice entered
 [{
-  "invoice_id": "inv_001",                      // unique within this practice_drug
-  "status": "pending",                          // pending (AI read, not confirmed) → confirmed
-  "invoice_number": "ASD-448120",
-  "invoice_date": "2026-09-27",
+  "file_path": null,                            // no upload yet; the Storage path goes here once uploads exist
   "distributor": "ASD Healthcare",
-  "file_path": "invoices/<practice_id>/<practice_drug_id>/inv_001.pdf",   // private Storage bucket
   "uploaded_at": "2026-09-27T14:02:00Z",
   "lines": [
-    { "ndc_11": "12345067801", "lot": "A123", "quantity": 3, "unit_cost": 4950.00, "expiry": "2027-08-31" }
+    { "ndc_11": "61755-0012-01", "lot": "PSA24091", "quantity": 10, "cost_per_vial": 1850.00 }
   ]
 }]
 
-// practice_drugs.stock_on_hand  — one entry per NDC + lot; added on invoice confirm, reduced when the nurse uses vials
+// practice_drugs.stock_on_hand  — one entry per NDC + lot; added when an invoice is recorded, reduced when the nurse uses vials
 [
-  { "ndc_11": "12345067801", "lot": "A123", "quantity": 3, "unit_cost": 4950.00, "invoice_id": "inv_001" }
+  { "ndc_11": "61755-0012-01", "lot": "PSA24091", "quantity": 10 }
 ]
 ```
-`unit_cost` and `invoice_id` on each stock entry are **new keys inside the existing JSON** (no schema change). They let the claim find the **price and invoice file for the exact vials used**.
+The claim finds the price for the vials used by matching the treatment's `vials_used` NDC (+ lot when it can) to an invoice line and reading `cost_per_vial`. NDCs are stored hyphenated (5-4-2), as in `drugs.ndcs[].ndc_11`.
+
+*Not built yet (the upload flow below would add them):* `invoice_id`, `status` (pending → confirmed), `invoice_number`, `invoice_date`, and `expiry` on lines.
 
 ---
 
@@ -102,6 +100,8 @@ Upload PDF/photo ─► private Storage ─► Claude reads it ─► code check
 6. **Confirm:** `status: "confirmed"`, lines added to `stock_on_hand`, Receiving task inputs get `{invoice_id, stored_at}`.
 7. **Fallback:** the same form with blank fields, for manual entry.
 
+**Built so far: only the fallback.** `POST /api/practice-drugs/{id}/invoices` takes typed-in lines (`{distributor, lines:[{ndc_11, lot, quantity, cost_per_vial}], task_id?}`), checks each NDC against `drugs.ndcs`, and records the invoice and stock in one step (no pending/confirm stage). Steps 1–6 are still to build.
+
 **Suggested split:** the upload/read/check endpoint is AI work (Treat & Bill side, Harsha); the Receiving card that calls it is the workspace team's.
 
 ---
@@ -114,8 +114,8 @@ Upload PDF/photo ─► private Storage ─► Claude reads it ─► code check
 ### `treatments`: one row per dose, filled in stages
 | Stage | Existing columns | **To add** | Entered on / by |
 |---|---|---|---|
-| **Order** | `ordered_dose`, `dose_unit`, `vial_mix`, `documentation_check` {items[], prior_auth_required, checked_at}, `signed_note`, `signed_at` | **`diagnosis_codes`** (confirmed ICD-10s) | Patient chart / doctor + AI |
-| **Prior auth** | (only `documentation_check.prior_auth_required`) | **`prior_auth`** {required, number, obtained_at} | Prior-auth task / biller |
+| **Order** | `ordered_dose`, `dose_unit`, `vial_mix`, `documentation_check` {items[], prior_auth_required, checked_at}, `signed_note`, `signed_at` | **`diagnosis_codes`** (confirmed ICD-10s) — *not added; Box 21 currently uses the ICD-10 at the start of `patients.diagnosis`* | Patient chart / doctor + AI |
+| **Prior auth** | `documentation_check.prior_auth_required`; the number lives in the `prior_auth` task's `inputs.auth_number` (the card can't be completed without it) | **`prior_auth`** {required, number, obtained_at} — *not added; the claim reads the task input* | Prior-auth task / biller |
 | **Preparation** | `vials_used` [{ndc_11, lot, quantity}], `waste_amount` | — | Treatment record / nurse |
 | **Administration** | `date_of_service`, `dose_given`, `infusion_start`, `infusion_stop` | — | Treatment record / nurse |
 | **Claim** | `billing_code`, `claim` (all CMS-1500 fields), `claim_checks`, `claim_versions` | **`payer_response`** {result, reason, received_at} | Built automatically; reviewed by the biller |
@@ -135,10 +135,10 @@ The builder takes **one treatment ID**, calls `load_claim_context(treatment_id)`
 | 2, 3, 5 | Patient name, DOB/sex, address | `patients.first_name/last_name/date_of_birth/sex/address` | ✅ |
 | 4, 6, 7, 11 | Insured info, group number | Assume "same as patient" | 🟡 Demo assumption |
 | 12, 13, 31 | Signatures | "Signature on file" (+ `treatments.signed_at`) | ✅ |
-| 19 | Drug description (generic-code claims) | `billing_rules.item19(...)`: `drugs.brand_name`, `treatments.dose_given` + `dose_unit`, `drugs.route_of_administration`, `vials_used[].ndc_11`, price from `stock_on_hand[].unit_cost` | ✅ once invoice shapes (section 3) are used |
-| 21 | Diagnosis codes | **`treatments.diagnosis_codes`** | ❌ Column to add |
+| 19 | Drug description (generic-code claims) | `billing_rules.item19(...)`: `drugs.brand_name`, `treatments.dose_given` + `dose_unit`, `drugs.route_of_administration`, `vials_used[].ndc_11`, price = invoice `cost_per_vial` × vials | ✅ |
+| 21 | Diagnosis codes | ICD-10 prefix of `patients.diagnosis` (planned: `treatments.diagnosis_codes`) | 🟡 |
 | 22 | Resubmission code + original | `treatments.claim_versions` | ✅ |
-| 23 | Prior auth number | **`treatments.prior_auth.number`** | ❌ Column to add |
+| 23 | Prior auth number | `prior_auth` task `inputs.auth_number` (planned: `treatments.prior_auth.number`) | ✅ |
 | 24A | Date of service | `treatments.date_of_service` | ✅ |
 | 24A (shaded) | NDC: `N4` + 11-digit NDC + unit + quantity | `treatments.vials_used` | ✅ |
 | 24B | Place of service | `11` (office), constant | ✅ |
@@ -146,10 +146,10 @@ The builder takes **one treatment ID**, calls `load_claim_context(treatment_id)`
 | 24D | JW / JZ modifier | `waste_modifier(drugs.is_single_dose_vial, treatments.waste_amount)` | ✅ |
 | 24D | Infusion codes | `admin_codes(infusion_start, infusion_stop, drugs.is_antineoplastic)` | ✅ |
 | 24E | Diagnosis pointer | Links lines to box 21 | ✅ |
-| 24F | Charges | Fee schedule in config (`config/fee_schedule.json`) | ❌ To add (config, not a table) |
+| 24F | Charges | Drug lines: invoice cost split between dose used and waste; admin lines: `DEMO_ADMIN_FEES` in `claims.py` (planned: `config/fee_schedule.json`) | 🟡 Demo values |
 | 24G | Units | `billing_rules.units(...)` with `drugs.codes[].unit`, `dose_given`, `waste_amount` | ✅ |
 | 24J | Treating NPI | `practices.npi` | ✅ |
-| 25 | Tax ID | **`practices.tax_id`** | ❌ Column to add |
+| 25 | Tax ID | `DEMO_TAX_ID` in `claims.py` (planned: `practices.tax_id`) | 🟡 Demo value |
 | 26 | Patient account number | `patients.id` | ✅ |
 | 27 | Accept assignment | Yes, constant | ✅ |
 | 28 | Total charge | Sum of 24F | ✅ |
@@ -175,19 +175,20 @@ Each variation becomes a **test case** for the claim builder.
 
 ## 7. "Waits for": calculated, not dragged
 
-`tasks.status` only allows `todo` / `done`. The workspace currently stores Awaiting by hand in `inputs.board_status`. For **core** tasks, Awaiting should instead be **calculated by the backend** from `inputs.waits_for`:
+`tasks.status` only allows `todo` / `done`. For **core** tasks, Awaiting is **calculated by the backend** from the **`tasks.waits_on`** column: the ids of the tasks this one waits for.
 
-```jsonc
-{ "waits_for": { "task_kind": "plan_patients" } }        // Place the order
-{ "waits_for": { "task_kind": "purchasing" } }           // Receive & store
-{ "waits_for": { "task_kind": "receiving" } }            // Confirm billing setup (needs the invoice price)
-{ "waits_for": { "treatment_step": "signed" } }          // Prior auth, Prepare dose (per patient)
-{ "waits_for": { "treatment_step": "prepared" } }        // Give infusion
-{ "waits_for": { "treatment_step": "administered" } }    // Claim review
-```
-If the thing it waits for isn't done → **Awaiting** ("Waiting on: …"); otherwise → To do; done → Complete. Manual moves can stay for custom tasks.
+| Task | `waits_on` points at |
+|---|---|
+| Place the order (`purchasing`) | `plan_patients` |
+| Receive & store (`receiving`) | `purchasing` |
+| Confirm billing setup (`billing_setup`) | `receiving` (needs the invoice price) |
+| Prepare dose (`prep_dose`, per patient) | `order_sign`, plus `prior_auth` / `buy_for_patient` when those exist |
+| Give infusion (`give_infusion`) | `prep_dose` |
+| Claim review (`claim_review`) | `give_infusion` |
 
-Per-patient tasks (created by Treat & Bill) also set `tasks.treatment_id` and a page link in `inputs.link` (e.g. `/treatments/42/record`).
+`GET /api/practice-drugs/{id}/tasks` returns each task's `waiting_on` labels (e.g. `["Place the order (Front Desk)"]`); empty means workable now. `PATCH /api/tasks/{id}` refuses (409) to complete a task that's still waiting. If the thing it waits for isn't done → **Awaiting** ("Waiting on: …"); otherwise → To do; done → Complete. Manual moves (`inputs.board_status`) can stay for custom tasks.
+
+Per-patient tasks (created by Treat & Bill) use the kinds `order_sign`, `prior_auth`, `buy_for_patient`, `prep_dose`, `give_infusion`, `claim_review`, and set `tasks.treatment_id`; the response also carries `patient_id` / `patient_name`. The page a card opens is derived by the frontend from `kind` + `treatment_id` (no `inputs.link`).
 
 ---
 
@@ -206,10 +207,11 @@ alter table treatments
   add column prior_auth jsonb,                              -- {required, number, obtained_at} (box 23)
   add column payer_response jsonb;                          -- {result: paid|returned|denied, reason, received_at}
 
--- Extend allowed values (edit the existing check constraints)
+-- Extend allowed values (edit the existing check constraint)
 --   treatments.status  += 'paid', 'returned', 'denied'
---   tasks.kind         += 'plan_patients', 'payer_review', 'sign_order', 'prior_auth', 'prepare_dose'
+--   (tasks.kind has no check constraint, so new kinds need no change)
 ```
+None of the columns above exist yet; the claim uses the stand-ins noted in section 6.
 Also:
 - Create the private Storage bucket **`invoices`**.
 - Save the practice address at sign-up (from the NPI lookup).

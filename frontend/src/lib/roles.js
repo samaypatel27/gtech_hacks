@@ -1,4 +1,4 @@
-export const PRODUCT_NAME = 'LaunchReady'
+export const PRODUCT_NAME = 'FirstDose'
 
 export const ROLES = {
   doctor: { label: 'Doctor', color: 'var(--role-doctor)' },
