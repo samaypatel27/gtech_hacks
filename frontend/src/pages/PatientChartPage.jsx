@@ -144,8 +144,12 @@ function PatientChartPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <BackButton to="/doctor/drugs" />
-        <p className={styles.status}>Loading patient…</p>
+        <div className={styles.header}>
+          <BackButton to="/doctor/drugs" inline />
+        </div>
+        <div className={styles.layout}>
+          <p className={styles.status}>Loading patient…</p>
+        </div>
       </div>
     )
   }
@@ -153,8 +157,12 @@ function PatientChartPage() {
   if (loadError || !patient) {
     return (
       <div className={styles.page}>
-        <BackButton to="/doctor/drugs" />
-        <p className={styles.status}>Could not load patient: {loadError ?? 'not found'}</p>
+        <div className={styles.header}>
+          <BackButton to="/doctor/drugs" inline />
+        </div>
+        <div className={styles.layout}>
+          <p className={styles.status}>Could not load patient: {loadError ?? 'not found'}</p>
+        </div>
       </div>
     )
   }
@@ -165,8 +173,10 @@ function PatientChartPage() {
 
   return (
     <div className={styles.page}>
-      <BackButton to="/doctor/drugs" />
-      <AuthStatus />
+      <div className={styles.header}>
+        <BackButton to="/doctor/drugs" inline />
+        <AuthStatus inline />
+      </div>
 
       <div className={styles.layout}>
         <div className={styles.main}>

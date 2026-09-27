@@ -92,10 +92,13 @@ function SignUpPage() {
 
   return (
     <div className={styles.page}>
-      <BackButton to="/doctor" />
-      <AuthStatus />
-      <div className={styles.panel}>
-        <h1 className={styles.title}>Sign up with your NPI</h1>
+      <div className={styles.container}>
+        <div className={styles.topBar}>
+          <BackButton to="/doctor" inline />
+          <AuthStatus inline />
+        </div>
+        <div className={styles.panel}>
+          <h1 className={styles.title}>Sign up with your NPI</h1>
 
         {showLookupForm && (
           <form className={styles.field} onSubmit={handleLookup}>
@@ -175,7 +178,8 @@ function SignUpPage() {
         )}
       </div>
     </div>
-  )
+  </div>
+)
 }
 
 export default SignUpPage

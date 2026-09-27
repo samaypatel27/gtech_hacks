@@ -108,8 +108,12 @@ function ClaimPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <BackButton to="/staff/biller" />
-        <p className={styles.status}>Loading claim…</p>
+        <div className={styles.topContainer}>
+          <BackButton to="/staff/biller" inline />
+        </div>
+        <div className={styles.form}>
+          <p className={styles.status}>Loading claim…</p>
+        </div>
       </div>
     )
   }
@@ -117,8 +121,12 @@ function ClaimPage() {
   if (error || !claim) {
     return (
       <div className={styles.page}>
-        <BackButton to="/staff/biller" />
-        <p className={styles.status}>Could not load claim: {error ?? 'not found'}</p>
+        <div className={styles.topContainer}>
+          <BackButton to="/staff/biller" inline />
+        </div>
+        <div className={styles.form}>
+          <p className={styles.status}>Could not load claim: {error ?? 'not found'}</p>
+        </div>
       </div>
     )
   }
@@ -131,8 +139,8 @@ function ClaimPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.printHide}>
-        <BackButton to="/staff/biller" />
+      <div className={`${styles.topContainer} ${styles.printHide}`}>
+        <BackButton to="/staff/biller" inline />
       </div>
 
       <div className={styles.header}>

@@ -675,7 +675,12 @@ function TeamWorkspacePage() {
     }
   }
 
-  const PAGE = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 xl:px-12'
+  // Landing here from "Get my team ready" 's loading overlay (see
+  // DrugProfileDashboard.jsx) should read as the tail end of that fade, not
+  // a hard cut -- reuses the same fade-in-up keyframe (tailwind.css) other
+  // entrances in the app already use. motion-safe: only applies it when the
+  // user hasn't asked for reduced motion (see e.g. the drag preview above).
+  const FADE_IN = 'motion-safe:animate-[fade-in-up_320ms_ease-out_forwards]'
 
   // An unrecognized :role -- same treatment as StaffWorkspacesPage: send them
   // home rather than render a page whose back link points nowhere.
@@ -683,30 +688,29 @@ function TeamWorkspacePage() {
 
   // Staff came from their own role listing; the doctor came from the drug grid.
   const backTo = role ? `/staff/${role}` : '/doctor/drugs'
-  const backTitle = role ? `${ROLE_LABEL[role]} workspaces` : 'All drugs'
 
   if (isLoading) {
     return (
-      <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-        <div className="pb-2">
-          <BackButton to={backTo} inline>
-            {backTitle}
-          </BackButton>
+      <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
+        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
+          <div className="pb-4">
+            <BackButton to={backTo} inline />
+          </div>
+          <p className="mt-10 text-[14px] text-white/35">Loading workspace&hellip;</p>
         </div>
-        <p className="mt-10 text-[14px] text-white/35">Loading workspace&hellip;</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-        <div className="pb-2">
-          <BackButton to={backTo} inline>
-            {backTitle}
-          </BackButton>
+      <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
+        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
+          <div className="pb-4">
+            <BackButton to={backTo} inline />
+          </div>
+          <p className="mt-10 text-[14px] text-white/35">Could not load workspace: {error}</p>
         </div>
-        <p className="mt-10 text-[14px] text-white/35">Could not load workspace: {error}</p>
       </div>
     )
   }
@@ -717,36 +721,31 @@ function TeamWorkspacePage() {
   const purchasingDone = byKind.purchasing?.status === 'done'
 
   return (
-    <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-      <div className="pb-2">
-        <BackButton to={backTo} inline>
-          {backTitle}
-        </BackButton>
-      </div>
+    <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
+      <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
+        <div className="pb-4">
+          <BackButton to={backTo} inline />
+        </div>
 
-      <div className="mt-6 flex flex-wrap items-baseline gap-2">
-        <h1 className="text-[clamp(22px,2.8vw,34px)] font-semibold leading-tight text-white">
-          {drug?.brand_name ?? 'Team workspace'}
-        </h1>
-        {role && <span className="text-[13px] font-medium text-white/40">{ROLE_LABEL[role]} board</span>}
-      </div>
+        <div className="mb-8">
+          <h1 className="text-[clamp(22px,2.8vw,34px)] font-semibold leading-tight text-white">
+            {drug?.brand_name ?? 'Team workspace'}
+          </h1>
+        </div>
 
-      {role ? (
-        <>
-          <p className="mt-1.5 text-[13px] text-white/40">
-            Drag a card between To Do and Complete, or move a focused card with the ← → keys.
-            Awaiting is read-only.
-          </p>
-          {moveError && (
-            <p role="alert" className="mt-3 text-[13px] text-amber-200/90">
-              {moveError}
-            </p>
-          )}
-          <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
-        </>
-      ) : (
-        <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
-      )}
+        {role ? (
+          <>
+            {moveError && (
+              <p role="alert" className="mb-4 text-[13px] text-amber-200/90">
+                {moveError}
+              </p>
+            )}
+            <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
+          </>
+        ) : (
+          <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
+        )}
+      </div>
     </div>
   )
 }
