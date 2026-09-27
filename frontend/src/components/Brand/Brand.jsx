@@ -6,9 +6,7 @@ import styles from './Brand.module.css'
 function Brand({ link = true }) {
   const content = (
     <>
-      <span className={styles.mark} aria-hidden="true">
-        LR
-      </span>
+      <img src="/logo.png" alt="" className={styles.mark} />
       {PRODUCT_NAME}
     </>
   )
