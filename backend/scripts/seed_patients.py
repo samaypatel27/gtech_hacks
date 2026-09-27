@@ -1,0 +1,117 @@
+"""Reset one practice's demo patients (the Treat & Bill story).
+
+Deletes that practice's existing patients -- which cascades to their
+treatments and any treatment-linked tasks -- then inserts the three below, so
+re-running it puts the demo back to a clean "no orders yet" state.
+
+Re-runnable: `python scripts/seed_patients.py <practice email>` from
+`backend/` (needs backend/.env with SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY).
+The practice must already exist (sign up through the app first).
+
+All patients are synthetic. They're written for the demo drug Pasatru
+(BLA761508, approved for fibrodysplasia ossificans progressiva in adults, dosed
+10 mg/kg from 100 mg single-dose vials), one per payer seeded on its
+`payer_policies`:
+- Maria (Medicare, covered): complete note; 68 kg -> 680 mg -> 7 vials, 20 mg
+  waste, so her claim shows the JW waste line.
+- James (BCBS, prior auth required): note omits the ACVR1 genetic confirmation,
+  so the documentation check has a gap to find and draft.
+- Aisha (Aetna, policy under review): complete note; 70 kg -> 700 mg -> no
+  waste, so her claim shows JZ.
+"""
+
+import os
+import sys
+
+from dotenv import load_dotenv
+from supabase import create_client
+
+load_dotenv()
+
+PATIENTS = [
+    {
+        "first_name": "Maria",
+        "last_name": "Lopez",
+        "date_of_birth": "1992-03-14",
+        "sex": "F",
+        "address": {"street": "418 Ponce De Leon Ave NE", "city": "Atlanta", "state": "GA", "zip": "30308"},
+        "weight_kg": 68,
+        "payer": "Medicare",
+        "member_id": "1EG4-TE5-MK72",
+        "diagnosis": "M61.10 Fibrodysplasia ossificans progressiva",
+        "visit_note": (
+            "34-year-old woman with fibrodysplasia ossificans progressiva (FOP), "
+            "diagnosed at age 6 after great-toe malformation and first flare-up.\n"
+            "Genetic testing: ACVR1 R206H heterozygous mutation confirmed (Emory Genetics Lab, 2021).\n"
+            "Over the last 6 months she has had 3 clinician-assessed flare-ups (right shoulder, "
+            "upper back, left hip) with new heterotopic ossification on low-dose whole-body CT.\n"
+            "Prior therapy: short prednisone courses for flare-ups only; no disease-modifying therapy.\n"
+            "Weight today 68 kg. Not pregnant; contraception counseling done.\n"
+            "Plan: start Pasatru 10 mg/kg IV over 60 minutes every 4 weeks to reduce new HO "
+            "formation and flare-ups. Reviewed risks and benefits; patient agrees."
+        ),
+    },
+    {
+        "first_name": "James",
+        "last_name": "Carter",
+        "date_of_birth": "1985-08-02",
+        "sex": "M",
+        "address": {"street": "1290 Peachtree St NE", "city": "Atlanta", "state": "GA", "zip": "30309"},
+        "weight_kg": 82,
+        "payer": "BCBS",
+        "member_id": "XJG884120337",
+        "diagnosis": "M61.10 Fibrodysplasia ossificans progressiva",
+        "visit_note": (
+            "41-year-old man with fibrodysplasia ossificans progressiva, clinically diagnosed "
+            "in childhood.\n"
+            "Two flare-ups this year (jaw, left elbow) with progressive loss of mobility.\n"
+            "Prior therapy: prednisone bursts for flare-ups.\n"
+            "Weight today 82 kg.\n"
+            "Plan: start Pasatru 10 mg/kg IV every 4 weeks."
+        ),
+    },
+    {
+        "first_name": "Aisha",
+        "last_name": "Khan",
+        "date_of_birth": "1999-11-21",
+        "sex": "F",
+        "address": {"street": "75 5th St NW", "city": "Atlanta", "state": "GA", "zip": "30308"},
+        "weight_kg": 70,
+        "payer": "Aetna",
+        "member_id": "W284719305",
+        "diagnosis": "M61.10 Fibrodysplasia ossificans progressiva",
+        "visit_note": (
+            "26-year-old woman with fibrodysplasia ossificans progressiva.\n"
+            "Genetic testing: ACVR1 R206H mutation confirmed (2018).\n"
+            "One clinician-assessed flare-up in the last 3 months (neck) with new HO on imaging.\n"
+            "Prior therapy: prednisone for flare-ups.\n"
+            "Weight today 70 kg. Pregnancy test negative today.\n"
+            "Plan: start Pasatru 10 mg/kg IV over 60 minutes every 4 weeks."
+        ),
+    },
+]
+
+
+def main():
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python scripts/seed_patients.py <practice email>")
+    email = sys.argv[1]
+
+    supabase = create_client(
+        os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+    )
+
+    practice = supabase.table("practices").select("id,name").eq("email", email).limit(1).execute()
+    if not practice.data:
+        sys.exit(f"No practice found for {email} -- sign up through the app first")
+    practice_id = practice.data[0]["id"]
+
+    supabase.table("patients").delete().eq("practice_id", practice_id).execute()
+    rows = [{**p, "practice_id": practice_id} for p in PATIENTS]
+    supabase.table("patients").insert(rows).execute()
+
+    print(f"Seeded {len(rows)} patients for {practice.data[0]['name']} ({email})")
+
+
+if __name__ == "__main__":
+    main()
