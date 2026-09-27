@@ -24,7 +24,7 @@ python -m pytest tests/test_billing_rules.py -k code_for  # a subset
 python scripts/reset_demo.py <practice email>             # reset the Treat & Bill demo (see below)
 ```
 
-Tests cover only `billing_rules.py` so far. No linter is configured for the backend.
+Tests cover `billing_rules.py` (`tests/test_billing_rules.py`) and the claim builder (`tests/test_claims.py`, built on the Pasatru demo data and demo patients). Neither touches the database: `treat_and_bill.claims.build_claim` is pure, with `refresh_claim` doing the lookups, and `tests/conftest.py` supplies placeholder Supabase settings so the modules import without a `.env`. No linter is configured for the backend.
 
 ### Frontend (from `frontend/`)
 

@@ -61,12 +61,20 @@ def _money(value) -> float:
     return round(float(value), 2)
 
 
-def _build_claim(treatment: dict, practice_drug: dict, patient: dict, drug: dict) -> dict:
+def build_claim(
+    treatment: dict,
+    practice_drug: dict,
+    patient: dict,
+    drug: dict,
+    practice: dict,
+    auth_number: Optional[str],
+) -> dict:
     """The CMS-1500 for one administered treatment, plus its 8 checks, in the
-    shape ClaimPage.jsx reads."""
-    practice = (
-        supabase.table("practices").select("*").eq("id", practice_drug["practice_id"]).execute().data[0]
-    )
+    shape ClaimPage.jsx reads.
+
+    Pure: no database or network calls. Everything it needs is passed in
+    (`refresh_claim` looks it up), so the same inputs always build the same
+    claim and it can be tested directly (tests/test_claims.py)."""
     brand = drug.get("brand_name") or ""
     payer = patient.get("payer")
     dos = treatment["date_of_service"]
@@ -209,8 +217,6 @@ def _build_claim(treatment: dict, practice_drug: dict, patient: dict, drug: dict
 
     # 8. Attachments (invoice, FDA label, signed note) and prior auth if required.
     policy = payer_policy(drug, payer)
-    auth_task = fetch_treatment_task(treatment["id"], "prior_auth")
-    auth_number = ((auth_task or {}).get("inputs") or {}).get("auth_number")
     gaps = []
     if not invoice_line:
         gaps.append("invoice")
@@ -319,7 +325,13 @@ def refresh_claim(treatment_id: int) -> Optional[dict]:
     if not treatment.get("date_of_service"):
         return None
 
-    claim = _build_claim(treatment, practice_drug, patient, drug)
+    practice = (
+        supabase.table("practices").select("*").eq("id", practice_drug["practice_id"]).execute().data[0]
+    )
+    auth_task = fetch_treatment_task(treatment_id, "prior_auth")
+    auth_number = ((auth_task or {}).get("inputs") or {}).get("auth_number")
+
+    claim = build_claim(treatment, practice_drug, patient, drug, practice, auth_number)
     checks = claim.pop("checks")
     supabase.table("treatments").update(
         {
