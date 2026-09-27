@@ -198,6 +198,11 @@ def team_ready(practice_drug_id: int):
         ("payer_review", "biller", "Review insurers", _build_payer_review_instruction(drug, practice)),
         ("billing_setup", "biller", "Confirm billing setup", _build_billing_instruction(drug)),
     ]
+    # The doctor may already have set planned patients on the drug page
+    # (consider/decisions.py); that answers the first task, so it starts done
+    # and Place the order is workable right away.
+    already_planned = bool(practice_drug.get("planned_patients_per_month"))
+    now = datetime.now(timezone.utc).isoformat()
     tasks = [
         {
             "practice_drug_id": practice_drug_id,
@@ -206,7 +211,8 @@ def team_ready(practice_drug_id: int):
             "kind": kind,
             "title": title,
             "instruction": instruction,
-            "status": "todo",
+            "status": "done" if kind == "plan_patients" and already_planned else "todo",
+            "completed_at": now if kind == "plan_patients" and already_planned else None,
         }
         for kind, role, title, instruction in setup
     ]

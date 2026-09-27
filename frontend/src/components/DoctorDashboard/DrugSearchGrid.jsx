@@ -7,6 +7,7 @@ import Icon from '../Icon/Icon.jsx'
 import Spinner from '../Spinner/Spinner.jsx'
 import EmptyState from '../EmptyState/EmptyState.jsx'
 import { fetchPins, pinDrug, unpinDrug } from '../../api/pins.js'
+import { deleteDrug } from '../../api/drugMaker.js'
 import { codeTimeline, daysLabel, formatDate } from '../../lib/format.js'
 import { ROLES } from '../../lib/roles.js'
 import styles from './DrugSearchGrid.module.css'
@@ -51,7 +52,7 @@ function CodeChangeCell({ drug }) {
   )
 }
 
-function DrugsTable({ drugs, pinnedIds, pendingIds, onTogglePin }) {
+function DrugsTable({ drugs, pinnedIds, pendingIds, onTogglePin, onDelete }) {
   const navigate = useNavigate()
   const canPin = Boolean(pinnedIds)
 
@@ -69,6 +70,9 @@ function DrugsTable({ drugs, pinnedIds, pendingIds, onTogglePin }) {
           <th>Billing code</th>
           <th>Code change</th>
           <th>Route</th>
+          <th data-shrink>
+            <span className="sr-only">Delete</span>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -109,6 +113,20 @@ function DrugsTable({ drugs, pinnedIds, pendingIds, onTogglePin }) {
                 <CodeChangeCell drug={drug} />
               </td>
               <td className={styles.route}>{drug.route_of_administration || <span className={styles.muted}>—</span>}</td>
+              <td data-shrink>
+                <button
+                  type="button"
+                  className={styles.deleteBtn}
+                  aria-label={`Delete ${drug.brand_name}`}
+                  title="Delete drug"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(drug)
+                  }}
+                >
+                  🗑️
+                </button>
+              </td>
             </tr>
           )
         })}
@@ -117,7 +135,7 @@ function DrugsTable({ drugs, pinnedIds, pendingIds, onTogglePin }) {
   )
 }
 
-function WorkspacesTable({ workspaces, basePath, showPractice }) {
+function WorkspacesTable({ workspaces, basePath, showPractice, onDelete }) {
   const navigate = useNavigate()
 
   return (
@@ -130,6 +148,9 @@ function WorkspacesTable({ workspaces, basePath, showPractice }) {
           <th>Tasks</th>
           <th data-shrink>
             <span className="sr-only">Open</span>
+          </th>
+          <th data-shrink>
+            <span className="sr-only">Delete</span>
           </th>
         </tr>
       </thead>
@@ -159,6 +180,20 @@ function WorkspacesTable({ workspaces, basePath, showPractice }) {
               </td>
               <td data-shrink>
                 <Icon name="arrowRight" className={styles.muted} />
+              </td>
+              <td data-shrink>
+                <button
+                  type="button"
+                  className={styles.deleteBtn}
+                  aria-label={`Delete ${ws.brand_name || 'workspace'}`}
+                  title="Delete workspace"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(ws)
+                  }}
+                >
+                  🗑️
+                </button>
               </td>
             </tr>
           )
@@ -280,6 +315,32 @@ function DrugSearchGrid({ view = 'drugs', email = null }) {
     }
   }
 
+  const deleteWorkspace = async (ws) => {
+    if (!window.confirm(`Delete the ${ws.brand_name || 'this'} workspace? This removes its tasks and treatments too.`)) return
+    const prev = workspaces
+    setWorkspaces((list) => list.filter((w) => w.practice_drug_id !== ws.practice_drug_id))
+    try {
+      const res = await fetch(`${API_URL}/api/practice-drugs/${ws.practice_drug_id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('failed')
+    } catch {
+      setWorkspaces(prev)
+    }
+  }
+
+  const removeDeletedDrug = (applicationId) =>
+    setDrugs((list) => list.filter((d) => d.application_id !== applicationId))
+
+  const handleDeleteDrug = async (drug) => {
+    if (!window.confirm(`Delete ${drug.brand_name}? This removes its workspaces too.`)) return
+    const prev = drugs
+    removeDeletedDrug(drug.application_id)
+    try {
+      await deleteDrug(drug.application_id)
+    } catch {
+      setDrugs(prev)
+    }
+  }
+
   if (isWorkspaceView) {
     const isLoading = workspacesFetchedFor !== view
     const basePath = view === 'tasks' ? '/doctor/workspace' : `/staff/${view}/workspace`
@@ -303,7 +364,12 @@ function DrugSearchGrid({ view = 'drugs', email = null }) {
           />
         )}
         {!isLoading && workspaces.length > 0 && (
-          <WorkspacesTable workspaces={workspaces} basePath={basePath} showPractice={view !== 'tasks'} />
+          <WorkspacesTable
+            workspaces={workspaces}
+            basePath={basePath}
+            showPractice={view !== 'tasks'}
+            onDelete={deleteWorkspace}
+          />
         )}
       </Panel>
     )
@@ -320,7 +386,13 @@ function DrugSearchGrid({ view = 'drugs', email = null }) {
         <EmptyState title="No drugs yet" description="Drugs appear here once a drug maker adds them." />
       )}
       {!drugsLoading && drugs.length > 0 && (
-        <DrugsTable drugs={sortedDrugs} pinnedIds={pinnedIds} pendingIds={pendingIds} onTogglePin={togglePin} />
+        <DrugsTable
+          drugs={sortedDrugs}
+          pinnedIds={pinnedIds}
+          pendingIds={pendingIds}
+          onTogglePin={togglePin}
+          onDelete={handleDeleteDrug}
+        />
       )}
     </Panel>
   )

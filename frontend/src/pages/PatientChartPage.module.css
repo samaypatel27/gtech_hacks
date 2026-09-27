@@ -23,6 +23,18 @@
   gap: 16px;
 }
 
+.orderFor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 360px;
+}
+
+.orderForLabel {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
 .muted {
   color: var(--text-secondary);
   font-size: var(--fs-sm);

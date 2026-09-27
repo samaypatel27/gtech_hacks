@@ -6,19 +6,22 @@ Run from `backend/` (needs backend/.env with SUPABASE_URL +
 SUPABASE_SERVICE_ROLE_KEY). The practice must already exist (sign up through
 the app first). Re-runnable; every step overwrites rather than appends.
 
-1. Practice profile: the demo payers (the three Pasatru has policies for) and
+1. Practice profile: the demo payers (the three Pasatru has policies for, plus
+   UnitedHealthcare, which has none) and
    capabilities, so "Review insurers" and the Considering lights have data.
 2. Pasatru's demo data (DEMO_DRUG below): billing codes, payer policies,
    distributors, vial strengths and dose. Re-launching Pasatru through the
-   drug-maker page rewrites `ndcs` without `strength_mg`, which breaks every
-   order -- this puts it back.
+   drug-maker page rewrites `ndcs` (openFDA's 300 mg, but no list price) --
+   this puts the demo values back.
 3. Deletes the practice's Pasatru workspace (cascading to its tasks and
    treatments), so the demo starts at "considering": opening Pasatru's drug
    page recreates it. With --all-workspaces, every workspace of the practice.
 4. Reseeds the three demo patients (scripts/seed_patients.py).
-5. --received: pre-creates the Pasatru workspace with an invoice and stock on
-   hand, the safety net if the Receiving card can't record one yet. 10 vials
-   covers Maria's 7 with no purchase; the next patient gets a "Buy" card.
+5. Clears the practice's notifications (the bell), so launching Pasatru from
+   the drug-maker page sends its "New drug" message again.
+6. --received: pre-creates the Pasatru workspace with an invoice and stock on
+   hand, the safety net if the Receiving card can't record one yet. 4 vials
+   cover Maria's 3 with no purchase; James's order then gets a "Buy" card.
 """
 
 import argparse
@@ -33,7 +36,8 @@ load_dotenv()
 
 DEMO_APPLICATION_ID = "BLA761508"  # Pasatru
 
-DEMO_PAYERS = ["Medicare", "BCBS", "Aetna"]
+# UnitedHealthcare has no Pasatru policy on file: the Coverage light says "verify".
+DEMO_PAYERS = ["Medicare", "BCBS", "Aetna", "UnitedHealthcare"]
 DEMO_CAPABILITIES = {"infusion_chairs": True, "refrigeration": True}
 
 NDC_11 = "61755-0012-01"
@@ -51,7 +55,8 @@ DEMO_DRUG = {
             "sample": False,
             "description": "1 VIAL, SINGLE-DOSE in 1 CARTON (61755-012-01) / 5 mL in 1 VIAL, SINGLE-DOSE (61755-012-00)",
             "single_dose": True,
-            "strength_mg": 100,
+            "strength_mg": 300,  # openFDA: 300 mg/5 mL
+            "list_price": 1850.00,
         }
     ],
     # The generic code must end the day before the permanent one starts, or
@@ -85,7 +90,7 @@ DEMO_DRUG = {
 }
 
 DEMO_LOT = "PSA24091"
-DEMO_VIALS = 10
+DEMO_VIALS = 4  # Maria's 3 vials with 1 left over, so James's order needs a "Buy" card
 DEMO_INVOICE = {
     "file_path": None,
     "distributor": "ASD Healthcare",
@@ -133,7 +138,10 @@ def main():
     print(f"3. Deleted {scope} ({len(deleted)} row{'s' if len(deleted) != 1 else ''}, with their tasks and treatments)")
 
     count = seed_patients(supabase, practice["id"])
-    print(f"4. Seeded {count} patients (Maria / Medicare, James / BCBS, Aisha / Aetna)")
+    print(f"4. Seeded {count} patients (Maria / Medicare, James / BCBS, Aisha / Aetna, Daniel / UnitedHealthcare)")
+
+    cleared = supabase.table("notifications").delete().eq("practice_id", practice["id"]).execute().data
+    print(f"5. Cleared {len(cleared)} notification{'s' if len(cleared) != 1 else ''}")
 
     if args.received:
         supabase.table("practice_drugs").insert(
@@ -145,7 +153,7 @@ def main():
                 "stock_on_hand": [{"ndc_11": NDC_11, "lot": DEMO_LOT, "quantity": DEMO_VIALS}],
             }
         ).execute()
-        print(f"5. Pasatru received: {DEMO_VIALS} vials of lot {DEMO_LOT} at $1,850.00 each, invoice on file")
+        print(f"6. Pasatru received: {DEMO_VIALS} vials of lot {DEMO_LOT} at $1,850.00 each, invoice on file")
 
     print("Done. Next: sign in, open Pasatru, click \"Get my team ready\".")
 

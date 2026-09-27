@@ -13,7 +13,7 @@ import styles from './SignUpPage.module.css'
 // The small set of payers this demo supports (real reference data would
 // live in its own `payers` table -- kept as a flat list for now since
 // there's no other payer-specific logic yet to justify the join).
-const PAYER_OPTIONS = ['Medicare', 'Aetna', 'BCBS']
+const PAYER_OPTIONS = ['Medicare', 'Aetna', 'BCBS', 'UnitedHealthcare']
 
 function SignUpPage() {
   const navigate = useNavigate()

@@ -1,7 +1,7 @@
 """Reset one practice's demo patients (the Treat & Bill story).
 
 Deletes that practice's existing patients -- which cascades to their
-treatments and any treatment-linked tasks -- then inserts the three below, so
+treatments and any treatment-linked tasks -- then inserts the four below, so
 re-running it puts the demo back to a clean "no orders yet" state.
 
 Re-runnable: `python scripts/seed_patients.py <practice email>` from
@@ -10,14 +10,18 @@ The practice must already exist (sign up through the app first).
 
 All patients are synthetic. They're written for the demo drug Pasatru
 (BLA761508, approved for fibrodysplasia ossificans progressiva in adults, dosed
-10 mg/kg from 100 mg single-dose vials), one per payer seeded on its
-`payer_policies`:
-- Maria (Medicare, covered): complete note; 68 kg -> 680 mg -> 7 vials, 20 mg
-  waste, so her claim shows the JW waste line.
+10 mg/kg from 300 mg / 5 mL single-dose vials, the strength openFDA lists), one
+per payer seeded on its `payer_policies`, plus one whose insurer has none:
+- Maria (Medicare, covered): complete note; 68 kg -> 680 mg -> 3 vials (900 mg),
+  220 mg waste, so her claim shows the JW waste line. On Medicare through
+  disability (SSDI), which is why a 34-year-old has it.
 - James (BCBS, prior auth required): note omits the ACVR1 genetic confirmation,
-  so the documentation check has a gap to find and draft.
-- Aisha (Aetna, policy under review): complete note; 70 kg -> 700 mg -> no
-  waste, so her claim shows JZ.
+  so the documentation check has a gap to find and draft; 82 kg -> 820 mg ->
+  3 vials, 80 mg waste.
+- Aisha (Aetna, policy under review): complete note; 60 kg -> 600 mg -> exactly
+  2 vials, no waste, so her claim shows JZ.
+- Daniel (UnitedHealthcare, no Pasatru policy on file): the hold-list patient --
+  the doctor wants to start him once coverage is confirmed; 75 kg -> 750 mg.
 """
 
 import os
@@ -46,6 +50,7 @@ PATIENTS = [
             "Over the last 6 months she has had 3 clinician-assessed flare-ups (right shoulder, "
             "upper back, left hip) with new heterotopic ossification on low-dose whole-body CT.\n"
             "Prior therapy: short prednisone courses for flare-ups only; no disease-modifying therapy.\n"
+            "Insurance: Medicare through Social Security disability (FOP).\n"
             "Weight today 68 kg. Not pregnant; contraception counseling done.\n"
             "Plan: start Pasatru 10 mg/kg IV over 60 minutes every 4 weeks to reduce new HO "
             "formation and flare-ups. Reviewed risks and benefits; patient agrees."
@@ -76,7 +81,7 @@ PATIENTS = [
         "date_of_birth": "1999-11-21",
         "sex": "F",
         "address": {"street": "75 5th St NW", "city": "Atlanta", "state": "GA", "zip": "30308"},
-        "weight_kg": 70,
+        "weight_kg": 60,
         "payer": "Aetna",
         "member_id": "W284719305",
         "diagnosis": "M61.10 Fibrodysplasia ossificans progressiva",
@@ -85,8 +90,28 @@ PATIENTS = [
             "Genetic testing: ACVR1 R206H mutation confirmed (2018).\n"
             "One clinician-assessed flare-up in the last 3 months (neck) with new HO on imaging.\n"
             "Prior therapy: prednisone for flare-ups.\n"
-            "Weight today 70 kg. Pregnancy test negative today.\n"
+            "Weight today 60 kg. Pregnancy test negative today.\n"
             "Plan: start Pasatru 10 mg/kg IV over 60 minutes every 4 weeks."
+        ),
+    },
+    {
+        "first_name": "Daniel",
+        "last_name": "Brooks",
+        "date_of_birth": "1979-06-10",
+        "sex": "M",
+        "address": {"street": "1100 Spring St NW", "city": "Atlanta", "state": "GA", "zip": "30309"},
+        "weight_kg": 75,
+        "payer": "UnitedHealthcare",
+        "member_id": "924816305",
+        "diagnosis": "M61.10 Fibrodysplasia ossificans progressiva",
+        "visit_note": (
+            "47-year-old man with fibrodysplasia ossificans progressiva.\n"
+            "Genetic testing: ACVR1 R206H mutation confirmed (2016).\n"
+            "One flare-up in the last 6 months (right hip); mobility stable.\n"
+            "Prior therapy: prednisone for flare-ups.\n"
+            "Weight today 75 kg.\n"
+            "Plan: discussed Pasatru 10 mg/kg IV every 4 weeks; start once UnitedHealthcare "
+            "coverage is confirmed."
         ),
     },
 ]

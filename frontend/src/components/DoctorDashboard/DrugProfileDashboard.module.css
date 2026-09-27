@@ -75,6 +75,101 @@
   color: var(--text-tertiary);
 }
 
+/* Your plan: planned patients + hold list */
+.planRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.planField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.planLabel {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.planInput {
+  width: 120px;
+}
+
+.planHint {
+  margin-top: 6px;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.holdTitle {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-base);
+  font-weight: 600;
+}
+
+.holdList {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.holdItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.holdItem:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.holdText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.holdName {
+  font-weight: 500;
+}
+
+.holdMeta {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
+.holdNote {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.holdForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.planError {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .holdForm {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Billing code */
 .codeNow {
   display: flex;

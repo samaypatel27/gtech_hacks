@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AppShell from '../AppShell/AppShell.jsx'
 import PageHeader from '../PageHeader/PageHeader.jsx'
 import Panel from '../Panel/Panel.jsx'
@@ -12,6 +12,8 @@ import DetailList from '../DetailList/DetailList.jsx'
 import Table from '../Table/Table.jsx'
 import LoadingOverlay from '../LoadingOverlay/LoadingOverlay.jsx'
 import { useAuthSession } from '../../lib/useAuthSession.js'
+import { fetchHoldList, holdPatient, savePlan, unholdPatient } from '../../api/consider.js'
+import { fetchPatients } from '../../api/patients.js'
 import { codeTimeline, daysLabel, formatDate, formatMoney } from '../../lib/format.js'
 import styles from './DrugProfileDashboard.module.css'
 
@@ -82,6 +84,171 @@ function ReadinessPanel({ lights }) {
   )
 }
 
+// The doctor's own decisions, before the team gets involved: how many
+// patients they expect to treat (feeds the payment-timing estimate) and the
+// hold list (patients to start later, reviewed when the billing code changes).
+function PlanPanel({ practiceDrug, brand, onChange, holdSelectRef }) {
+  const [planned, setPlanned] = useState(practiceDrug.planned_patients_per_month ?? '')
+  const [savingPlan, setSavingPlan] = useState(false)
+  const [holdList, setHoldList] = useState([])
+  const [patients, setPatients] = useState([])
+  const [patientId, setPatientId] = useState('')
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  const practiceDrugId = practiceDrug.id
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([fetchHoldList(practiceDrugId), fetchPatients()])
+      .then(([hold, list]) => {
+        if (cancelled) return
+        setHoldList(hold.hold_list)
+        setPatients(list)
+      })
+      .catch((err) => !cancelled && setError(err.message))
+    return () => {
+      cancelled = true
+    }
+  }, [practiceDrugId])
+
+  const savedPlanned = practiceDrug.planned_patients_per_month ?? ''
+  const planChanged = String(planned) !== String(savedPlanned)
+
+  async function handleSavePlan(e) {
+    e.preventDefault()
+    if (!planChanged) return
+    setSavingPlan(true)
+    setError('')
+    try {
+      onChange(await savePlan(practiceDrugId, planned === '' ? null : Number(planned)))
+    } catch (err) {
+      setError(err.message)
+    }
+    setSavingPlan(false)
+  }
+
+  async function updateHoldList(call) {
+    setBusy(true)
+    setError('')
+    try {
+      const result = await call()
+      setHoldList(result.hold_list)
+      onChange((current) => ({ ...current, status: result.status }))
+      return true
+    } catch (err) {
+      setError(err.message)
+      return false
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleHold(e) {
+    e.preventDefault()
+    if (!patientId) return
+    if (await updateHoldList(() => holdPatient(practiceDrugId, Number(patientId), note.trim()))) {
+      setPatientId('')
+      setNote('')
+    }
+  }
+
+  const held = new Set(holdList.map((h) => h.patient_id))
+  const choices = patients.filter((p) => !held.has(p.id))
+
+  return (
+    <Panel title="Your plan" description="Just for you for now. Your team isn't involved until you click “Get my team ready.”">
+      <form className={styles.planRow} onSubmit={handleSavePlan}>
+        <label className={styles.planField}>
+          <span className={styles.planLabel}>Patients a month you expect to treat</span>
+          <input
+            type="number"
+            min="0"
+            max="1000"
+            step="1"
+            inputMode="numeric"
+            value={planned}
+            onChange={(e) => setPlanned(e.target.value)}
+            className={styles.planInput}
+          />
+        </label>
+        <Button type="submit" size="sm" disabled={!planChanged || savingPlan}>
+          {savingPlan ? 'Saving…' : 'Save'}
+        </Button>
+      </form>
+      <p className={styles.planHint}>Used for the payment-timing estimate above.</p>
+
+      <h3 className={styles.holdTitle}>Hold list</h3>
+      <p className={styles.planHint}>
+        Patients you want to start later, for example once {brand} has its own billing code. When the code changes,
+        you'll get a reminder to review them.
+      </p>
+
+      {holdList.length > 0 && (
+        <ul className={styles.holdList}>
+          {holdList.map((h) => (
+            <li key={h.patient_id} className={styles.holdItem}>
+              <div className={styles.holdText}>
+                <Link to={`/doctor/patients/${h.patient_id}`} className={styles.holdName}>
+                  {h.name}
+                </Link>
+                <span className={styles.holdMeta}>
+                  {[h.payer, `added ${formatDate(h.added_at)}`].filter(Boolean).join(' · ')}
+                </span>
+                {h.note && <span className={styles.holdNote}>{h.note}</span>}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={() => updateHoldList(() => unholdPatient(practiceDrugId, h.patient_id))}
+              >
+                Remove
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <form className={styles.holdForm} onSubmit={handleHold}>
+        <select
+          ref={holdSelectRef}
+          value={patientId}
+          onChange={(e) => setPatientId(e.target.value)}
+          aria-label="Patient to add to the hold list"
+          disabled={busy || choices.length === 0}
+        >
+          <option value="">{choices.length ? 'Choose a patient…' : 'No other patients to add'}</option>
+          {choices.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+              {p.payer ? ` (${p.payer})` : ''}
+            </option>
+          ))}
+        </select>
+        <input
+          type="text"
+          placeholder="Note (optional), e.g. start after the J-code"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          aria-label="Note"
+          disabled={busy}
+        />
+        <Button type="submit" size="sm" disabled={!patientId || busy}>
+          Add to hold list
+        </Button>
+      </form>
+
+      {error && (
+        <Alert tone="danger" className={styles.planError}>
+          {error}
+        </Alert>
+      )}
+    </Panel>
+  )
+}
+
 function BillingCodePanel({ drug }) {
   const { current, upcoming } = codeTimeline(drug)
   const codes = [...(Array.isArray(drug.codes) ? drug.codes : [])].sort((a, b) =>
@@ -92,14 +259,15 @@ function BillingCodePanel({ drug }) {
     <Panel title="Billing code">
       <div className={styles.codeNow}>
         {current.code ? (
-          <Badge tone={current.type === 'permanent' ? 'success' : 'warning'} mono className={styles.codeBadge}>
+          <Badge tone={current.type === 'generic' ? 'warning' : 'success'} mono className={styles.codeBadge}>
             {current.code}
           </Badge>
         ) : (
           <span className={styles.muted}>Not yet available</span>
         )}
         <span className={styles.muted}>
-          {current.type === 'permanent' ? 'Permanent HCPCS code' : 'Generic, not otherwise classified'}
+          {{ permanent: 'Permanent HCPCS code', temporary: 'Temporary product-specific code' }[current.type] ??
+            'Generic, not otherwise classified'}
         </span>
       </div>
 
@@ -116,7 +284,7 @@ function BillingCodePanel({ drug }) {
             <li key={`${c.code}-${c.from}-${c.payer ?? 'all'}`} className={styles.timelineItem}>
               <span className="mono">{c.code}</span>
               <span className={styles.timelineMeta}>
-                {c.type === 'permanent' ? 'Permanent' : 'Generic'}
+                {{ permanent: 'Permanent', temporary: 'Temporary' }[c.type] ?? 'Generic'}
                 {c.payer ? ` · ${c.payer}` : ''} · {formatDate(c.from)}
                 {c.to ? ` – ${formatDate(c.to)}` : ' onward'}
               </span>
@@ -240,7 +408,9 @@ function DrugProfileDashboard({ applicationId }) {
   const [drug, setDrug] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [lights, setLights] = useState(null)
+  // The practice_drugs row: lights, planned patients, status.
+  const [practiceDrug, setPracticeDrug] = useState(null)
+  const holdSelectRef = useRef(null)
   const reducedMotion = useMemo(() => usesReducedMotion(), [])
   const { email } = useAuthSession()
   const navigate = useNavigate()
@@ -292,7 +462,7 @@ function DrugProfileDashboard({ applicationId }) {
     })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (!cancelled && data) setLights(data.lights)
+        if (!cancelled && data) setPracticeDrug(data)
       })
       .catch(() => {
         // No practice record yet, or the request failed -- the panel shows
@@ -303,6 +473,13 @@ function DrugProfileDashboard({ applicationId }) {
       cancelled = true
     }
   }, [applicationId, email])
+
+  function handleShowHoldList() {
+    const select = holdSelectRef.current
+    if (!select) return
+    select.scrollIntoView({ behavior: usesReducedMotion() ? 'auto' : 'smooth', block: 'center' })
+    select.focus({ preventScroll: true })
+  }
 
   function handleGetTeamReady() {
     if (phase !== 'idle' || !email || !drug) return
@@ -389,7 +566,14 @@ function DrugProfileDashboard({ applicationId }) {
           }
           actions={
             <>
-              <Button variant="secondary">Add patients to hold list</Button>
+              <Button
+                variant="secondary"
+                onClick={handleShowHoldList}
+                disabled={!practiceDrug}
+                title={practiceDrug ? undefined : 'Sign in to keep a hold list'}
+              >
+                Add patients to hold list
+              </Button>
               <Button
                 variant="primary"
                 onClick={handleGetTeamReady}
@@ -410,7 +594,15 @@ function DrugProfileDashboard({ applicationId }) {
 
         <div className={styles.grid}>
           <div className={styles.mainCol}>
-            <ReadinessPanel lights={lights} />
+            <ReadinessPanel lights={practiceDrug?.lights} />
+            {practiceDrug && (
+              <PlanPanel
+                practiceDrug={practiceDrug}
+                brand={drug.brand_name || 'this drug'}
+                onChange={setPracticeDrug}
+                holdSelectRef={holdSelectRef}
+              />
+            )}
             <ClinicalPanel drug={drug} />
             <ApprovedUsesPanel uses={drug.approved_uses_and_conditions} />
             <PackagesPanel ndcs={drug.ndcs} />

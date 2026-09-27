@@ -20,6 +20,10 @@ export const savePractice = (practice) =>
     body: JSON.stringify(practice),
   })
 
+// The practice's workspaces (drugs it has set up with "Get my team ready"):
+// [{practice_drug_id, application_id, status, brand_name, tasks_done, tasks_total}].
+export const fetchWorkspaces = (email) => request(`/api/practices/${encodeURIComponent(email)}/workspaces`)
+
 // Returns null on a 404 (no account for this email yet) instead of
 // throwing, since that's an expected, non-error outcome for callers.
 export const fetchPracticeByEmail = async (email) => {

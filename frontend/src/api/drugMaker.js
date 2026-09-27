@@ -29,3 +29,6 @@ export const saveDrug = (drug) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(drug),
   })
+
+export const deleteDrug = (applicationId) =>
+  request(`/api/drugs/${encode(applicationId)}`, { method: 'DELETE' })

@@ -10,6 +10,7 @@ import DrugDetailPage from './pages/DrugDetailPage.jsx'
 import TeamWorkspacePage from './pages/TeamWorkspacePage.jsx'
 import StaffWorkspacesPage from './pages/StaffWorkspacesPage.jsx'
 import PatientChartPage from './pages/PatientChartPage.jsx'
+import PatientsPage from './pages/PatientsPage.jsx'
 import TreatmentRecordPage from './pages/TreatmentRecordPage.jsx'
 import ClaimPage from './pages/ClaimPage.jsx'
 
@@ -32,6 +33,7 @@ function App() {
       {/* Treat & Bill pages (Track B): the doctor's chart is gated behind
           sign-in like the rest of /doctor/*; the nurse and biller pages
           have no login of their own, like the rest of /staff/*. */}
+      <Route path="/doctor/patients" element={<PatientsPage />} />
       <Route path="/doctor/patients/:patientId" element={<PatientChartPage />} />
       <Route path="/staff/nurse/treatments/:treatmentId" element={<TreatmentRecordPage />} />
       <Route path="/staff/biller/claims/:treatmentId" element={<ClaimPage />} />

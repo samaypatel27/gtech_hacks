@@ -144,7 +144,7 @@ function DrugMakerPage() {
   const updateResult = (key, patch) =>
     setResults((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)))
 
-  const handleSubmit = async ({ drugName, applicationId }) => {
+  const handleSubmit = async ({ drugName, applicationId, launch }) => {
     setIsSubmitting(true)
     setResults(initialResults().map((r) => ({ ...r, status: 'loading' })))
     setSaveResult({ status: 'idle', message: '' })
@@ -198,11 +198,14 @@ function DrugMakerPage() {
     Object.assign(drug, derived.columns)
     citations.push(...derived.citations)
     drug.citations = citations.length ? citations : null
+    // The drug maker's launch details; the backend turns them into the dated
+    // codes list, distributors, insurer policies and vial list prices.
+    if (launch) drug.launch = launch
 
     setSaveResult({ status: 'loading', message: '' })
     try {
       await saveDrug(drug)
-      setSaveResult({ status: 'success', message: `Saved ${applicationId} to drugs` })
+      setSaveResult({ status: 'success', message: `Saved ${applicationId} to drugs`, launched: Boolean(launch) })
     } catch (err) {
       setSaveResult({ status: 'error', message: err.message })
     }
@@ -213,7 +216,7 @@ function DrugMakerPage() {
     <AppShell role="drug_maker" breadcrumbs={[{ label: 'Add drug' }]}>
       <PageHeader
         title="Add a drug"
-        meta="Pulls the FDA label, NDC packages and CMS billing status for a newly approved drug, then publishes it to practices."
+        meta="Pulls the FDA label, NDC packages and CMS billing status for a newly approved drug, adds your launch details, then publishes it to practices."
       />
       <DrugMaker onSubmit={handleSubmit} isSubmitting={isSubmitting} results={results} saveResult={saveResult} />
     </AppShell>

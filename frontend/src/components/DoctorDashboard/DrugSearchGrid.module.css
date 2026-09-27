@@ -67,6 +67,26 @@
   color: var(--brand);
 }
 
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: var(--fs-sm);
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--duration) ease-out;
+}
+
+.deleteBtn:hover {
+  background: var(--danger-bg);
+}
+
 .progress {
   display: inline-flex;
   align-items: center;
