@@ -6,6 +6,7 @@ import Button from '../components/Button/Button.jsx'
 import PageHeader from '../components/PageHeader/PageHeader.jsx'
 import CodeChangeNotice from '../components/CodeChangeNotice/CodeChangeNotice.jsx'
 import Badge from '../components/Badge/Badge.jsx'
+import Button from '../components/Button/Button.jsx'
 import Alert from '../components/Alert/Alert.jsx'
 import Spinner from '../components/Spinner/Spinner.jsx'
 import Icon from '../components/Icon/Icon.jsx'
@@ -126,6 +127,14 @@ const COLUMN_BADGE = {
   done: { tone: 'success', label: 'Done' },
 }
 
+// Doctor board filter: 'all' keeps the default order (not-completed above,
+// completed at the bottom); the other two hide one group instead of reordering.
+const TASK_FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: 'active', label: 'Not completed' },
+  { id: 'completed', label: 'Completed' },
+]
+
 const WORKSPACE_STATUS = {
   considering: { label: 'Considering', tone: 'neutral' },
   holding: { label: 'Holding', tone: 'neutral' },
@@ -133,13 +142,22 @@ const WORKSPACE_STATUS = {
   active: { label: 'Ready to treat', tone: 'success' },
 }
 
-function ColumnHeading({ label, count, dotColor, active = false }) {
+function ColumnHeading({ label, count, active = false, to }) {
   return (
     <div className="mb-3 flex items-center gap-2 px-1">
-      {dotColor && <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: dotColor }} />}
-      <p className={`text-xs font-medium tracking-[0.04em] uppercase ${active ? 'text-brand' : 'text-fg-muted'}`}>
-        {label}
-      </p>
+      {to ? (
+        <Link
+          to={to}
+          className="group inline-flex items-center gap-1 text-xs font-medium tracking-[0.04em] uppercase text-fg-muted transition-colors duration-150 hover:text-brand"
+        >
+          {label}
+          <Icon name="arrowRight" size={12} className="text-fg-subtle transition-colors duration-150 group-hover:text-brand" />
+        </Link>
+      ) : (
+        <p className={`text-xs font-medium tracking-[0.04em] uppercase ${active ? 'text-brand' : 'text-fg-muted'}`}>
+          {label}
+        </p>
+      )}
       <span className="ml-auto rounded-sm border border-line bg-surface px-1.5 font-mono text-xs leading-5 text-fg-muted">
         {count}
       </span>
@@ -155,7 +173,7 @@ function ColumnHeading({ label, count, dotColor, active = false }) {
  * top-right slot: a drag grip or lock for staff, a completion seal for the
  * doctor.
  */
-function CardFace({ task, column, locked, accessory }) {
+function CardFace({ task, column, locked, accessory, strikeDone = true }) {
   const done = column === 'done'
 
   return (
@@ -163,7 +181,7 @@ function CardFace({ task, column, locked, accessory }) {
       <div className="flex items-start justify-between gap-3">
         <p
           className={`text-sm leading-5 font-medium ${
-            done ? 'text-fg-subtle line-through decoration-line-strong' : 'text-fg'
+            done && strikeDone ? 'text-fg-subtle line-through decoration-line-strong' : 'text-fg'
           }`}
         >
           {task.title}
@@ -263,11 +281,24 @@ function BoardCard({ task, column, locked, frozen, pinned, state, onPressStart, 
  */
 function DoctorCard({ task, locked }) {
   const column = boardStatusOf(task)
-  const badge = COLUMN_BADGE[column]
+  const done = column === 'done'
+  const awaiting = column === 'awaiting'
 
   return (
-    <div className={`${CARD_BASE} ${CARD_SKIN} ${locked ? 'opacity-60' : ''}`}>
-      <CardFace task={task} column={column} locked={locked} accessory={<Badge tone={badge.tone}>{badge.label}</Badge>} />
+    <div className={`${CARD_BASE} ${done ? 'border-success bg-success-bg' : CARD_SKIN} ${locked ? 'opacity-60' : ''}`}>
+      <CardFace
+        task={task}
+        column={column}
+        locked={locked}
+        strikeDone={false}
+        accessory={
+          done ? (
+            <Icon name="check" className="text-success" />
+          ) : awaiting ? (
+            <Badge tone={COLUMN_BADGE.awaiting.tone}>{COLUMN_BADGE.awaiting.label}</Badge>
+          ) : null
+        }
+      />
     </div>
   )
 }
@@ -649,15 +680,31 @@ function ReadyBanner({ drugName, practiceDrugId, orderedPatientIds }) {
  * Doctor's overarching view of the staff: every staff task, grouped into one
  * column per staff role, read-only. The doctor's own tasks are in DoctorStrip.
  */
-function DoctorBoard({ tasks }) {
+function DoctorBoard({ tasks, purchasingDone, practiceDrugId, filter }) {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       {ROLE_COLUMNS.map((role) => {
-        const roleTasks = sortTasks(tasks.filter((t) => t.role === role))
+        const ordered = [
+          ...tasks
+            .filter((t) => t.role === role)
+            .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind)),
+          ...SYNTHETIC_DOCTOR_TASKS.filter((t) => t.role === role),
+        ]
+        const notDone = ordered.filter((t) => boardStatusOf(t) !== 'done')
+        const done = ordered.filter((t) => boardStatusOf(t) === 'done')
+
+        // Default ('all'): not-completed above, completed at the bottom.
+        // The other two filters hide one group instead of reordering.
+        const roleTasks =
+          filter === 'active' ? notDone : filter === 'completed' ? done : [...notDone, ...done]
 
         return (
           <div key={role} className="flex min-h-32 flex-col lg:min-h-[380px] rounded-md border border-line bg-subtle p-3">
-            <ColumnHeading label={ROLE_LABEL[role]} count={roleTasks.length} dotColor={ROLES[role].color} />
+            <ColumnHeading
+              label={ROLE_LABEL[role]}
+              count={roleTasks.length}
+              to={`/staff/${role}/workspace/${practiceDrugId}`}
+            />
 
             <div className="flex flex-1 flex-col gap-2">
               {roleTasks.length === 0 ? (
@@ -950,6 +997,7 @@ function TeamWorkspacePage() {
   const [data, setData] = useState(null) // full GET response
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [taskFilter, setTaskFilter] = useState('all') // doctor board only: all | active | completed
   const [moveError, setMoveError] = useState(null)
   const lastJsonRef = useRef(null)
   // `pending` = moves whose PATCH hasn't answered; `version` bumps on every
@@ -1170,6 +1218,22 @@ function TeamWorkspacePage() {
             ? `Your ${ROLE_LABEL[role]} tasks. Drag a card between To Do and Complete, or focus it and use the arrow keys.`
             : "Your planned patients and patient orders are in the Doctor lane; your team's tasks are below, read-only."
         }
+        actions={
+          !role && (
+            <div className="flex gap-1">
+              {TASK_FILTERS.map((f) => (
+                <Button
+                  key={f.id}
+                  size="sm"
+                  variant={taskFilter === f.id ? 'primary' : 'secondary'}
+                  onClick={() => setTaskFilter(f.id)}
+                >
+                  {f.label}
+                </Button>
+              ))}
+            </div>
+          )
+        }
       />
 
       <CodeChangeNotice practiceDrugId={practiceDrugId} className="mb-4" />
@@ -1192,24 +1256,12 @@ function TeamWorkspacePage() {
           />
         </>
       ) : (
-        <>
-          {practiceDrug?.status === 'active' && (
-            <ReadyBanner
-              drugName={drugName}
-              practiceDrugId={practiceDrugId}
-              orderedPatientIds={
-                new Set(allTasks.filter((t) => t.kind === 'order_sign' && t.patient_id).map((t) => t.patient_id))
-              }
-            />
-          )}
-          <DoctorStrip
-            planned={practiceDrug?.planned_patients_per_month}
-            tasks={allTasks.filter((t) => t.role === 'doctor')}
-            onSavePlanned={savePlanned}
-            practiceDrugId={practiceDrugId}
-          />
-          <DoctorBoard tasks={allTasks} />
-        </>
+        <DoctorBoard
+          tasks={allTasks}
+          purchasingDone={purchasingDone}
+          practiceDrugId={practiceDrugId}
+          filter={taskFilter}
+        />
       )}
     </AppShell>
   )
