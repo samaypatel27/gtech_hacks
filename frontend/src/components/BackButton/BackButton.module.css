@@ -1,6 +1,13 @@
+/* Pinned to top-left by default (pages reserve top padding to clear it).
+   When rendered inside a flex navbar, the parent passes `inline` to
+   BackButton which applies .inline instead, disabling the fixed position. */
 .back {
   position: absolute;
   top: 16px;
   left: 16px;
   z-index: 10;
+}
+
+.inline {
+  position: static;
 }
