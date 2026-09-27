@@ -20,10 +20,17 @@ function StaffWorkspacesPage() {
 
   return (
     <div className={styles.page}>
-      <BackButton />
-      <h1 className="mx-auto w-full max-w-6xl px-6 pt-4 text-xl font-semibold text-[#f0f0f5] sm:px-11">
-        {label} workspaces
-      </h1>
+      <nav className={styles.navbar}>
+        <div className={styles.navLeft}>
+          <BackButton inline to="/" />
+        </div>
+        <div className={styles.navCenter}>
+          <h1 className="text-base sm:text-lg font-semibold tracking-wide text-white m-0">
+            {label} Workspaces
+          </h1>
+        </div>
+        <div className={styles.navRight} />
+      </nav>
       <DrugSearchGrid view={role} />
     </div>
   )

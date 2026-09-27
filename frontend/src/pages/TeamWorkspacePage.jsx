@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useParams, Link, Navigate } from 'react-router-dom'
+import { useParams, Navigate } from 'react-router-dom'
+import BackButton from '../components/BackButton/BackButton.jsx'
 import '../tailwind.css'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -191,8 +192,8 @@ function CardFace({ task, column, locked, accessory }) {
 const CARD_BASE = 'relative rounded-2xl border p-4 select-none outline-none'
 
 const CARD_GLASS =
-  'border-white/15 bg-linear-to-br from-violet-400/[0.16] via-white/[0.05] to-indigo-500/[0.10] backdrop-blur-xl ' +
-  'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_24px_-12px_rgba(0,0,0,0.6)]'
+  'border-white/20 bg-white/[0.035] backdrop-blur-xl ' +
+  'shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_24px_-12px_rgba(0,0,0,0.5)]'
 
 /**
  * A staff card in its column. `state` is 'idle', 'ghost' (it's the card being
@@ -216,8 +217,8 @@ function BoardCard({ task, column, locked, state, onPressStart, onKeyMove, onLan
   } else {
     skin =
       `${CARD_GLASS} group cursor-grab touch-none transition-[transform,box-shadow,border-color] duration-200 ease-out ` +
-      'hover:border-violet-200/40 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_16px_36px_-12px_rgba(167,139,250,0.55)] ' +
-      'motion-safe:hover:-translate-y-0.5 focus-visible:border-violet-200/60 focus-visible:ring-2 focus-visible:ring-violet-300/60 ' +
+      'hover:border-white/70 hover:shadow-[0_12px_32px_rgba(0,0,0,0.5),0_0_0_2px_rgba(255,255,255,0.15)] ' +
+      'motion-safe:hover:-translate-y-0.5 focus-visible:border-white/80 focus-visible:ring-2 focus-visible:ring-white/30 ' +
       (state === 'landing' ? 'card-land' : '')
   }
 
@@ -653,7 +654,7 @@ function TeamWorkspacePage() {
     }
   }
 
-  const PAGE = 'mx-auto w-full max-w-[1320px] px-5 sm:px-8 xl:px-14'
+  const PAGE = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 xl:px-12'
 
   // An unrecognized :role -- same treatment as StaffWorkspacesPage: send them
   // home rather than render a page whose back link points nowhere.
@@ -661,14 +662,16 @@ function TeamWorkspacePage() {
 
   // Staff came from their own role listing; the doctor came from the drug grid.
   const backTo = role ? `/staff/${role}` : '/doctor/drugs'
-  const backLabel = role ? `Back to ${ROLE_LABEL[role]} workspaces` : 'Back to all drugs'
+  const backTitle = role ? `${ROLE_LABEL[role]} workspaces` : 'All drugs'
 
   if (isLoading) {
     return (
       <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-        <Link to={backTo} className="text-sm font-medium text-white/50 transition-colors hover:text-white">
-          &larr; {backLabel}
-        </Link>
+        <div className="pb-2">
+          <BackButton to={backTo} inline>
+            {backTitle}
+          </BackButton>
+        </div>
         <p className="mt-10 text-[14px] text-white/35">Loading workspace&hellip;</p>
       </div>
     )
@@ -677,9 +680,11 @@ function TeamWorkspacePage() {
   if (error) {
     return (
       <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-        <Link to={backTo} className="text-sm font-medium text-white/50 transition-colors hover:text-white">
-          &larr; {backLabel}
-        </Link>
+        <div className="pb-2">
+          <BackButton to={backTo} inline>
+            {backTitle}
+          </BackButton>
+        </div>
         <p className="mt-10 text-[14px] text-white/35">Could not load workspace: {error}</p>
       </div>
     )
@@ -692,9 +697,11 @@ function TeamWorkspacePage() {
 
   return (
     <div className={`flex min-h-screen w-full flex-col py-8 text-[#f0f0f5] ${PAGE}`}>
-      <Link to={backTo} className="text-sm font-medium text-white/50 transition-colors hover:text-white">
-        &larr; {backLabel}
-      </Link>
+      <div className="pb-2">
+        <BackButton to={backTo} inline>
+          {backTitle}
+        </BackButton>
+      </div>
 
       <div className="mt-6 flex flex-wrap items-baseline gap-2">
         <h1 className="text-[clamp(22px,2.8vw,34px)] font-semibold leading-tight text-white">

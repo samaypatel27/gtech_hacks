@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Button from '../Button/Button.jsx'
+import BackButton from '../BackButton/BackButton.jsx'
 import DrugVial from './DrugVial.jsx'
 import { useAuthSession } from '../../lib/useAuthSession.js'
 import '../../tailwind.css'
@@ -111,12 +112,11 @@ function FieldGroup({ fields }) {
 
 function BackLink() {
   return (
-    <Link
-      to="/doctor/drugs"
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
-    >
-      &larr; Back to all drugs
-    </Link>
+    <div className="flex items-center pb-2">
+      <BackButton to="/doctor/drugs" inline>
+        Back to all drugs
+      </BackButton>
+    </div>
   )
 }
 

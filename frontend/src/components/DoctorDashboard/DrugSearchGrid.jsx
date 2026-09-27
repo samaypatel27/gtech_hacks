@@ -193,13 +193,8 @@ function DrugSearchGrid({ view = 'drugs', email = null }) {
     const workspaceBase = view === 'tasks' ? '/doctor/workspace' : `/staff/${view}/workspace`
 
     return (
-      <div className="min-h-screen w-full px-4 py-8 sm:px-8">
-        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
-          {!isLoading && (
-            <p className="mb-3 text-xs font-medium tracking-wide text-white/40">
-              {workspaces.length} workspace{workspaces.length === 1 ? '' : 's'}
-            </p>
-          )}
+      <div className="min-h-screen w-full px-4 py-8 sm:px-8 pr-8 sm:pr-12 md:pr-16">
+        <div className="mx-auto w-full max-w-[1280px] p-2 sm:p-3">
 
           {isLoading && (
             <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">
@@ -233,13 +228,8 @@ function DrugSearchGrid({ view = 'drugs', email = null }) {
 
   // ── Drugs view (default) ────────────────────────────────────────────────
   return (
-    <div className="min-h-screen w-full px-4 py-8 sm:px-8">
-      <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
-        {!drugsLoading && (
-          <p className="mb-3 text-xs font-medium tracking-wide text-white/40">
-            {drugs.length} drug{drugs.length === 1 ? '' : 's'}
-          </p>
-        )}
+    <div className="min-h-screen w-full px-4 py-8 sm:px-8 pr-8 sm:pr-12 md:pr-16">
+      <div className="mx-auto w-full max-w-[1280px] p-2 sm:p-3">
 
         {drugsLoading && (
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4">

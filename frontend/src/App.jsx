@@ -10,6 +10,9 @@ import AuthCallbackPage from './pages/AuthCallbackPage.jsx'
 import DrugDetailPage from './pages/DrugDetailPage.jsx'
 import TeamWorkspacePage from './pages/TeamWorkspacePage.jsx'
 import StaffWorkspacesPage from './pages/StaffWorkspacesPage.jsx'
+import PatientChartPage from './pages/PatientChartPage.jsx'
+import TreatmentRecordPage from './pages/TreatmentRecordPage.jsx'
+import ClaimPage from './pages/ClaimPage.jsx'
 
 function App() {
   return (
@@ -29,6 +32,12 @@ function App() {
         {/* Same page/data as the doctor's workspace route above -- the :role
             segment only records who opened it, so each role gets its own URL. */}
         <Route path="/staff/:role/workspace/:practiceDrugId" element={<TeamWorkspacePage />} />
+        {/* Treat & Bill pages (Track B): the doctor's chart is gated behind
+            sign-in like the rest of /doctor/*; the nurse and biller pages
+            have no login of their own, like the rest of /staff/*. */}
+        <Route path="/doctor/patients/:patientId" element={<PatientChartPage />} />
+        <Route path="/staff/nurse/treatments/:treatmentId" element={<TreatmentRecordPage />} />
+        <Route path="/staff/biller/claims/:treatmentId" element={<ClaimPage />} />
       </Routes>
     </>
   )
