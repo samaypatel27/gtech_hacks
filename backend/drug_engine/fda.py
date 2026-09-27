@@ -250,3 +250,33 @@ async def get_fda_ndc(application_number: str):
             )
 
     return {"route": route, "ndcs": ndcs}
+
+
+@router.get("/api/fda/approval/{application_number}")
+async def get_fda_approval(application_number: str):
+    """The original approval date from Drugs@FDA: the approved ORIG submission."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            f"{OPENFDA_BASE_URL}/drugsfda.json",
+            params={"search": f"application_number:{application_number}", "limit": 1},
+        )
+    if response.status_code == 404:
+        raise HTTPException(status_code=404, detail=f"No Drugs@FDA record for {application_number}")
+    response.raise_for_status()
+
+    results = response.json().get("results", [])
+    if not results:
+        raise HTTPException(status_code=404, detail=f"No Drugs@FDA record for {application_number}")
+    approvals = [
+        s["submission_status_date"]
+        for s in results[0].get("submissions", [])
+        if s.get("submission_type") == "ORIG" and s.get("submission_status") == "AP" and s.get("submission_status_date")
+    ]
+    if not approvals:
+        raise HTTPException(status_code=404, detail=f"No original approval on file for {application_number}")
+    day = min(approvals)  # YYYYMMDD
+    return {
+        "approval_date": f"{day[:4]}-{day[4:6]}-{day[6:]}",
+        "sponsor": results[0].get("sponsor_name"),
+        "citation": f"Drugs@FDA: {application_number} original approval",
+    }

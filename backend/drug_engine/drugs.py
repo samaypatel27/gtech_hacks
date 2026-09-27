@@ -7,7 +7,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from billing_rules import code_timeline, is_generic
+from billing_rules import code_timeline, is_generic, pick_generic_code
 from core.clock import today
 from core.db import supabase
 from core.notify import notify_every_practice
@@ -113,37 +113,48 @@ class CoverageRow(BaseModel):
 
 
 class LaunchDetails(BaseModel):
-    """What only the drug maker knows at launch, entered on the drug-maker page."""
+    """What only the drug maker knows at launch, entered on the drug-maker page.
+    The approval date normally comes from Drugs@FDA; this one only overrides it."""
 
-    approval_date: date | None = None  # FDA approval: the generic code runs from here
-    list_price_per_vial: float | None = Field(default=None, gt=0)
+    approval_date: date | None = None  # the generic code runs from here
+    list_price_per_mg: float | None = Field(default=None, gt=0)  # list price (WAC) per mg of drug
     distributors: list[str] | None = None
     expected_code: ExpectedCode | None = None
+    # The generic code billed until then; blank = billing_rules.pick_generic_code.
+    generic_code: str | None = None
     coverage: list[CoverageRow] | None = None
 
 
-def launch_columns(launch: LaunchDetails, generic_code: Optional[str], ndcs: Optional[list]) -> dict:
-    """`drugs` columns from the launch details: the dated `codes` list (generic
-    from approval to the day before the expected code, then the expected
-    code), distributors, payer_policies, and the list price on each vial NDC.
-    Raises ValueError when the dates don't make a valid code list."""
+def launch_columns(
+    launch: LaunchDetails, generic_code: Optional[str], ndcs: Optional[list], approval_date: Optional[date]
+) -> dict:
+    """`drugs` columns from the launch details: the dated `codes` list (the
+    generic code from `approval_date` to the day before the expected code,
+    then the expected code), distributors, payer_policies, and each vial's
+    list price (price per mg × the vial's mg). Raises ValueError when the
+    dates don't make a valid code list."""
     columns = {}
+    if launch.approval_date:
+        columns["approval_date"] = launch.approval_date.isoformat()
     if launch.distributors is not None:
         columns["distributors"] = [{"name": n.strip()} for n in launch.distributors if n.strip()]
     if launch.coverage is not None:
         columns["payer_policies"] = [row.model_dump(exclude_none=True) for row in launch.coverage]
-    if launch.list_price_per_vial is not None and ndcs:
+    if launch.list_price_per_mg is not None and ndcs:
         columns["ndcs"] = [
-            {**n, "list_price": launch.list_price_per_vial} if not n.get("sample") else n for n in ndcs
+            {**n, "list_price": round(launch.list_price_per_mg * float(n["strength_mg"]), 2)}
+            if n.get("strength_mg") and not n.get("sample")
+            else n
+            for n in ndcs
         ]
 
     expected = launch.expected_code
-    if launch.approval_date or expected:
+    if approval_date or expected:
         codes = []
-        if launch.approval_date and generic_code:
-            generic = {"code": generic_code, "type": "generic", "from": launch.approval_date.isoformat()}
+        if approval_date and generic_code:
+            generic = {"code": generic_code.strip().upper(), "type": "generic", "from": approval_date.isoformat()}
             if expected:
-                if expected.effective_from <= launch.approval_date:
+                if expected.effective_from <= approval_date:
                     raise ValueError("The expected code must take effect after the approval date")
                 generic["to"] = (expected.effective_from - timedelta(days=1)).isoformat()
             codes.append(generic)
@@ -208,6 +219,7 @@ class DrugRecord(BaseModel):
     citations: list[dict] | None = None
     has_permanent_code: bool | None = None
     permanent_hcpcs_code: str | None = None
+    approval_date: date | None = None  # Drugs@FDA original approval
     launch: LaunchDetails | None = None  # not a column: turned into codes/distributors/payer_policies/ndcs
 
 
@@ -221,9 +233,20 @@ def upsert_drug(drug: DrugRecord):
             supabase.table("drugs").select("*").eq("application_id", drug.application_id).limit(1).execute().data
         )
         existing = found[0] if found else {}
-        generic_code = row.get("generic_billing_code", existing.get("generic_billing_code"))
+        merged = {**existing, **row}
+        # The generic code billed until the expected code: the drug maker's,
+        # else the one on the row (null once CMS lists a code of its own),
+        # else the usual rule for this kind of drug.
+        generic_code = (
+            drug.launch.generic_code
+            or merged.get("generic_billing_code")
+            or pick_generic_code(bool(merged.get("is_antineoplastic")), drug.application_id)
+        )
+        approval = drug.launch.approval_date or (
+            date.fromisoformat(str(merged["approval_date"])[:10]) if merged.get("approval_date") else None
+        )
         try:
-            row.update(launch_columns(drug.launch, generic_code, row.get("ndcs", existing.get("ndcs"))))
+            row.update(launch_columns(drug.launch, generic_code, merged.get("ndcs"), approval))
         except ValueError as err:
             raise HTTPException(status_code=422, detail=str(err))
 

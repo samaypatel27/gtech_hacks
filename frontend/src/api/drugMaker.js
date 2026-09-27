@@ -17,6 +17,9 @@ export const fetchFdaLabel = (applicationId) =>
 export const fetchFdaLabelExtraction = (applicationId) =>
   request(`/api/fda/label-extraction/${encode(applicationId)}`)
 
+export const fetchFdaApproval = (applicationId) =>
+  request(`/api/fda/approval/${encode(applicationId)}`)
+
 export const fetchFdaNdc = (applicationId) =>
   request(`/api/fda/ndc/${encode(applicationId)}`)
 

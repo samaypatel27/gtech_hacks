@@ -6,6 +6,7 @@ import {
   fetchFdaLabel,
   fetchFdaLabelExtraction,
   fetchFdaNdc,
+  fetchFdaApproval,
   fetchCmsHcpcsStatus,
   saveDrug,
 } from '../api/drugMaker.js'
@@ -61,6 +62,13 @@ const SOURCES = [
       route_of_administration: data.route || null,
       ndcs: data.ndcs.length ? data.ndcs : null,
     }),
+  },
+  {
+    key: 'approval',
+    label: 'Drugs@FDA approval',
+    fetch: ({ applicationId }) => fetchFdaApproval(applicationId),
+    summarize: (data) => `Approved ${data.approval_date}${data.sponsor ? ` (${data.sponsor})` : ''}`,
+    toColumns: (data) => ({ approval_date: data.approval_date }),
   },
   {
     key: 'hcpcs',
@@ -216,7 +224,7 @@ function DrugMakerPage() {
     <AppShell role="drug_maker" breadcrumbs={[{ label: 'Add drug' }]}>
       <PageHeader
         title="Add a drug"
-        meta="Pulls the FDA label, NDC packages and CMS billing status for a newly approved drug, adds your launch details, then publishes it to practices."
+        meta="Pulls the FDA label, approval date, NDC packages and CMS billing status for a newly approved drug, adds your launch details, then publishes it to practices."
       />
       <DrugMaker onSubmit={handleSubmit} isSubmitting={isSubmitting} results={results} saveResult={saveResult} />
     </AppShell>

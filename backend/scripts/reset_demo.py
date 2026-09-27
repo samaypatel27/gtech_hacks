@@ -13,7 +13,7 @@ the app first). Re-runnable; every step overwrites rather than appends.
    label data plus the demo launch details: codes, insurer policies,
    distributors, vial size and price), creating it if it was deleted from the
    drug list. With --launch-live it deletes Pasatru instead, so the demo can
-   launch it from the Drug Maker page ("Fill example") and every practice gets
+   launch it from the Drug Maker page ("Fill Pasatru") and every practice gets
    the "New drug" message.
 3. Deletes the practice's Pasatru workspace (cascading to its tasks and
    treatments), so the demo starts at "considering": opening Pasatru's drug
@@ -85,7 +85,7 @@ def main():
         # Deleting the drug also deletes every practice's Pasatru workspace,
         # pins and notifications (the foreign keys cascade).
         supabase.table("drugs").delete().eq("application_id", DEMO_APPLICATION_ID).execute()
-        print("2. Pasatru deleted: launch it from the Drug Maker page (Fill example → Fetch and save)")
+        print("2. Pasatru deleted: launch it from the Drug Maker page (Fill Pasatru → Fetch and save)")
     else:
         supabase.table("drugs").upsert(DEMO_DRUG, on_conflict="application_id").execute()
         print(f"2. {DEMO_DRUG['brand_name']} written from pasatru_demo.json (created if it was missing)")
@@ -117,7 +117,7 @@ def main():
         print(f"6. Pasatru received: {DEMO_VIALS} vials of lot {DEMO_LOT} at ${cost:,.2f} each, invoice on file")
 
     if args.launch_live:
-        print("Done. Next: Drug Maker → Fill example → Fetch and save, then sign in as the doctor.")
+        print("Done. Next: Drug Maker → Fill Pasatru → Fetch and save, then sign in as the doctor.")
     else:
         print("Done. Next: sign in, open Pasatru, click \"Get my team ready\".")
 

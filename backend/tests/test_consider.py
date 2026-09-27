@@ -123,11 +123,15 @@ def test_payment_falls_back_to_cost_per_dose_then_gray(before_the_switch):
 
 
 def test_launch_builds_the_dated_code_list():
-    launch = LaunchDetails(
-        approval_date=date(2026, 2, 1),
-        expected_code={"code": "j0289", "unit": "1 mg", "effective_from": "2026-10-01"},
-    )
-    assert launch_columns(launch, "J3590", None)["codes"] == CODES
+    launch = LaunchDetails(expected_code={"code": "j0289", "unit": "1 mg", "effective_from": "2026-10-01"})
+    assert launch_columns(launch, "J3590", None, date(2026, 2, 1))["codes"] == CODES
+
+
+def test_launch_without_an_expected_code_stays_generic():
+    launch = LaunchDetails(distributors=["ASD Healthcare"])
+    columns = launch_columns(launch, "J3590", None, date(2026, 8, 19))
+    assert columns["codes"] == [{"code": "J3590", "type": "generic", "from": "2026-08-19"}]
+    assert "approval_date" not in columns  # FDA's date is already on the row
 
 
 def test_launch_rejects_a_code_before_approval():
@@ -136,18 +140,23 @@ def test_launch_rejects_a_code_before_approval():
         expected_code={"code": "J0289", "unit": "1 MG", "effective_from": "2026-10-01"},
     )
     with pytest.raises(ValueError):
-        launch_columns(launch, "J3590", None)
+        launch_columns(launch, "J3590", None, launch.approval_date)
 
 
-def test_launch_prices_vials_and_stores_distributors_and_coverage():
+def test_launch_prices_each_vial_by_its_mg_and_stores_distributors_and_coverage():
     launch = LaunchDetails(
-        list_price_per_vial=1850,
-        distributors=["ASD Healthcare", " "],
+        list_price_per_mg=2.55,
+        distributors=["McKesson Specialty Health", " "],
         coverage=[{"payer": "BCBS", "covered": True, "prior_auth": True}],
     )
-    ndcs = [{"ndc_11": "a", "sample": False}, {"ndc_11": "b", "sample": True}]
-    columns = launch_columns(launch, "J3590", ndcs)
-    assert columns["ndcs"] == [{"ndc_11": "a", "sample": False, "list_price": 1850}, ndcs[1]]
-    assert columns["distributors"] == [{"name": "ASD Healthcare"}]
+    ndcs = [
+        {"ndc_11": "a", "strength_mg": 50, "sample": False},
+        {"ndc_11": "b", "strength_mg": 500, "sample": False},
+        {"ndc_11": "c", "strength_mg": 50, "sample": True},
+        {"ndc_11": "d", "strength_mg": None, "sample": False},
+    ]
+    columns = launch_columns(launch, "J3490", ndcs, None)
+    assert [n.get("list_price") for n in columns["ndcs"]] == [127.5, 1275.0, None, None]
+    assert columns["distributors"] == [{"name": "McKesson Specialty Health"}]
     assert columns["payer_policies"] == [{"payer": "BCBS", "covered": True, "prior_auth": True}]
     assert "codes" not in columns

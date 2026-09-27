@@ -26,37 +26,72 @@ const emptyCoverageRow = () => ({ payer: '', status: 'covered', notes: '', docum
 
 const EMPTY_LAUNCH = {
   approvalDate: '',
-  listPrice: '',
+  pricePerMg: '',
   distributors: '',
   code: '',
   codeType: 'permanent',
   codeUnit: '',
   codeFrom: '',
+  genericCode: '',
   coverage: [emptyCoverageRow()],
 }
 
-// The demo drug's launch details, so the demo doesn't need live typing.
-const EXAMPLE = {
-  drugName: 'Pasatru',
-  applicationId: 'BLA761508',
-  launch: {
-    approvalDate: '2026-02-01',
-    listPrice: '1850',
-    distributors: 'ASD Healthcare, McKesson Specialty Health',
-    code: 'J0289',
-    codeType: 'permanent',
-    codeUnit: '1 MG',
-    codeFrom: '2026-10-01',
-    coverage: [
-      { payer: 'Medicare', status: 'covered', notes: 'Covered for approved uses per LCD. No prior authorization required.', documentation: '' },
-      {
-        payer: 'BCBS',
-        status: 'prior_auth',
-        notes: 'Prior authorization required before first dose. Requires documented FOP diagnosis with genetic confirmation of an ACVR1 mutation.',
-        documentation: 'Genetic confirmation of an ACVR1 mutation (e.g. R206H)',
-      },
-      { payer: 'Aetna', status: 'review', notes: 'Policy under review. Verify coverage before treatment.', documentation: '' },
-    ],
+// The two demo drugs' launch details, so the demo doesn't need live typing.
+// Real: names, application numbers, VYKOURA's J0644 from Oct 1, 2026 (CMS
+// October 2026 files, "Added October 2026"). Derived: Pasatru's $180/mg is
+// ~$54,000 per 300 mg vial, from its reported ~$1.4M/year list price;
+// VYKOURA's $2.55/mg is Medicare's $2.625/mg limit less the up-to-3% add-on.
+// Sample, not verified: distributors and insurer policies.
+const EXAMPLES = {
+  pasatru: {
+    drugName: 'Pasatru',
+    applicationId: 'BLA761508',
+    launch: {
+      ...EMPTY_LAUNCH,
+      pricePerMg: '180',
+      distributors: 'ASD Healthcare, McKesson Specialty Health',
+      // No expected code: CMS hasn't assigned one (the earliest realistic
+      // date is Apr 1, 2027), so Pasatru stays on J3590 for now.
+      coverage: [
+        { payer: 'Medicare', status: 'covered', notes: 'Covered for approved uses per LCD. No prior authorization required.', documentation: '' },
+        {
+          payer: 'BCBS',
+          status: 'prior_auth',
+          notes: 'Prior authorization required before first dose. Requires documented FOP diagnosis with genetic confirmation of an ACVR1 mutation.',
+          documentation: 'Genetic confirmation of an ACVR1 mutation (e.g. R206H)',
+        },
+        { payer: 'Aetna', status: 'review', notes: 'Policy under review. Verify coverage before treatment.', documentation: '' },
+      ],
+    },
+  },
+  vykoura: {
+    drugName: 'Vykoura',
+    applicationId: 'NDA220406',
+    launch: {
+      ...EMPTY_LAUNCH,
+      pricePerMg: '2.55',
+      distributors: 'McKesson Specialty Health, Cardinal Health Specialty Solutions',
+      code: 'J0644',
+      codeType: 'permanent',
+      codeUnit: '1 MG',
+      codeFrom: '2026-10-01',
+      genericCode: 'J3490',
+      coverage: [
+        {
+          payer: 'Medicare',
+          status: 'covered',
+          notes: 'Covered for FDA-approved uses, including with fluorouracil for metastatic colorectal cancer.',
+          documentation: '',
+        },
+        {
+          payer: 'BCBS',
+          status: 'prior_auth',
+          notes: 'Prior authorization required. Generic leucovorin is preferred; document why it can’t be used.',
+          documentation: 'Reason generic leucovorin can’t be used',
+        },
+        { payer: 'Aetna', status: 'review', notes: 'Policy under review. Verify coverage before treatment.', documentation: '' },
+      ],
+    },
   },
 }
 
@@ -65,9 +100,10 @@ const EXAMPLE = {
 function toLaunchPayload(f) {
   const launch = {}
   if (f.approvalDate) launch.approval_date = f.approvalDate
-  if (f.listPrice) launch.list_price_per_vial = Number(f.listPrice)
+  if (f.pricePerMg) launch.list_price_per_mg = Number(f.pricePerMg)
   const distributors = f.distributors.split(',').map((d) => d.trim()).filter(Boolean)
   if (distributors.length) launch.distributors = distributors
+  if (f.genericCode.trim()) launch.generic_code = f.genericCode.trim()
   if (f.code.trim() && f.codeUnit.trim() && f.codeFrom) {
     launch.expected_code = {
       code: f.code.trim(),
@@ -98,7 +134,7 @@ function launchProblem(f) {
   const codeParts = [f.code.trim(), f.codeUnit.trim(), f.codeFrom].filter(Boolean).length
   if (codeParts > 0 && codeParts < 3) return 'Fill in the expected code, its billing unit and the date it takes effect (or leave all three empty).'
   if (f.approvalDate && f.codeFrom && f.codeFrom <= f.approvalDate) return 'The expected code must take effect after the approval date.'
-  if (f.listPrice && !(Number(f.listPrice) > 0)) return 'The list price must be a positive number.'
+  if (f.pricePerMg && !(Number(f.pricePerMg) > 0)) return 'The list price must be a positive number.'
   return ''
 }
 
@@ -135,10 +171,11 @@ function DrugMaker({ onSubmit, isSubmitting, results, saveResult }) {
       coverage: prev.coverage.map((row, i) => (i === index ? { ...row, [field]: e.target.value } : row)),
     }))
 
-  const fillExample = () => {
-    setDrugName(EXAMPLE.drugName)
-    setApplicationId(EXAMPLE.applicationId)
-    setLaunch(EXAMPLE.launch)
+  const fillExample = (key) => {
+    const example = EXAMPLES[key]
+    setDrugName(example.drugName)
+    setApplicationId(example.applicationId)
+    setLaunch(example.launch)
   }
 
   const handleSubmit = (e) => {
@@ -153,9 +190,14 @@ function DrugMaker({ onSubmit, isSubmitting, results, saveResult }) {
         title="Drug"
         description="The brand name as CMS lists it, and the FDA application number."
         actions={
-          <Button variant="ghost" size="sm" onClick={fillExample} disabled={isSubmitting}>
-            Fill example
-          </Button>
+          <>
+            <Button variant="ghost" size="sm" onClick={() => fillExample('pasatru')} disabled={isSubmitting}>
+              Fill Pasatru
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => fillExample('vykoura')} disabled={isSubmitting}>
+              Fill Vykoura
+            </Button>
+          </>
         }
       >
         <form className={styles.form} onSubmit={handleSubmit}>
@@ -184,17 +226,17 @@ function DrugMaker({ onSubmit, isSubmitting, results, saveResult }) {
           <fieldset className={styles.section} disabled={isSubmitting}>
             <legend className={styles.sectionTitle}>Launch details</legend>
             <p className={styles.sectionHint}>
-              What only you know at launch. Practices see it in their “Can my practice use this?” check. Leave it empty
-              to only refresh the FDA and CMS data.
+              What only you know at launch. Practices see it in their “Can my practice use this?” check. The label,
+              vial sizes, approval date and current billing code are pulled from FDA and CMS automatically.
             </p>
             <div className={styles.row}>
               <label className={styles.field}>
-                <span className={styles.label}>FDA approval date</span>
-                <input type="date" value={launch.approvalDate} onChange={setField('approvalDate')} />
+                <span className={styles.label}>List price per mg ($)</span>
+                <input type="number" min="0" step="0.01" placeholder="e.g. 180" value={launch.pricePerMg} onChange={setField('pricePerMg')} />
               </label>
               <label className={styles.field}>
-                <span className={styles.label}>List price per vial ($)</span>
-                <input type="number" min="0" step="0.01" placeholder="e.g. 1850" value={launch.listPrice} onChange={setField('listPrice')} />
+                <span className={styles.label}>Approval date (only to override FDA’s)</span>
+                <input type="date" value={launch.approvalDate} onChange={setField('approvalDate')} />
               </label>
             </div>
             <label className={styles.field}>
@@ -206,13 +248,13 @@ function DrugMaker({ onSubmit, isSubmitting, results, saveResult }) {
           <fieldset className={styles.section} disabled={isSubmitting}>
             <legend className={styles.sectionTitle}>Expected billing code</legend>
             <p className={styles.sectionHint}>
-              The product-specific code CMS is expected to assign. Until it takes effect, the drug bills under a generic
-              code from the approval date.
+              Only if CMS has assigned or is expected to assign the drug its own code. Until it takes effect, the drug
+              bills under a generic code from the approval date. Leave empty if no code is known yet.
             </p>
             <div className={styles.row}>
               <label className={styles.field}>
                 <span className={styles.label}>Code</span>
-                <input type="text" className="mono" placeholder="e.g. J0289" value={launch.code} onChange={setField('code')} />
+                <input type="text" className="mono" placeholder="e.g. J0644" value={launch.code} onChange={setField('code')} />
               </label>
               <label className={styles.field}>
                 <span className={styles.label}>Kind</span>
@@ -232,6 +274,16 @@ function DrugMaker({ onSubmit, isSubmitting, results, saveResult }) {
                 <input type="date" value={launch.codeFrom} onChange={setField('codeFrom')} />
               </label>
             </div>
+            <label className={styles.field}>
+              <span className={styles.label}>Billed before that under (optional)</span>
+              <input
+                type="text"
+                className="mono"
+                placeholder="Generic code, e.g. J3490. Blank uses the usual rule."
+                value={launch.genericCode}
+                onChange={setField('genericCode')}
+              />
+            </label>
           </fieldset>
 
           <fieldset className={styles.section} disabled={isSubmitting}>
