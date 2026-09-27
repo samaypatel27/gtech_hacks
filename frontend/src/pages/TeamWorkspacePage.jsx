@@ -20,11 +20,7 @@ const ROLE_LABEL = {
 }
 
 // Doctor's overview board: one column per staff role, in this order.
-const ROLE_COLUMNS = [
-  { role: 'front_desk', kinds: ['purchasing', 'receiving'] },
-  { role: 'nurse', kinds: ['nurse_setup'] },
-  { role: 'biller', kinds: ['billing_setup'] },
-]
+const ROLE_COLUMNS = ['front_desk', 'nurse', 'biller']
 
 const KIND_ORDER = ['purchasing', 'receiving', 'nurse_setup', 'billing_setup']
 
@@ -35,10 +31,14 @@ const KIND_ORDER = ['purchasing', 'receiving', 'nurse_setup', 'billing_setup']
 // (inputs.board_status) instead of status, so it never touches that constraint.
 // Green is reserved for the drop-target highlight -- columns have no color
 // identity of their own otherwise.
+//
+// `droppable` is what staff are allowed to move a card INTO: To Do and
+// Complete only. Awaiting is display-only -- a card already sitting there can
+// still be moved out of it, but nothing can be dropped back in.
 const BOARD_COLUMNS = [
-  { key: 'todo', label: 'To Do' },
-  { key: 'awaiting', label: 'Awaiting' },
-  { key: 'done', label: 'Complete' },
+  { key: 'todo', label: 'To Do', droppable: true },
+  { key: 'awaiting', label: 'Awaiting', droppable: false },
+  { key: 'done', label: 'Complete', droppable: true },
 ]
 
 function columnOf(key) {
@@ -51,6 +51,34 @@ function boardStatusOf(task) {
   return 'todo'
 }
 
+// Two demo cards on the doctor's overview so both states of the completion
+// seal are visible while the rest of the task pipeline is still being built.
+// Client-side only: never sent to or read from Supabase, and `id` is a string
+// (real task ids are bigints) so these can never collide with a real row or be
+// mistaken for one by a PATCH.
+const SYNTHETIC_DOCTOR_TASKS = [
+  {
+    id: 'synthetic-nurse',
+    role: 'nurse',
+    kind: 'synthetic',
+    title: 'Infusion chair scheduled',
+    instruction:
+      'Chair time is blocked for the first infusion and the pump settings have been confirmed against the label. Vitals cadence and the post-infusion observation window are on the chair notes.',
+    status: 'done',
+    inputs: { board_status: 'done' },
+  },
+  {
+    id: 'synthetic-biller',
+    role: 'biller',
+    kind: 'synthetic',
+    title: 'Prior authorization filed',
+    instruction:
+      'Submit the prior-authorization packet to the payer with the diagnosis code, the dosing plan and the distributor invoice attached. Track the reference number so the first claim can cite it.',
+    status: 'todo',
+    inputs: {},
+  },
+]
+
 // ─── Column header ────────────────────────────────────────────────────────────
 
 function ColumnHeader({ children }) {
@@ -61,32 +89,7 @@ function ColumnHeader({ children }) {
   )
 }
 
-// ─── Doctor's read-only task card ─────────────────────────────────────────────
-
-/**
- * A single task on the doctor's overview. Read-only: shows the task's current
- * board column as a label. `locked` (front desk's Receiving, before
- * Purchasing is done) dims it and replaces the instruction text with why.
- */
-function TaskCard({ task, locked }) {
-  return (
-    <div
-      className={`rounded-lg border border-white/10 bg-white/[0.03] p-4 ${locked ? 'opacity-40' : ''}`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-[14px] font-semibold leading-snug text-white/90">{task.title}</p>
-        <span className="shrink-0 text-[11px] font-semibold tracking-wide text-white/40 uppercase">
-          {columnOf(boardStatusOf(task)).label}
-        </span>
-      </div>
-      <p className="mt-2 text-[13px] leading-[1.6] text-white/50">
-        {locked ? 'Waiting on: Purchasing' : task.instruction}
-      </p>
-    </div>
-  )
-}
-
-// ─── Staff board card ─────────────────────────────────────────────────────────
+// ─── Card parts ───────────────────────────────────────────────────────────────
 
 function GripIcon() {
   return (
@@ -120,12 +123,45 @@ function LockIcon() {
 }
 
 /**
- * What's printed on a staff card -- shared by the card in its column and the
- * copy that follows the pointer during a drag. `column` drives the edge color
- * and the struck-through "done" title, so the dragged copy can preview the
- * column it's hovering over.
+ * The doctor's completion indicator, in the same top-right slot the staff
+ * board puts its drag grip. It reads as a rubber stamp: an empty dashed slot
+ * waiting to be stamped, or a stamped emerald seal once the task has reached
+ * the final column. Same footprint either way, so cards stay the same shape.
  */
-function CardFace({ task, column, locked }) {
+function CompletionSeal({ done }) {
+  return (
+    <span
+      className={
+        done
+          ? 'flex h-7 w-7 -rotate-12 items-center justify-center rounded-full border-2 border-emerald-300/70 bg-emerald-400/15 shadow-[0_0_16px_-3px_rgba(52,211,153,0.9)]'
+          : 'flex h-7 w-7 items-center justify-center rounded-full border-2 border-dashed border-white/20'
+      }
+    >
+      {done ? (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 16 16"
+          className="h-4 w-4 fill-none stroke-emerald-200 stroke-[2.4] [stroke-linecap:round] [stroke-linejoin:round]"
+        >
+          <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
+        </svg>
+      ) : (
+        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-white/20" />
+      )}
+      <span className="sr-only">{done ? 'Complete' : 'Not complete'}</span>
+    </span>
+  )
+}
+
+/**
+ * What's printed inside every card on both boards -- the staff card in its
+ * column, the copy that follows the pointer during a drag, and the doctor's
+ * read-only card. `column` drives the struck-through "done" title, so a
+ * dragged copy can preview the column it's hovering over. `accessory` is the
+ * top-right slot: a drag grip or lock for staff, a completion seal for the
+ * doctor.
+ */
+function CardFace({ task, column, locked, accessory }) {
   const done = column === 'done'
 
   return (
@@ -138,7 +174,7 @@ function CardFace({ task, column, locked }) {
         >
           {task.title}
         </p>
-        <div className="mt-0.5 shrink-0">{locked ? <LockIcon /> : <GripIcon />}</div>
+        <div className="mt-0.5 shrink-0">{accessory}</div>
       </div>
 
       {/* Long instructions scroll inside the card instead of stretching it. */}
@@ -201,40 +237,82 @@ function BoardCard({ task, column, locked, state, onPressStart, onKeyMove, onLan
       className={`${CARD_BASE} ${skin}`}
     >
       <div className={state === 'ghost' ? 'invisible' : ''}>
-        <CardFace task={task} column={column} locked={locked} />
+        <CardFace
+          task={task}
+          column={column}
+          locked={locked}
+          accessory={locked ? <LockIcon /> : <GripIcon />}
+        />
       </div>
+    </div>
+  )
+}
+
+/**
+ * The same card, on the doctor's overview: no drag, no focus, no keyboard
+ * move -- the doctor reads the board rather than working it. The completion
+ * seal stands in for the column position the staff board gets for free.
+ */
+function DoctorCard({ task, locked }) {
+  const column = boardStatusOf(task)
+
+  return (
+    <div className={`${CARD_BASE} ${CARD_GLASS} ${locked ? 'opacity-50' : ''}`}>
+      <CardFace
+        task={task}
+        column={column}
+        locked={locked}
+        accessory={<CompletionSeal done={column === 'done'} />}
+      />
     </div>
   )
 }
 
 // ─── Boards ───────────────────────────────────────────────────────────────────
 
-/** Doctor's overarching view: every role's tasks, read-only, side by side. */
-function DoctorBoard({ byKind, purchasingDone }) {
+/**
+ * Doctor's overarching view: every task, grouped into one column per staff
+ * role, read-only. Each column also carries any synthetic demo cards for that
+ * role (see SYNTHETIC_DOCTOR_TASKS).
+ */
+function DoctorBoard({ tasks, purchasingDone }) {
   return (
     <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-      {ROLE_COLUMNS.map(({ role, kinds }) => {
-        const roleTasks = kinds
-          .map((k) => byKind[k])
-          .filter(Boolean)
-          .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind))
+      {ROLE_COLUMNS.map((role) => {
+        const roleTasks = [
+          ...tasks
+            .filter((t) => t.role === role)
+            .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind)),
+          ...SYNTHETIC_DOCTOR_TASKS.filter((t) => t.role === role),
+        ]
 
         return (
-          <div key={role} className="rounded-xl border border-white/10 bg-white/[0.025] px-5 py-5">
-            <ColumnHeader>{ROLE_LABEL[role]}</ColumnHeader>
-            {roleTasks.length === 0 ? (
-              <p className="text-[13px] text-white/30">No tasks.</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {roleTasks.map((task) => (
-                  <TaskCard
+          <div
+            key={role}
+            className="flex min-h-[380px] flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm"
+          >
+            <div className="mb-4 flex items-center gap-2">
+              <ColumnHeader>{ROLE_LABEL[role]}</ColumnHeader>
+              <span className="mb-4 ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/60">
+                {roleTasks.length}
+              </span>
+            </div>
+
+            <div className="flex flex-1 flex-col gap-3">
+              {roleTasks.length === 0 ? (
+                <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-white/10 text-[12px] text-white/30">
+                  Nothing here
+                </div>
+              ) : (
+                roleTasks.map((task) => (
+                  <DoctorCard
                     key={task.id}
                     task={task}
                     locked={task.kind === 'receiving' && !purchasingDone}
                   />
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
         )
       })}
@@ -266,7 +344,7 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
 
   const commitMove = useCallback(
     (task, from, to) => {
-      if (!to || to === from) return
+      if (!to || to === from || !columnOf(to).droppable) return
       onMove(task, to)
       setLandingId(task.id)
       setAnnouncement(`Moved ${task.title} to ${columnOf(to).label}.`)
@@ -307,8 +385,11 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
   }
 
   function handleKeyMove(task, column, dir) {
-    const idx = BOARD_COLUMNS.findIndex((c) => c.key === column)
-    const target = BOARD_COLUMNS[idx + dir]
+    // Step over any column that can't be dropped into, so To Do <-> Complete
+    // is one keypress in each direction rather than stopping at Awaiting.
+    let i = BOARD_COLUMNS.findIndex((c) => c.key === column) + dir
+    while (BOARD_COLUMNS[i] && !BOARD_COLUMNS[i].droppable) i += dir
+    const target = BOARD_COLUMNS[i]
     if (!target) return
     commitMove(task, column, target.key)
     // The card re-mounts in its new column; keep keyboard focus on it.
@@ -327,7 +408,10 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
       if (!d.active && moved <= DRAG_THRESHOLD) return
       // The floating copy is pointer-events-none, so this hits the column beneath it.
       const hit = document.elementFromPoint(e.clientX, e.clientY)
-      const over = hit?.closest('[data-board-column]')?.getAttribute('data-board-column') ?? null
+      const under = hit?.closest('[data-board-column]')?.getAttribute('data-board-column') ?? null
+      // Hovering a column staff can't drop into reads the same as hovering
+      // nothing: no highlight, and releasing there leaves the card put.
+      const over = under && columnOf(under)?.droppable ? under : null
       setDragState({ ...d, active: true, x: e.clientX, y: e.clientY, over })
     }
 
@@ -374,19 +458,22 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
   return (
     <>
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {BOARD_COLUMNS.map(({ key, label }) => {
+        {BOARD_COLUMNS.map(({ key, label, droppable }) => {
           const isTarget = dragging && drag.over === key && key !== drag.from
+          // Mid-drag, a column that can't take the card recedes so the two
+          // that can are the only live targets on screen.
+          const isInert = dragging && !droppable && key !== drag.from
           const cards = grouped[key]
 
           return (
             <div
               key={key}
               data-board-column={key}
-              className={`flex min-h-[380px] flex-col rounded-2xl border p-4 backdrop-blur-sm transition-[background-color,border-color,box-shadow] duration-200 ${
+              className={`flex min-h-[380px] flex-col rounded-2xl border p-4 backdrop-blur-sm transition-[background-color,border-color,box-shadow,opacity] duration-200 ${
                 isTarget
                   ? 'border-emerald-400/70 bg-emerald-500/20 shadow-[0_0_0_1px_rgba(52,211,153,0.45),0_0_48px_-12px_rgba(52,211,153,0.55)]'
                   : 'border-white/10 bg-white/[0.03]'
-              }`}
+              } ${isInert ? 'opacity-40' : ''}`}
             >
               <div className="mb-4 flex items-center gap-2">
                 <p
@@ -619,7 +706,8 @@ function TeamWorkspacePage() {
       {role ? (
         <>
           <p className="mt-1.5 text-[13px] text-white/40">
-            Drag a card to another column to move it. A focused card also moves with the ← → keys.
+            Drag a card between To Do and Complete, or move a focused card with the ← → keys.
+            Awaiting is read-only.
           </p>
           {moveError && (
             <p role="alert" className="mt-3 text-[13px] text-amber-200/90">
@@ -629,7 +717,7 @@ function TeamWorkspacePage() {
           <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
         </>
       ) : (
-        <DoctorBoard byKind={byKind} purchasingDone={purchasingDone} />
+        <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
       )}
     </div>
   )
