@@ -13,6 +13,15 @@ from core.task_rules import PAGE_COMPLETED_KINDS, raise_if_waiting, waiting_on_l
 router = APIRouter()
 
 
+@router.delete("/api/practice-drugs/{practice_drug_id}")
+def delete_practice_drug(practice_drug_id: int):
+    """Delete a workspace outright (cascades to its tasks and treatments)."""
+    response = supabase.table("practice_drugs").delete().eq("id", practice_drug_id).execute()
+    if not response.data:
+        raise HTTPException(status_code=404, detail=f"No practice_drugs row found for id {practice_drug_id}")
+    return {"deleted": practice_drug_id}
+
+
 @router.get("/api/practice-drugs/{practice_drug_id}/tasks")
 def get_practice_drug_tasks(practice_drug_id: int):
     """Return tasks plus the full practice_drug context and a drug summary,
