@@ -1,0 +1,257 @@
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 0 12px 12px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--topbar-height);
+  padding: 0 8px;
+}
+
+.context {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 16px;
+  padding: 10px 8px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.roleLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.roleDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.practiceName {
+  padding-left: 16px;
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  transition:
+    background-color var(--duration) ease-out,
+    color var(--duration) ease-out;
+}
+
+.navItem:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navItemActive,
+.navItemActive:hover {
+  background: var(--brand-subtle);
+  color: var(--brand);
+}
+
+.sidebarFooter {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.drawerClose,
+.menuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.drawerClose:hover,
+.menuButton:hover {
+  background: var(--bg-subtle);
+}
+
+/* ── Top bar + content ───────────────────────────────────────────────── */
+
+.column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--topbar-height);
+  padding: 0 32px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.breadcrumbs {
+  min-width: 0;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.breadcrumbs li + li::before {
+  content: '/';
+  color: var(--border-strong);
+}
+
+.breadcrumbs a {
+  color: var(--text-secondary);
+}
+
+.breadcrumbs a:hover {
+  color: var(--text-primary);
+}
+
+.crumbCurrent {
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.content {
+  width: 100%;
+  max-width: 1280px;
+  padding: 28px 32px 48px;
+}
+
+.scrim {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    width: min(280px, 85vw);
+    transform: translateX(-100%);
+    transition: transform 160ms ease-out;
+  }
+
+  .sidebarOpen {
+    transform: none;
+    box-shadow: var(--shadow-overlay);
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(21, 24, 30, 0.3);
+  }
+
+  .drawerClose,
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .content {
+    padding: 20px 16px 40px;
+  }
+}
+
+@media print {
+  .shell {
+    display: block;
+  }
+
+  .sidebar,
+  .topbar,
+  .scrim {
+    display: none;
+  }
+
+  .content {
+    max-width: none;
+    padding: 0;
+  }
+}

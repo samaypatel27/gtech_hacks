@@ -1,11 +1,26 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import BackButton from '../components/BackButton/BackButton.jsx'
+import AppShell from '../components/AppShell/AppShell.jsx'
+import PageHeader from '../components/PageHeader/PageHeader.jsx'
+import Panel from '../components/Panel/Panel.jsx'
 import Button from '../components/Button/Button.jsx'
+import Badge from '../components/Badge/Badge.jsx'
+import Alert from '../components/Alert/Alert.jsx'
+import Spinner from '../components/Spinner/Spinner.jsx'
 import { fetchTreatment, savePreparation, saveAdministration } from '../api/treatments.js'
 import styles from './TreatmentRecordPage.module.css'
 
 const todayIso = () => new Date().toISOString().slice(0, 10)
+
+function Field({ label, hint, children }) {
+  return (
+    <label className={styles.field}>
+      <span className={styles.fieldLabel}>{label}</span>
+      {children}
+      {hint && <span className={styles.hint}>{hint}</span>}
+    </label>
+  )
+}
 
 // Nurse's treatment record (ProductSpec2 Step 10): prefilled from the order,
 // two sections -- Preparation (vials, lot, waste -> JW/JZ) and Administration
@@ -90,141 +105,123 @@ function TreatmentRecordPage() {
     }
   }
 
+  const breadcrumbs = [
+    { label: 'Workspaces', to: '/staff/nurse' },
+    { label: treatment?.patient?.name ?? `Treatment ${treatmentId}` },
+  ]
+
   if (loading) {
     return (
-      <div className={styles.page}>
-        <div className={styles.container}>
-          <BackButton to="/staff/nurse" inline />
-          <p className={styles.status}>Loading treatment…</p>
-        </div>
-      </div>
+      <AppShell role="nurse" breadcrumbs={breadcrumbs}>
+        <Spinner label="Loading treatment…" />
+      </AppShell>
     )
   }
 
   if (loadError || !treatment) {
     return (
-      <div className={styles.page}>
-        <div className={styles.container}>
-          <BackButton to="/staff/nurse" inline />
-          <p className={styles.status}>Could not load treatment: {loadError ?? 'not found'}</p>
-        </div>
-      </div>
+      <AppShell role="nurse" breadcrumbs={breadcrumbs}>
+        <Alert tone="danger" title="Could not load treatment">
+          {loadError ?? 'Not found'}
+        </Alert>
+      </AppShell>
     )
   }
 
   const { patient, drug, dose, vial_mix: vialMix, preparation, administration } = treatment
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <BackButton to="/staff/nurse" inline />
+    <AppShell role="nurse" breadcrumbs={breadcrumbs}>
+      <PageHeader
+        title="Treatment record"
+        meta={
+          <>
+            <span>{patient?.name}</span>
+            <span>{drug?.brand_name}</span>
+            {dose?.amount != null && (
+              <span className="mono">
+                {dose.amount} {dose.unit ?? 'mg'} ordered
+              </span>
+            )}
+            {vialMix?.vials != null && (
+              <span className="mono">
+                {vialMix.vials} × {vialMix.vial_size_mg} mg planned
+              </span>
+            )}
+          </>
+        }
+      />
 
-        <div className={styles.panel}>
-          <h1 className={styles.title}>{drug?.brand_name ?? 'Treatment record'}</h1>
-        <p className={styles.meta}>
-          {patient?.name}
-          {dose?.amount != null ? ` · ${dose.amount} ${dose.unit ?? 'mg'} ordered` : null}
-          {vialMix?.vials != null ? ` · ${vialMix.vials} × ${vialMix.vial_size_mg} mg planned` : null}
-        </p>
-
-        <section className={styles.section}>
-          <span className={styles.label}>Preparation</span>
+      <div className={styles.stack}>
+        <Panel
+          title="Preparation"
+          description="Prefilled from the order. Change anything that differs from what you drew."
+          actions={preparation ? <Badge tone="success">Saved</Badge> : null}
+        >
           <div className={styles.fieldRow}>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Vials used</span>
-              <input
-                type="number"
-                min="0"
-                className={styles.input}
-                value={vialsUsed}
-                onChange={(e) => setVialsUsed(e.target.value)}
-              />
-            </label>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Lot number</span>
-              <input
-                type="text"
-                className={styles.input}
-                value={lotNumber}
-                onChange={(e) => setLotNumber(e.target.value)}
-              />
-            </label>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Waste (mg)</span>
-              <input
-                type="number"
-                min="0"
-                className={styles.input}
-                value={wasteMg}
-                onChange={(e) => setWasteMg(e.target.value)}
-              />
-            </label>
+            <Field label="Vials used">
+              <input type="number" min="0" className="mono" value={vialsUsed} onChange={(e) => setVialsUsed(e.target.value)} />
+            </Field>
+            <Field label="Lot number">
+              <input type="text" className="mono" value={lotNumber} onChange={(e) => setLotNumber(e.target.value)} />
+            </Field>
+            <Field label="Waste (mg)" hint="Drawn but not given.">
+              <input type="number" min="0" className="mono" value={wasteMg} onChange={(e) => setWasteMg(e.target.value)} />
+            </Field>
           </div>
-          <Button className={styles.saveButton} onClick={handleSavePrep} disabled={savingPrep}>
-            {savingPrep ? 'Saving…' : 'Save preparation'}
-          </Button>
-          {prepError && <p className={styles.error}>{prepError}</p>}
-          {preparation?.jw_jz && (
-            <p className={styles.resultLine}>
-              Modifier: <strong>{preparation.jw_jz}</strong>
-              {preparation.waste_mg != null ? ` (${preparation.waste_mg} mg discarded)` : ''}
-            </p>
-          )}
-        </section>
+          <div className={styles.footer}>
+            <Button variant="primary" onClick={handleSavePrep} disabled={savingPrep}>
+              {savingPrep ? 'Saving…' : 'Save preparation'}
+            </Button>
+            {preparation?.jw_jz && (
+              <p className={styles.result}>
+                Waste modifier <Badge mono tone="brand">{preparation.jw_jz}</Badge>
+                {preparation.waste_mg != null && <span className={styles.muted}>{preparation.waste_mg} mg discarded</span>}
+              </p>
+            )}
+          </div>
+          {prepError && <Alert tone="danger" className={styles.alert}>{prepError}</Alert>}
+        </Panel>
 
-        <section className={styles.section}>
-          <span className={styles.label}>Administration</span>
-          <p className={styles.dosCallout}>
-            The date of service decides which billing code applies once the permanent code
-            arrives — set it to the day the drug is actually given.
-          </p>
+        <Panel
+          title="Administration"
+          actions={administration ? <Badge tone="success">Saved</Badge> : null}
+        >
+          <Alert tone="info" className={styles.dosNote}>
+            The date of service decides which billing code applies once the permanent code arrives. Use the day the drug
+            is actually given.
+          </Alert>
           <div className={styles.fieldRow}>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Date of service</span>
-              <input
-                type="date"
-                className={styles.input}
-                value={dateOfService}
-                onChange={(e) => setDateOfService(e.target.value)}
-              />
-            </label>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Start time</span>
-              <input
-                type="time"
-                className={styles.input}
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </label>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Stop time</span>
-              <input
-                type="time"
-                className={styles.input}
-                value={stopTime}
-                onChange={(e) => setStopTime(e.target.value)}
-              />
-            </label>
+            <Field label="Date of service">
+              <input type="date" value={dateOfService} onChange={(e) => setDateOfService(e.target.value)} />
+            </Field>
+            <Field label="Start time">
+              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </Field>
+            <Field label="Stop time">
+              <input type="time" value={stopTime} onChange={(e) => setStopTime(e.target.value)} />
+            </Field>
           </div>
-          <Button
-            className={styles.saveButton}
-            onClick={handleSaveAdmin}
-            disabled={savingAdmin || !startTime || !stopTime}
-          >
-            {savingAdmin ? 'Saving…' : 'Save administration'}
-          </Button>
-          {adminError && <p className={styles.error}>{adminError}</p>}
-          {administration?.admin_codes && (
-            <p className={styles.resultLine}>
-              Administration code: <strong>{administration.admin_codes.join(' + ')}</strong>
-            </p>
-          )}
-        </section>
+          <div className={styles.footer}>
+            <Button variant="primary" onClick={handleSaveAdmin} disabled={savingAdmin || !startTime || !stopTime}>
+              {savingAdmin ? 'Saving…' : 'Save administration'}
+            </Button>
+            {administration?.admin_codes && (
+              <p className={styles.result}>
+                Administration codes
+                {administration.admin_codes.map((code) => (
+                  <Badge key={code} mono tone="brand">
+                    {code}
+                  </Badge>
+                ))}
+              </p>
+            )}
+          </div>
+          {adminError && <Alert tone="danger" className={styles.alert}>{adminError}</Alert>}
+        </Panel>
       </div>
-    </div>
-  </div>
-)
+    </AppShell>
+  )
 }
 
 export default TreatmentRecordPage
