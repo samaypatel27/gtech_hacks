@@ -1,0 +1,95 @@
+.loading {
+  padding: 24px 20px;
+}
+
+.muted {
+  color: var(--text-tertiary);
+}
+
+.primaryLink {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.primaryLink:hover {
+  color: var(--brand);
+}
+
+.secondary {
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.secondaryCell {
+  color: var(--text-secondary);
+}
+
+.route {
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.codeCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition:
+    background-color var(--duration) ease-out,
+    color var(--duration) ease-out;
+}
+
+.pin:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.pin:disabled {
+  cursor: wait;
+}
+
+.pinned {
+  color: var(--brand);
+}
+
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progressTrack {
+  position: relative;
+  width: 96px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-subtle);
+  overflow: hidden;
+}
+
+.progressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--brand);
+}
+
+.progressText {
+  font-family: var(--font-code);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}

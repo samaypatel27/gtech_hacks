@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import BackButton from '../components/BackButton/BackButton.jsx'
+import AppShell from '../components/AppShell/AppShell.jsx'
+import PageHeader from '../components/PageHeader/PageHeader.jsx'
+import Panel from '../components/Panel/Panel.jsx'
 import Button from '../components/Button/Button.jsx'
-import AuthStatus from '../components/AuthStatus/AuthStatus.jsx'
+import Badge from '../components/Badge/Badge.jsx'
+import Alert from '../components/Alert/Alert.jsx'
+import Spinner from '../components/Spinner/Spinner.jsx'
+import DetailList from '../components/DetailList/DetailList.jsx'
+import Icon from '../components/Icon/Icon.jsx'
 import { useAuthSession } from '../lib/useAuthSession.js'
+import { formatDate, formatDateTime } from '../lib/format.js'
 import {
   fetchPatient,
   savePatientNote,
@@ -75,23 +82,20 @@ function PatientChartPage() {
   // Re-runs the documentation check against whatever note is saved right now
   // -- this is the "editing the note live flips a check" demo moment
   // (ProductSpec2 Step 9's demo note).
-  const refreshChecks = useCallback(
-    async (treatmentId) => {
-      if (!treatmentId) return
-      setChecking(true)
-      setCheckError(null)
-      try {
-        const result = await runDocCheck(treatmentId)
-        setChecks(result.checks ?? [])
-        setDraftText(result.draft_text ?? '')
-      } catch (err) {
-        setCheckError(err.message)
-      } finally {
-        setChecking(false)
-      }
-    },
-    [],
-  )
+  const refreshChecks = useCallback(async (treatmentId) => {
+    if (!treatmentId) return
+    setChecking(true)
+    setCheckError(null)
+    try {
+      const result = await runDocCheck(treatmentId)
+      setChecks(result.checks ?? [])
+      setDraftText(result.draft_text ?? '')
+    } catch (err) {
+      setCheckError(err.message)
+    } finally {
+      setChecking(false)
+    }
+  }, [])
 
   const handleNoteChange = (value) => {
     setNote(value)
@@ -141,146 +145,166 @@ function PatientChartPage() {
 
   if (authLoading || !email) return null
 
+  const breadcrumbs = [
+    practiceDrugId
+      ? { label: 'Workspace', to: `/doctor/workspace/${practiceDrugId}` }
+      : { label: 'Workspaces', to: '/doctor/drugs?view=workspaces' },
+    { label: patient?.name ?? 'Patient' },
+  ]
+
   if (loading) {
     return (
-      <div className={styles.page}>
-        <div className={styles.header}>
-          <BackButton to="/doctor/drugs" inline />
-        </div>
-        <div className={styles.layout}>
-          <p className={styles.status}>Loading patient…</p>
-        </div>
-      </div>
+      <AppShell role="doctor" breadcrumbs={breadcrumbs}>
+        <Spinner label="Loading patient…" />
+      </AppShell>
     )
   }
 
   if (loadError || !patient) {
     return (
-      <div className={styles.page}>
-        <div className={styles.header}>
-          <BackButton to="/doctor/drugs" inline />
-        </div>
-        <div className={styles.layout}>
-          <p className={styles.status}>Could not load patient: {loadError ?? 'not found'}</p>
-        </div>
-      </div>
+      <AppShell role="doctor" breadcrumbs={breadcrumbs}>
+        <Alert tone="danger" title="Could not load patient">
+          {loadError ?? 'Not found'}
+        </Alert>
+      </AppShell>
     )
   }
 
   const allChecksPassed = checks && checks.length > 0 && checks.every((c) => c.passed)
+  const passedCount = checks ? checks.filter((c) => c.passed).length : 0
   const dose = treatment?.dose
   const vialMix = treatment?.vial_mix
+  const isSigned = signed || treatment?.status === 'signed'
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <BackButton to="/doctor/drugs" inline />
-        <AuthStatus inline />
-      </div>
+    <AppShell role="doctor" breadcrumbs={breadcrumbs}>
+      <PageHeader
+        title={patient.name}
+        badges={isSigned ? <Badge tone="success">Order signed</Badge> : treatment ? <Badge tone="brand">Order in progress</Badge> : null}
+        meta={
+          <>
+            {patient.dob && <span>DOB {formatDate(patient.dob)}</span>}
+            {patient.weight_kg && <span className="mono">{patient.weight_kg} kg</span>}
+            {patient.insurance && <span>{patient.insurance}</span>}
+          </>
+        }
+      />
 
       <div className={styles.layout}>
         <div className={styles.main}>
-          <h1 className={styles.title}>{patient.name}</h1>
-          <p className={styles.meta}>
-            {patient.dob ? `DOB ${patient.dob}` : null}
-            {patient.weight_kg ? ` · ${patient.weight_kg} kg` : null}
-            {patient.diagnosis ? ` · ${patient.diagnosis}` : null}
-          </p>
-          <p className={styles.meta}>
-            {patient.insurance ? `${patient.insurance}` : 'No insurer on file'}
-            {patient.member_id ? ` · Member ID ${patient.member_id}` : null}
-          </p>
+          <Panel title="Patient">
+            <DetailList
+              items={[
+                { label: 'Diagnosis', value: patient.diagnosis },
+                { label: 'Insurer', value: patient.insurance ?? 'No insurer on file' },
+                { label: 'Member ID', value: patient.member_id, mono: true },
+                { label: 'Weight', value: patient.weight_kg ? `${patient.weight_kg} kg` : null },
+              ]}
+            />
+          </Panel>
 
-          <div className={styles.noteSection}>
-            <span className={styles.label}>Visit note</span>
+          <Panel title="Visit note" description="Saves automatically as you type.">
             <textarea
               className={styles.noteArea}
               value={note}
               onChange={(e) => handleNoteChange(e.target.value)}
               placeholder="Paste or type the visit note…"
               rows={14}
+              aria-label="Visit note"
             />
-          </div>
+          </Panel>
 
-          {!treatment ? (
-            <>
-              <Button className={styles.primaryButton} onClick={handleNewOrder} disabled={ordering}>
-                {ordering ? 'Calculating dose…' : 'New Order'}
-              </Button>
-              {orderError && <p className={styles.error}>{orderError}</p>}
-            </>
-          ) : (
-            <div className={styles.orderSummary}>
-              <span className={styles.label}>Order</span>
-              <p className={styles.doseLine}>
-                {dose?.amount != null ? `${dose.amount} ${dose.unit ?? 'mg'}` : '—'}
-                {vialMix?.vials != null &&
-                  ` · ${vialMix.vials} × ${vialMix.vial_size_mg} mg`}
-                {vialMix?.waste_mg != null && ` · ${vialMix.waste_mg} mg waste`}
-              </p>
-
-              {signed || treatment.status === 'signed' ? (
-                <p className={styles.signedNote}>Signed{treatment.signed_at ? ` at ${treatment.signed_at}` : ''}.</p>
-              ) : (
-                <>
-                  <Button
-                    className={styles.primaryButton}
-                    onClick={handleSign}
-                    disabled={signing || !allChecksPassed}
-                  >
-                    {signing ? 'Signing…' : 'Sign order'}
+          <Panel title="Order">
+            {!treatment ? (
+              <div className={styles.stack}>
+                <p className={styles.muted}>
+                  Calculates the dose from the patient's weight and the least-waste vial combination.
+                </p>
+                <div>
+                  <Button variant="primary" onClick={handleNewOrder} disabled={ordering}>
+                    {ordering ? 'Calculating dose…' : 'New order'}
                   </Button>
-                  {!allChecksPassed && checks && (
-                    <p className={styles.hint}>
-                      Ready for typical payer requirements once every item below is checked.
-                    </p>
-                  )}
-                  {signError && <p className={styles.error}>{signError}</p>}
-                </>
-              )}
-            </div>
-          )}
+                </div>
+                {orderError && <Alert tone="danger">{orderError}</Alert>}
+              </div>
+            ) : (
+              <div className={styles.stack}>
+                <DetailList
+                  items={[
+                    { label: 'Dose', value: dose?.amount != null ? `${dose.amount} ${dose.unit ?? 'mg'}` : null, mono: true },
+                    {
+                      label: 'Vials',
+                      value: vialMix?.vials != null ? `${vialMix.vials} × ${vialMix.vial_size_mg} mg` : null,
+                      mono: true,
+                    },
+                    { label: 'Waste', value: vialMix?.waste_mg != null ? `${vialMix.waste_mg} mg` : null, mono: true },
+                  ]}
+                />
+
+                {isSigned ? (
+                  <Alert tone="success" title="Order signed">
+                    {treatment.signed_at ? `Signed ${formatDateTime(treatment.signed_at)}. ` : ''}
+                    Your team's tasks for this patient are now on the board.
+                  </Alert>
+                ) : (
+                  <div className={styles.signRow}>
+                    <Button variant="primary" onClick={handleSign} disabled={signing || !allChecksPassed}>
+                      {signing ? 'Signing…' : 'Sign order'}
+                    </Button>
+                    {!allChecksPassed && checks && (
+                      <p className={styles.muted}>Available once every documentation item is met.</p>
+                    )}
+                  </div>
+                )}
+                {signError && <Alert tone="danger">{signError}</Alert>}
+              </div>
+            )}
+          </Panel>
         </div>
 
-        {treatment && (
-          <aside className={styles.sidebar}>
-            <span className={styles.label}>Documentation for payers</span>
-            {checking && <p className={styles.status}>Checking…</p>}
-            {checkError && <p className={styles.error}>{checkError}</p>}
+        <aside className={styles.sidebar}>
+          <Panel
+            title="Documentation for payers"
+            description={checks ? `${passedCount} of ${checks.length} met` : 'Runs once an order exists.'}
+            actions={checking ? <Spinner /> : null}
+          >
+            {!treatment && <p className={styles.muted}>Create an order to check the note against payer requirements.</p>}
+            {checkError && <Alert tone="danger">{checkError}</Alert>}
             {checks && (
               <ul className={styles.checkList}>
                 {checks.map((check) => (
                   <li key={check.id} className={styles.checkItem}>
-                    <span className={check.passed ? styles.checkDot : `${styles.checkDot} ${styles.checkDotFail}`}>
-                      {check.passed ? '✓' : '✗'}
+                    <span className={`${styles.checkIcon} ${check.passed ? styles.pass : styles.fail}`}>
+                      <Icon name={check.passed ? 'check' : 'close'} size={12} />
+                      <span className="sr-only">{check.passed ? 'Met' : 'Missing'}</span>
                     </span>
                     <div className={styles.checkBody}>
-                      <p className={styles.checkLabel}>{check.label}</p>
-                      {check.quote && <p className={styles.checkQuote}>&ldquo;{check.quote}&rdquo;</p>}
+                      <p>{check.label}</p>
+                      {check.quote && <blockquote className={styles.quote}>{check.quote}</blockquote>}
                     </div>
                   </li>
                 ))}
               </ul>
             )}
             {draftText && (
-              <div className={styles.draftBox}>
-                <span className={styles.label}>Draft addition</span>
+              <div className={styles.draft}>
+                <p className={styles.draftLabel}>Suggested addition</p>
                 <p className={styles.draftText}>{draftText}</p>
                 <Button
-                  className={styles.secondaryButton}
+                  size="sm"
                   onClick={() => {
                     handleNoteChange(`${note}\n\n${draftText}`)
                     setDraftText('')
                   }}
                 >
-                  Approve &amp; add to note
+                  Approve and add to note
                 </Button>
               </div>
             )}
-          </aside>
-        )}
+          </Panel>
+        </aside>
       </div>
-    </div>
+    </AppShell>
   )
 }
 

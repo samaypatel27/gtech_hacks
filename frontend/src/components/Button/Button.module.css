@@ -1,36 +1,76 @@
-/* The one button look for the whole app: transparent, white 1px border,
-   white text. No primary/secondary variants -- every text button in the
-   app (drug maker launch/retry/reset, drug detail actions, home nav)
-   renders through this same class. */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  padding: 0 22px;
-  border-radius: 14px;
-  border: 1px solid #ffffff;
-  background: transparent;
-  color: #ffffff;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   font: inherit;
-  font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
   transition:
-    background 160ms ease,
-    opacity 160ms ease;
+    background-color var(--duration) ease-out,
+    border-color var(--duration) ease-out,
+    color var(--duration) ease-out;
 }
 
-.button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+.button:hover {
+  text-decoration: none;
 }
 
 .button:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+.md {
+  height: 36px;
+  padding: 0 14px;
+  font-size: var(--fs-base);
+}
+
+.sm {
+  height: 32px;
+  padding: 0 10px;
+  font-size: var(--fs-sm);
+}
+
+.primary {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--brand-hover);
+}
+
+.secondary {
+  background: var(--bg-surface);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--bg-subtle);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.danger {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.danger:hover:not(:disabled) {
+  background: #9a1d14;
 }

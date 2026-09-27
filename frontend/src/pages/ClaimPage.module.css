@@ -1,243 +1,236 @@
-.page {
-  min-height: 100vh;
-  width: 100%;
-  padding: 40px 24px 48px;
-  box-sizing: border-box;
+.layout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.checks {
+  position: sticky;
+  top: calc(var(--topbar-height) + 20px);
+}
+
+.checkList {
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-.topContainer {
-  width: 100%;
-  max-width: 720px;
-  margin: 0 auto 16px auto;
-  display: flex;
-  justify-content: flex-start;
-  box-sizing: border-box;
-}
-
-.status {
-  margin-top: 40px;
-  font-size: 14px;
-  color: rgba(240, 240, 245, 0.55);
-}
-
-.header {
-  width: 100%;
-  max-width: 720px;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.title {
+  gap: 12px;
   margin: 0;
-  font-size: clamp(20px, 2.6vw, 28px);
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  color: #f3f3f8;
+  padding: 0;
+  list-style: none;
 }
 
-.statusPill {
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  color: #d8b86a;
-  background: rgba(216, 184, 106, 0.12);
-  border: 1px solid rgba(216, 184, 106, 0.3);
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
 }
 
-.statusExported {
-  color: #7fd8a8;
-  background: rgba(127, 216, 168, 0.12);
-  border-color: rgba(127, 216, 168, 0.32);
+.pass {
+  background: var(--success-bg);
+  color: var(--success);
 }
+
+.fail {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.checkBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.checkMessage {
+  font-size: var(--fs-sm);
+  color: var(--danger);
+}
+
+.checkRow :global(button) {
+  margin-top: -6px;
+}
+
+.exportArea {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.full {
+  width: 100%;
+}
+
+.hint {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+/* ── The form ─────────────────────────────────────────────────────────── */
 
 .form {
-  width: 100%;
-  max-width: 720px;
-  padding: 32px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow:
-    0 24px 60px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  min-width: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.formHeader {
   display: flex;
-  flex-direction: column;
-  gap: 28px;
-  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.formTitle {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--brand-subtle);
+  border: 1px solid #c3dde2;
 }
 
 .section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  padding: 16px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 100px;
+}
+
+.section:last-child {
+  border-bottom: none;
 }
 
 .sectionTitle {
-  margin: 0;
-  font-size: 11.5px;
+  margin-bottom: 12px;
+  font-size: var(--fs-sm);
   font-weight: 600;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: #74748c;
+  letter-spacing: 0;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  border-radius: 12px;
-  padding: 10px 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   scroll-margin-top: 100px;
+  transition:
+    background-color 200ms ease-out,
+    box-shadow 200ms ease-out;
+}
+
+.wide {
+  grid-column: 1 / -1;
 }
 
 .fieldLabel {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.box {
+  font-family: var(--font-code);
   font-size: 11px;
-  color: #74748c;
+  color: var(--text-tertiary);
 }
 
 .fieldValue {
-  font-size: 15px;
-  color: #f0f0f5;
-  font-variant-numeric: tabular-nums;
+  width: fit-content;
+  max-width: 100%;
+  font-size: var(--fs-base);
+  overflow-wrap: anywhere;
 }
 
-/* A value the app computed rather than one entered directly. Hover shows a
-   native tooltip ("why this value") via the title attribute. */
+/* A value the app computed rather than one entered directly. */
 .generated {
-  padding: 2px 8px;
-  margin-left: -8px;
-  width: fit-content;
-  border-radius: 8px;
-  background: rgba(140, 150, 220, 0.14);
-  border: 1px solid rgba(140, 150, 220, 0.3);
+  padding: 1px 6px;
+  margin-left: -6px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-subtle);
   cursor: help;
 }
 
-.attachmentsNote {
-  margin: 0;
-  font-size: 13px;
-  color: #9a9ab0;
+.empty {
+  color: var(--text-tertiary);
 }
 
-.checkList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.highlighted {
+  background: var(--warning-bg);
+  box-shadow: inset 0 0 0 2px var(--warning);
 }
 
-.checkRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: #d8d8e0;
+.attachments {
+  color: var(--text-secondary);
 }
 
-.checkDot {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #0f1a12;
-  background: #7fd8a8;
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .checks {
+    position: static;
+  }
 }
 
-.checkDotFail {
-  color: #2a0f0f;
-  background: #e08b8b;
-}
-
-.checkLabel {
-  flex: 1;
-}
-
-.fixLink {
-  border: none;
-  background: none;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #d8b86a;
-  background: rgba(216, 184, 106, 0.12);
-  cursor: pointer;
-}
-
-.fixLink:hover {
-  background: rgba(216, 184, 106, 0.2);
-}
-
-.error {
-  margin: 0;
-  font-size: 13px;
-  color: #e08b8b;
-}
-
-.hint {
-  margin: 0;
-  font-size: 12.5px;
-  color: #9a9ab0;
-  text-align: right;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.secondaryLink {
-  font-size: 13px;
-  color: rgba(240, 240, 245, 0.55);
-  text-decoration: none;
-}
-
-.secondaryLink:hover {
-  color: #f0f0f5;
-}
-
-.exportButton {
-  min-width: 220px;
-}
-
-/* Printing to PDF (Export) should look like the claim, not the app chrome. */
+/* Printing to PDF (Export) should look like the claim, not the app. */
 @media print {
-  .printHide,
-  .actions,
-  .hint {
+  .checks,
+  .legend {
     display: none;
   }
 
+  .layout {
+    display: block;
+  }
+
   .form {
-    box-shadow: none;
     border: none;
-    backdrop-filter: none;
-    background: none;
   }
 }

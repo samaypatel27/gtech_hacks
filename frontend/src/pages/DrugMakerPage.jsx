@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import BackButton from '../components/BackButton/BackButton.jsx'
+import AppShell from '../components/AppShell/AppShell.jsx'
+import PageHeader from '../components/PageHeader/PageHeader.jsx'
 import DrugMaker from '../components/DrugMaker/DrugMaker.jsx'
 import {
   fetchFdaLabel,
@@ -8,7 +9,6 @@ import {
   fetchCmsHcpcsStatus,
   saveDrug,
 } from '../api/drugMaker.js'
-import styles from './DrugMakerPage.module.css'
 
 const cite = (field, citation) => ({ field, citation })
 
@@ -210,19 +210,13 @@ function DrugMakerPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <div className={styles.backRow}>
-          <BackButton inline />
-        </div>
-        <DrugMaker
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          results={results}
-          saveResult={saveResult}
-        />
-      </div>
-    </div>
+    <AppShell role="drug_maker" breadcrumbs={[{ label: 'Add drug' }]}>
+      <PageHeader
+        title="Add a drug"
+        meta="Pulls the FDA label, NDC packages and CMS billing status for a newly approved drug, then publishes it to practices."
+      />
+      <DrugMaker onSubmit={handleSubmit} isSubmitting={isSubmitting} results={results} saveResult={saveResult} />
+    </AppShell>
   )
 }
 

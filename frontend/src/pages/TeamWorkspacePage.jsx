@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, Navigate } from 'react-router-dom'
-import BackButton from '../components/BackButton/BackButton.jsx'
+import AppShell from '../components/AppShell/AppShell.jsx'
+import PageHeader from '../components/PageHeader/PageHeader.jsx'
+import Badge from '../components/Badge/Badge.jsx'
+import Alert from '../components/Alert/Alert.jsx'
+import Spinner from '../components/Spinner/Spinner.jsx'
+import Icon from '../components/Icon/Icon.jsx'
+import { ROLES } from '../lib/roles.js'
 import '../tailwind.css'
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -81,77 +87,32 @@ const SYNTHETIC_DOCTOR_TASKS = [
   },
 ]
 
-// ─── Column header ────────────────────────────────────────────────────────────
-
-function ColumnHeader({ children }) {
-  return (
-    <p className="mb-4 text-[11px] font-semibold tracking-widest text-white/40 uppercase">
-      {children}
-    </p>
-  )
-}
-
 // ─── Card parts ───────────────────────────────────────────────────────────────
 
-function GripIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 10 16"
-      className="h-4 w-2.5 fill-current text-white/30 transition-colors group-hover:text-violet-200"
-    >
-      {[3, 8, 13].map((cy) => (
-        <g key={cy}>
-          <circle cx="2" cy={cy} r="1.4" />
-          <circle cx="8" cy={cy} r="1.4" />
-        </g>
-      ))}
-    </svg>
-  )
+const COLUMN_BADGE = {
+  todo: { tone: 'neutral', label: 'To do' },
+  awaiting: { tone: 'brand', label: 'Awaiting' },
+  done: { tone: 'success', label: 'Done' },
 }
 
-function LockIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 16 16"
-      className="h-3.5 w-3.5 fill-none stroke-current text-white/50"
-      strokeWidth="1.6"
-    >
-      <rect x="3" y="7" width="10" height="7" rx="1.5" />
-      <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
-    </svg>
-  )
+const WORKSPACE_STATUS = {
+  considering: { label: 'Considering', tone: 'neutral' },
+  holding: { label: 'Holding', tone: 'neutral' },
+  adopting: { label: 'Setting up', tone: 'brand' },
+  active: { label: 'Ready to treat', tone: 'success' },
 }
 
-/**
- * The doctor's completion indicator, in the same top-right slot the staff
- * board puts its drag grip. It reads as a rubber stamp: an empty dashed slot
- * waiting to be stamped, or a stamped emerald seal once the task has reached
- * the final column. Same footprint either way, so cards stay the same shape.
- */
-function CompletionSeal({ done }) {
+function ColumnHeading({ label, count, dotColor, active = false }) {
   return (
-    <span
-      className={
-        done
-          ? 'flex h-7 w-7 -rotate-12 items-center justify-center rounded-full border-2 border-emerald-300/70 bg-emerald-400/15 shadow-[0_0_16px_-3px_rgba(52,211,153,0.9)]'
-          : 'flex h-7 w-7 items-center justify-center rounded-full border-2 border-dashed border-white/20'
-      }
-    >
-      {done ? (
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 16 16"
-          className="h-4 w-4 fill-none stroke-emerald-200 stroke-[2.4] [stroke-linecap:round] [stroke-linejoin:round]"
-        >
-          <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
-        </svg>
-      ) : (
-        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-white/20" />
-      )}
-      <span className="sr-only">{done ? 'Complete' : 'Not complete'}</span>
-    </span>
+    <div className="mb-3 flex items-center gap-2 px-1">
+      {dotColor && <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: dotColor }} />}
+      <p className={`text-xs font-medium tracking-[0.04em] uppercase ${active ? 'text-brand' : 'text-fg-muted'}`}>
+        {label}
+      </p>
+      <span className="ml-auto rounded-sm border border-line bg-surface px-1.5 font-mono text-xs leading-5 text-fg-muted">
+        {count}
+      </span>
+    </div>
   )
 }
 
@@ -170,8 +131,8 @@ function CardFace({ task, column, locked, accessory }) {
     <>
       <div className="flex items-start justify-between gap-3">
         <p
-          className={`text-[15px] leading-snug font-semibold ${
-            done ? 'text-white/55 line-through decoration-white/30' : 'text-white'
+          className={`text-sm leading-5 font-medium ${
+            done ? 'text-fg-subtle line-through decoration-line-strong' : 'text-fg'
           }`}
         >
           {task.title}
@@ -182,19 +143,17 @@ function CardFace({ task, column, locked, accessory }) {
       {/* Long instructions scroll inside the card instead of stretching it. */}
       <div
         data-card-scroll
-        className="card-scroll mt-2 max-h-28 touch-pan-y overflow-auto pr-1 text-[12.5px] leading-[1.6] text-white/60"
+        className="card-scroll mt-1.5 max-h-28 touch-pan-y overflow-auto pr-1 text-[13px] leading-5 text-fg-muted"
       >
-        {locked ? 'Waiting on: Purchasing' : task.instruction}
+        {locked ? 'Waiting on Purchasing (Front Desk).' : task.instruction}
       </div>
     </>
   )
 }
 
-const CARD_BASE = 'relative rounded-2xl border p-4 select-none outline-none'
+const CARD_BASE = 'relative rounded-md border p-3 select-none outline-none'
 
-const CARD_GLASS =
-  'border-white/20 bg-white/[0.035] backdrop-blur-xl ' +
-  'shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_24px_-12px_rgba(0,0,0,0.5)]'
+const CARD_SKIN = 'border-line bg-surface'
 
 /**
  * A staff card in its column. `state` is 'idle', 'ghost' (it's the card being
@@ -217,14 +176,13 @@ function BoardCard({ task, column, locked, frozen, state, onPressStart, onKeyMov
 
   let skin
   if (state === 'ghost') {
-    skin = 'border-dashed border-white/25 bg-white/[0.02]'
+    skin = 'border-dashed border-line-strong bg-subtle'
   } else if (frozen) {
-    skin = `${CARD_GLASS} cursor-not-allowed opacity-50`
+    skin = `${CARD_SKIN} cursor-not-allowed opacity-60`
   } else {
     skin =
-      `${CARD_GLASS} group cursor-grab touch-none transition-[transform,box-shadow,border-color] duration-200 ease-out ` +
-      'hover:border-white/70 hover:shadow-[0_12px_32px_rgba(0,0,0,0.5),0_0_0_2px_rgba(255,255,255,0.15)] ' +
-      'motion-safe:hover:-translate-y-0.5 focus-visible:border-white/80 focus-visible:ring-2 focus-visible:ring-white/30 ' +
+      `${CARD_SKIN} cursor-grab touch-none transition-colors duration-150 ease-out ` +
+      'hover:border-line-strong focus-visible:border-brand focus-visible:shadow-[0_0_0_2px_rgba(11,92,107,0.25)] ' +
       (state === 'landing' ? 'card-land' : '')
   }
 
@@ -250,7 +208,7 @@ function BoardCard({ task, column, locked, frozen, state, onPressStart, onKeyMov
           task={task}
           column={column}
           locked={locked}
-          accessory={frozen ? <LockIcon /> : <GripIcon />}
+          accessory={<Icon name={frozen ? 'lock' : 'grip'} className="text-fg-subtle" />}
         />
       </div>
     </div>
@@ -264,15 +222,11 @@ function BoardCard({ task, column, locked, frozen, state, onPressStart, onKeyMov
  */
 function DoctorCard({ task, locked }) {
   const column = boardStatusOf(task)
+  const badge = COLUMN_BADGE[column]
 
   return (
-    <div className={`${CARD_BASE} ${CARD_GLASS} ${locked ? 'opacity-50' : ''}`}>
-      <CardFace
-        task={task}
-        column={column}
-        locked={locked}
-        accessory={<CompletionSeal done={column === 'done'} />}
-      />
+    <div className={`${CARD_BASE} ${CARD_SKIN} ${locked ? 'opacity-60' : ''}`}>
+      <CardFace task={task} column={column} locked={locked} accessory={<Badge tone={badge.tone}>{badge.label}</Badge>} />
     </div>
   )
 }
@@ -286,7 +240,7 @@ function DoctorCard({ task, locked }) {
  */
 function DoctorBoard({ tasks, purchasingDone }) {
   return (
-    <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       {ROLE_COLUMNS.map((role) => {
         const roleTasks = [
           ...tasks
@@ -296,21 +250,13 @@ function DoctorBoard({ tasks, purchasingDone }) {
         ]
 
         return (
-          <div
-            key={role}
-            className="flex min-h-[380px] flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm"
-          >
-            <div className="mb-4 flex items-center gap-2">
-              <ColumnHeader>{ROLE_LABEL[role]}</ColumnHeader>
-              <span className="mb-4 ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/60">
-                {roleTasks.length}
-              </span>
-            </div>
+          <div key={role} className="flex min-h-32 flex-col lg:min-h-[380px] rounded-md border border-line bg-subtle p-3">
+            <ColumnHeading label={ROLE_LABEL[role]} count={roleTasks.length} dotColor={ROLES[role].color} />
 
-            <div className="flex flex-1 flex-col gap-3">
+            <div className="flex flex-1 flex-col gap-2">
               {roleTasks.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-white/10 text-[12px] text-white/30">
-                  Nothing here
+                <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-line-strong text-[13px] text-fg-subtle">
+                  No tasks
                 </div>
               ) : (
                 roleTasks.map((task) => (
@@ -471,7 +417,7 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
 
   return (
     <>
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {BOARD_COLUMNS.map(({ key, label, droppable }) => {
           const isTarget = dragging && drag.over === key && key !== drag.from
           // Mid-drag, a column that can't take the card recedes so the two
@@ -483,26 +429,13 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
             <div
               key={key}
               data-board-column={key}
-              className={`flex min-h-[380px] flex-col rounded-2xl border p-4 backdrop-blur-sm transition-[background-color,border-color,box-shadow,opacity] duration-200 ${
-                isTarget
-                  ? 'border-emerald-400/70 bg-emerald-500/20 shadow-[0_0_0_1px_rgba(52,211,153,0.45),0_0_48px_-12px_rgba(52,211,153,0.55)]'
-                  : 'border-white/10 bg-white/[0.03]'
-              } ${isInert ? 'opacity-40' : ''}`}
+              className={`flex min-h-32 flex-col lg:min-h-[380px] rounded-md border p-3 transition-[background-color,border-color,opacity] duration-150 ${
+                isTarget ? 'border-brand bg-brand-subtle' : 'border-line bg-subtle'
+              } ${isInert ? 'opacity-50' : ''}`}
             >
-              <div className="mb-4 flex items-center gap-2">
-                <p
-                  className={`text-[11px] font-semibold tracking-widest uppercase ${
-                    isTarget ? 'text-emerald-100' : 'text-white/60'
-                  }`}
-                >
-                  {label}
-                </p>
-                <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/60">
-                  {cards.length}
-                </span>
-              </div>
+              <ColumnHeading label={label} count={cards.length} active={isTarget} />
 
-              <div className="flex flex-1 flex-col gap-3">
+              <div className="flex flex-1 flex-col gap-2">
                 {cards.map((task) => {
                   const locked = task.kind === 'receiving' && !purchasingDone
                   // Every card rendered in the Awaiting column is frozen, not
@@ -531,13 +464,13 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
                 })}
 
                 {isTarget ? (
-                  <div className="flex min-h-20 items-center justify-center rounded-2xl border-2 border-dashed border-emerald-300/60 p-4 text-center text-[12px] font-medium text-emerald-100/90">
+                  <div className="flex min-h-20 items-center justify-center rounded-md border-2 border-dashed border-brand p-4 text-center text-[13px] font-medium text-brand">
                     Drop to move to {label}
                   </div>
                 ) : (
                   cards.length === 0 && (
-                    <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-white/10 text-[12px] text-white/30">
-                      Nothing here
+                    <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-line-strong text-[13px] text-fg-subtle">
+                      No tasks
                     </div>
                   )
                 )}
@@ -561,7 +494,7 @@ function StaffBoard({ role, tasks, purchasingDone, onMove }) {
             style={{ left: drag.x - drag.offsetX, top: drag.y - drag.offsetY, width: drag.width }}
           >
             <div
-              className={`${CARD_BASE} ${CARD_GLASS} border-violet-200/50 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8),0_0_0_1px_rgba(196,181,253,0.35)] motion-safe:scale-[1.04] motion-safe:rotate-[3deg]`}
+              className={`${CARD_BASE} border-brand bg-surface shadow-overlay`}
             >
               <CardFace task={drag.task} column={previewColumn} locked={false} />
             </div>
@@ -675,78 +608,66 @@ function TeamWorkspacePage() {
     }
   }
 
-  // Landing here from "Get my team ready" 's loading overlay (see
-  // DrugProfileDashboard.jsx) should read as the tail end of that fade, not
-  // a hard cut -- reuses the same fade-in-up keyframe (tailwind.css) other
-  // entrances in the app already use. motion-safe: only applies it when the
-  // user hasn't asked for reduced motion (see e.g. the drag preview above).
-  const FADE_IN = 'motion-safe:animate-[fade-in-up_320ms_ease-out_forwards]'
-
   // An unrecognized :role -- same treatment as StaffWorkspacesPage: send them
   // home rather than render a page whose back link points nowhere.
   if (role && !ROLE_LABEL[role]) return <Navigate to="/" replace />
 
-  // Staff came from their own role listing; the doctor came from the drug grid.
-  const backTo = role ? `/staff/${role}` : '/doctor/drugs'
+  // Staff came from their own role listing; the doctor came from the drug list.
+  const listCrumb = role
+    ? { label: 'Workspaces', to: `/staff/${role}` }
+    : { label: 'Workspaces', to: '/doctor/drugs?view=workspaces' }
+  const shellRole = role ?? 'doctor'
 
   if (isLoading) {
     return (
-      <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
-        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
-          <div className="pb-4">
-            <BackButton to={backTo} inline />
-          </div>
-          <p className="mt-10 text-[14px] text-white/35">Loading workspace&hellip;</p>
-        </div>
-      </div>
+      <AppShell role={shellRole} breadcrumbs={[listCrumb, { label: 'Loading…' }]}>
+        <Spinner label="Loading workspace…" />
+      </AppShell>
     )
   }
 
   if (error) {
     return (
-      <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
-        <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
-          <div className="pb-4">
-            <BackButton to={backTo} inline />
-          </div>
-          <p className="mt-10 text-[14px] text-white/35">Could not load workspace: {error}</p>
-        </div>
-      </div>
+      <AppShell role={shellRole} breadcrumbs={[listCrumb, { label: 'Error' }]}>
+        <Alert tone="danger" title="Could not load workspace">
+          {error}
+        </Alert>
+      </AppShell>
     )
   }
 
-  const { drug, tasks } = data
+  const { drug, tasks, practice_drug: practiceDrug } = data
   const allTasks = tasks ?? []
   const byKind = Object.fromEntries(allTasks.map((t) => [t.kind, t]))
   const purchasingDone = byKind.purchasing?.status === 'done'
+  const drugName = drug?.brand_name ?? 'Team workspace'
+  const status = WORKSPACE_STATUS[practiceDrug?.status]
 
   return (
-    <div className={`min-h-screen w-full px-4 py-8 sm:px-8 text-[#f0f0f5] ${FADE_IN}`}>
-      <div className="mx-auto w-full max-w-6xl p-2 sm:p-3">
-        <div className="pb-4">
-          <BackButton to={backTo} inline />
-        </div>
+    <AppShell role={shellRole} breadcrumbs={[listCrumb, { label: drugName }]}>
+      <PageHeader
+        title={drugName}
+        badges={status && <Badge tone={status.tone}>{status.label}</Badge>}
+        meta={
+          role
+            ? `Your ${ROLE_LABEL[role]} tasks. Drag a card between To Do and Complete, or focus it and use the arrow keys.`
+            : 'Every setup task, grouped by who owns it. Read-only.'
+        }
+      />
 
-        <div className="mb-8">
-          <h1 className="text-[clamp(22px,2.8vw,34px)] font-semibold leading-tight text-white">
-            {drug?.brand_name ?? 'Team workspace'}
-          </h1>
-        </div>
-
-        {role ? (
-          <>
-            {moveError && (
-              <p role="alert" className="mb-4 text-[13px] text-amber-200/90">
-                {moveError}
-              </p>
-            )}
-            <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
-          </>
-        ) : (
-          <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
-        )}
-      </div>
-    </div>
+      {role ? (
+        <>
+          {moveError && (
+            <Alert tone="warning" className="mb-4">
+              {moveError}
+            </Alert>
+          )}
+          <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
+        </>
+      ) : (
+        <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
+      )}
+    </AppShell>
   )
 }
 

@@ -1,30 +1,37 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import AppShell from '../AppShell/AppShell.jsx'
+import PageHeader from '../PageHeader/PageHeader.jsx'
+import Panel from '../Panel/Panel.jsx'
 import Button from '../Button/Button.jsx'
-import BackButton from '../BackButton/BackButton.jsx'
-import DrugVial from './DrugVial.jsx'
+import Badge from '../Badge/Badge.jsx'
+import Alert from '../Alert/Alert.jsx'
+import Spinner from '../Spinner/Spinner.jsx'
+import EmptyState from '../EmptyState/EmptyState.jsx'
+import DetailList from '../DetailList/DetailList.jsx'
+import Table from '../Table/Table.jsx'
 import LoadingOverlay from '../LoadingOverlay/LoadingOverlay.jsx'
 import { useAuthSession } from '../../lib/useAuthSession.js'
-import '../../tailwind.css'
-
+import { codeTimeline, daysLabel, formatDate, formatMoney } from '../../lib/format.js'
+import styles from './DrugProfileDashboard.module.css'
 
 const API_URL = import.meta.env.VITE_API_URL
 
-// "Get my team ready" transition timings: the whole screen fades out over
-// EXIT_MS, then the loading overlay holds for at least WORKSPACE_LOADING_MS
-// regardless of how fast the real request settles, then fades out over
-// EXIT_MS again before handing off to the workspace route.
-const EXIT_MS = 220
+// "Get my team ready" transition timings: the page fades out over EXIT_MS,
+// then the loading overlay holds for at least WORKSPACE_LOADING_MS however
+// fast the real request settles, then fades out before the workspace route.
+const EXIT_MS = 200
 const WORKSPACE_LOADING_MS = 3000
 
-const STATUS_COLORS = {
-  permanent: { css: '#34D399', hex: 0x34d399 },
-  generic: { css: '#FBBF24', hex: 0xfbbf24 },
-}
+const LIGHT_TONES = { green: 'success', yellow: 'warning', red: 'danger', gray: 'neutral' }
+const LIGHT_LABELS = { green: 'Ready', yellow: 'Needs attention', red: 'Blocked', gray: 'Unknown' }
 
-// Shared outer measurements so the loading, not-found, and real states all
-// line up: centered, max-w-6xl, with responsive edge padding matching the dashboard.
-const PAGE_CONTAINER = 'mx-auto w-full max-w-6xl px-4 sm:px-8'
+const LIGHTS = [
+  { key: 'coverage', title: 'Coverage' },
+  { key: 'billing_path', title: 'Billing path' },
+  { key: 'payment_timing', title: 'Payment timing' },
+  { key: 'workflow', title: 'Workflow' },
+]
 
 function usesReducedMotion() {
   return (
@@ -34,210 +41,201 @@ function usesReducedMotion() {
   )
 }
 
-function isEmptyValue(value) {
-  if (value === null || value === undefined || value === '') return true
-  if (Array.isArray(value)) return value.length === 0
-  if (typeof value === 'object') return Object.keys(value).length === 0
-  return false
+function yesNo(value) {
+  if (value === true) return 'Yes'
+  if (value === false) return 'No'
+  return null
 }
 
-// Never render the raw word "null" -- a muted em dash instead.
-function DashValue() {
+function humanize(field) {
+  return (field || '').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
+}
+
+function ReadinessPanel({ lights }) {
   return (
-    <span className="text-white/30" title="Not yet available">
-      &mdash;
-    </span>
+    <Panel title="Can my practice use this?" description="Checked against your practice's payers and capabilities.">
+      {!lights ? (
+        <p className={styles.muted}>Sign in with a practice account to see your practice's readiness.</p>
+      ) : (
+        <ul className={styles.lights}>
+          {LIGHTS.map(({ key, title }) => {
+            const light = lights[key]
+            if (!light) return null
+            return (
+              <li key={key} className={styles.light}>
+                <div className={styles.lightHead}>
+                  <span className={styles.lightTitle}>{title}</span>
+                  <Badge tone={LIGHT_TONES[light.color] ?? 'neutral'} dot>
+                    {LIGHT_LABELS[light.color] ?? 'Unknown'}
+                  </Badge>
+                </div>
+                <p className={styles.lightText}>{light.text}</p>
+                {light.sources?.length > 0 && (
+                  <p className={styles.lightSources}>Source: {light.sources.join(' · ')}</p>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </Panel>
   )
 }
 
-function FieldValue({ value }) {
-  if (isEmptyValue(value)) return <DashValue />
-  if (typeof value === 'boolean') return <span>{value ? 'Yes' : 'No'}</span>
-  if (Array.isArray(value)) {
-    const links = value.filter((item) => item && typeof item === 'object' && item.url)
-    if (links.length) {
-      return (
-        <span className="flex flex-wrap gap-3">
-          {links.map((item, i) => (
-            <a
-              key={item.url + i}
-              href={item.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-indigo-300 underline decoration-indigo-300/40 underline-offset-2 hover:text-indigo-200"
-            >
-              {item.title || item.description || `Source ${i + 1}`}
-            </a>
-          ))}
+function BillingCodePanel({ drug }) {
+  const { current, upcoming } = codeTimeline(drug)
+  const codes = [...(Array.isArray(drug.codes) ? drug.codes : [])].sort((a, b) =>
+    String(a.from).localeCompare(String(b.from)),
+  )
+
+  return (
+    <Panel title="Billing code">
+      <div className={styles.codeNow}>
+        {current.code ? (
+          <Badge tone={current.type === 'permanent' ? 'success' : 'warning'} mono className={styles.codeBadge}>
+            {current.code}
+          </Badge>
+        ) : (
+          <span className={styles.muted}>Not yet available</span>
+        )}
+        <span className={styles.muted}>
+          {current.type === 'permanent' ? 'Permanent HCPCS code' : 'Generic, not otherwise classified'}
         </span>
-      )
-    }
-    return (
-      <span>
-        {value.length} item{value.length === 1 ? '' : 's'}
-      </span>
-    )
-  }
-  if (typeof value === 'object') {
-    return (
-      <span>
-        {Object.keys(value).length} field{Object.keys(value).length === 1 ? '' : 's'}
-      </span>
-    )
-  }
-  return <span className="break-words">{String(value)}</span>
-}
+      </div>
 
-// A plain two-column table: label column fixed width, value column takes
-// the rest and wraps instead of overflowing. Stacks to one column on
-// narrow screens. If every field in the group is empty, the whole table
-// collapses to a single muted line instead of a wall of em dashes.
-function FieldGroup({ fields }) {
-  const allEmpty = fields.every((f) => isEmptyValue(f.value))
-  if (allEmpty) {
-    return <p className="text-[15px] text-white/40">Not yet available</p>
-  }
+      {upcoming && (
+        <Alert tone="info" className={styles.upcoming} title={`Switches to ${upcoming.code} ${daysLabel(upcoming.daysUntil)}`}>
+          Claims with a date of service on or after {formatDate(upcoming.from)} bill under{' '}
+          <span className="mono">{upcoming.code}</span>.
+        </Alert>
+      )}
 
-  return (
-    <div className="flex flex-col divide-y divide-white/[0.06]">
-      {fields.map((f) => (
-        <div
-          key={f.label}
-          className="grid grid-cols-1 gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[minmax(180px,32%)_1fr] sm:gap-6"
-        >
-          <span className="text-[14px] leading-[1.5] text-white/55">{f.label}</span>
-          <span
-            className={`min-w-0 text-[16px] leading-[1.5] break-words text-white/90 ${f.mono ? 'font-mono' : ''}`}
-          >
-            <FieldValue value={f.value} />
-          </span>
-        </div>
-      ))}
-    </div>
-  )
-}
+      {codes.length > 0 && (
+        <ol className={styles.timeline}>
+          {codes.map((c) => (
+            <li key={`${c.code}-${c.from}-${c.payer ?? 'all'}`} className={styles.timelineItem}>
+              <span className="mono">{c.code}</span>
+              <span className={styles.timelineMeta}>
+                {c.type === 'permanent' ? 'Permanent' : 'Generic'}
+                {c.payer ? ` · ${c.payer}` : ''} · {formatDate(c.from)}
+                {c.to ? ` – ${formatDate(c.to)}` : ' onward'}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
 
-function BackLink() {
-  return (
-    <div className="flex items-center pb-2">
-      <BackButton to="/doctor/drugs" inline />
-    </div>
-  )
-}
-
-function HeroPanel({ drug, entranceOn }) {
-  const isPermanent = Boolean(drug.has_permanent_code)
-  const status = isPermanent ? STATUS_COLORS.permanent : STATUS_COLORS.generic
-  const summary = `${drug.brand_name || 'Unknown drug'}, ${drug.generic_name || 'generic name not yet available'}, ${
-    drug.application_id
-  }, ${isPermanent ? 'permanent billing code' : 'awaiting permanent billing code'}`
-
-  return (
-    <section
-      aria-label={summary}
-      className={`sticky top-4 flex h-[min(70vh,560px)] min-h-0 min-w-0 max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm min-[900px]:h-full min-[900px]:max-h-none ${
-        entranceOn ? 'animate-[slide-in-left_320ms_ease-out_forwards]' : ''
-      }`}
-      style={{ opacity: entranceOn ? 0 : 1 }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: `radial-gradient(circle at 50% 40%, ${status.css}33, transparent 65%)` }}
-        aria-hidden="true"
+      <DetailList
+        items={[
+          { label: 'Cost per dose', value: drug.cost_per_dose != null ? formatMoney(drug.cost_per_dose) : null },
+          { label: 'Permanent code', value: drug.permanent_hcpcs_code, mono: true },
+          { label: 'Generic code', value: drug.generic_billing_code, mono: true },
+        ]}
       />
-
-      <div className="relative min-h-0 flex-1">
-        <DrugVial statusColor={status.css} statusColorHex={status.hex} />
-      </div>
-
-      <div className="relative flex shrink-0 flex-col items-center gap-2 text-center">
-        <h1 className="text-[clamp(22px,3vw,40px)] leading-tight font-semibold text-white">
-          {isEmptyValue(drug.brand_name) ? <DashValue /> : drug.brand_name}
-        </h1>
-        <p className="text-sm text-white/50">
-          {isEmptyValue(drug.generic_name) ? <DashValue /> : drug.generic_name}
-        </p>
-        <p className="font-mono text-xs text-white/40">{drug.application_id}</p>
-      </div>
-    </section>
+    </Panel>
   )
 }
 
-// Full-width underline directly under the heading text, spanning the
-// column edge to edge -- not a short underline hugging the text.
-function SectionHeading({ children }) {
+function ClinicalPanel({ drug }) {
+  const dose = drug.typical_adult_dose
   return (
-    <h2 className="block border-b border-white/15 pb-3 text-[18px] font-semibold tracking-[0.04em] text-white uppercase">
-      {children}
-    </h2>
+    <Panel title="Clinical details">
+      <DetailList
+        items={[
+          { label: 'Dosing', value: drug.dosing_formula },
+          { label: 'Typical adult dose', value: dose?.amount != null ? `${dose.amount} ${dose.unit ?? ''}`.trim() : null },
+          {
+            label: 'Infusion time',
+            value: drug.infusion_time_minutes != null ? `${drug.infusion_time_minutes} min` : null,
+          },
+          { label: 'Route', value: drug.route_of_administration },
+          { label: 'Storage', value: drug.storage_requirements },
+          { label: 'Preparation', value: drug.preparation_instructions },
+          { label: 'Single-dose vial', value: yesNo(drug.is_single_dose_vial) },
+          { label: 'Antineoplastic', value: yesNo(drug.is_antineoplastic) },
+        ]}
+      />
+    </Panel>
   )
 }
 
-// One section of the continuous document: a heading with its one rule,
-// an optional plain-text headline sentence, and a field table. Sections
-// are spaced apart (not boxed or separately bordered) -- see
-// `space-y-10` on the container that renders these.
-function DocumentSection({ title, headline, fields, delayMs, entranceOn }) {
+function ApprovedUsesPanel({ uses }) {
   return (
-    <section
-      className={entranceOn ? 'animate-[fade-in-up_280ms_ease-out_forwards]' : ''}
-      style={{ opacity: entranceOn ? 0 : 1, animationDelay: entranceOn ? `${delayMs}ms` : undefined }}
-    >
-      <SectionHeading>{title}</SectionHeading>
-      <div className="mt-4">
-        {headline && <p className="mb-3 text-[17px] leading-[1.5] font-medium text-white/90">{headline}</p>}
-        <FieldGroup fields={fields} />
-      </div>
-    </section>
+    <Panel title="Approved uses">
+      {!uses?.length ? (
+        <p className={styles.muted}>Not yet available.</p>
+      ) : (
+        <ul className={styles.uses}>
+          {uses.map((use, i) => (
+            <li key={i} className={styles.use}>
+              <p className={styles.useTitle}>{typeof use === 'string' ? use : use.approved_diagnosis}</p>
+              {use.prior_therapy && <p className={styles.useMeta}>Prior therapy: {use.prior_therapy}</p>}
+              {use.required_test_method && <p className={styles.useMeta}>Required test: {use.required_test_method}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   )
 }
 
-// Same two actions as the orphaned ConsideringDashboard.tsx mock -- the
-// only ones of the four spec'd actions that already exist anywhere in the
-// app. Uses the shared Button component, like every other button in the app.
-//
-// The team-ready request and the full-page transition around it now live in
-// the parent (DrugProfileDashboard), since the whole screen fades out on
-// click, not just this section -- this component just renders the button
-// off the `busy` flag the parent hands it.
-function ActionsSection({ email, busy, onGetTeamReady, delayMs, entranceOn }) {
+function PackagesPanel({ ndcs }) {
+  if (!ndcs?.length) return null
   return (
-    <section
-      className={entranceOn ? 'animate-[fade-in-up_280ms_ease-out_forwards]' : ''}
-      style={{ opacity: entranceOn ? 0 : 1, animationDelay: entranceOn ? `${delayMs}ms` : undefined }}
-    >
-      <SectionHeading>Actions</SectionHeading>
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <Button className="flex-1" onClick={onGetTeamReady} disabled={busy || !email}>
-          {busy ? 'Working\u2026' : 'Get my team ready'}
-        </Button>
-        <Button className="flex-1">Add patients to hold list</Button>
-      </div>
-    </section>
+    <Panel title="Packages" flush>
+      <Table>
+        <thead>
+          <tr>
+            <th>NDC (11-digit)</th>
+            <th>NDC (10-digit)</th>
+            <th>Description</th>
+            <th data-align="end">Strength</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ndcs.map((ndc, i) => (
+            <tr key={ndc.ndc_11 ?? ndc.ndc_10 ?? i}>
+              <td data-mono>{ndc.ndc_11 ?? '—'}</td>
+              <td data-mono>{ndc.ndc_10 ?? '—'}</td>
+              <td className={styles.muted}>{ndc.description || '—'}</td>
+              <td data-align="end" data-mono>
+                {ndc.strength_mg != null ? `${ndc.strength_mg} mg` : '—'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </Panel>
   )
 }
 
-function DashboardSkeleton() {
+function SourcesPanel({ citations }) {
+  if (!citations?.length) return null
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 gap-6 min-[900px]:grid-cols-[38%_62%]">
-      <div className="min-h-[280px] animate-pulse rounded-3xl border border-white/10 bg-white/5" />
-      <div className="flex min-h-0 min-w-0 flex-col gap-4 divide-y divide-white/10">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-2 py-4 first:pt-0">
-            <div className="h-3 w-32 animate-pulse rounded bg-white/10" />
-            <div className="h-3 w-full max-w-sm animate-pulse rounded bg-white/5" />
-            <div className="h-3 w-2/3 max-w-xs animate-pulse rounded bg-white/5" />
-          </div>
+    <Panel title="Sources">
+      <ul className={styles.sources}>
+        {citations.map((c, i) => (
+          <li key={i}>
+            {c.url ? (
+              <a href={c.url} target="_blank" rel="noreferrer">
+                {c.title || c.description || c.url}
+              </a>
+            ) : (
+              <>
+                {c.field && <span className={styles.sourceField}>{humanize(c.field)}</span>}
+                <span>{c.citation ?? String(c)}</span>
+              </>
+            )}
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </Panel>
   )
 }
 
-// Fetches the full drug profile for `applicationId` and renders it as a
-// single-screen hero (3D vial) + scrolling document layout. Owns its own
-// data-fetching (like DrugSearchGrid) rather than receiving `drug` as a
-// prop, so the page component just wires the route param through.
+// Fetches the full drug profile for `applicationId` (plus the practice's
+// readiness "lights") and renders it inside the doctor's app shell. Owns its
+// own data-fetching so the page component just wires the route param through.
 function DrugProfileDashboard({ applicationId }) {
   const [drug, setDrug] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -247,10 +245,10 @@ function DrugProfileDashboard({ applicationId }) {
   const { email } = useAuthSession()
   const navigate = useNavigate()
 
-  // "Get my team ready" transition: 'idle' (normal page) -> 'exiting' (page
-  // fading out) -> 'loading' (full-page spinner, request running in the
-  // background) -> 'overlay-exiting' (spinner fading out) -> navigate away.
+  // "Get my team ready" transition: 'idle' -> 'exiting' (page fading out) ->
+  // 'loading' (overlay, request running) -> 'overlay-exiting' -> navigate.
   const [phase, setPhase] = useState('idle')
+  const [teamError, setTeamError] = useState(null)
   const loadingStartRef = useRef(0)
 
   useEffect(() => {
@@ -281,11 +279,8 @@ function DrugProfileDashboard({ applicationId }) {
     }
   }, [applicationId])
 
-  // The personalized "can my practice use this?" answer -- same fetch
-  // pattern as the drug profile above, just a different (new) backend
-  // endpoint. Waits for the signed-in email since the lights are computed
-  // per-practice; every doctor reaching this page is signed in already
-  // (DoctorChoicePage gates on it), so `email` just means "session loaded".
+  // The personalized "can my practice use this?" answer, computed per
+  // practice, so it waits for the signed-in email.
   useEffect(() => {
     if (!email) return
     let cancelled = false
@@ -300,8 +295,8 @@ function DrugProfileDashboard({ applicationId }) {
         if (!cancelled && data) setLights(data.lights)
       })
       .catch(() => {
-        // No practice record yet, or the request failed -- the section
-        // just doesn't render rather than showing a broken state.
+        // No practice record yet, or the request failed -- the panel shows
+        // its signed-out message rather than a broken state.
       })
 
     return () => {
@@ -309,21 +304,18 @@ function DrugProfileDashboard({ applicationId }) {
     }
   }, [applicationId, email])
 
-  // "Get my team ready": the whole screen fades out, a full-page spinner
-  // holds for at least WORKSPACE_LOADING_MS while the real request runs in
-  // the background, then it fades out and the workspace route takes over.
-  // Reduced motion skips the fade delays (0ms) but keeps the fixed hold time.
   function handleGetTeamReady() {
     if (phase !== 'idle' || !email || !drug) return
-
-    const exitDelay = reducedMotion ? 0 : EXIT_MS
+    setTeamError(null)
     setPhase('exiting')
-
-    setTimeout(() => {
-      setPhase('loading')
-      loadingStartRef.current = Date.now()
-      runTeamReady()
-    }, exitDelay)
+    setTimeout(
+      () => {
+        setPhase('loading')
+        loadingStartRef.current = Date.now()
+        runTeamReady()
+      },
+      reducedMotion ? 0 : EXIT_MS,
+    )
   }
 
   async function runTeamReady() {
@@ -334,169 +326,102 @@ function DrugProfileDashboard({ applicationId }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, application_id: drug.application_id }),
       })
-      if (!consideringRes.ok) throw new Error('Could not find practice record')
+      if (!consideringRes.ok) throw new Error('Could not find your practice record.')
       const pd = await consideringRes.json()
 
       // Step 2: create the four tasks and advance status to adopting.
-      const teamRes = await fetch(`${API_URL}/api/practice-drugs/${pd.id}/team-ready`, {
-        method: 'POST',
-      })
-      if (!teamRes.ok) throw new Error('team-ready call failed')
+      const teamRes = await fetch(`${API_URL}/api/practice-drugs/${pd.id}/team-ready`, { method: 'POST' })
+      if (!teamRes.ok) throw new Error('Could not create the team workspace.')
 
-      // Always hold the loading screen for at least WORKSPACE_LOADING_MS,
-      // however fast the request actually was, then fade it out and hand
-      // off to the workspace route.
-      const elapsed = Date.now() - loadingStartRef.current
-      const remaining = Math.max(0, WORKSPACE_LOADING_MS - elapsed)
+      const remaining = Math.max(0, WORKSPACE_LOADING_MS - (Date.now() - loadingStartRef.current))
       setTimeout(() => {
-        const fadeOutDelay = reducedMotion ? 0 : EXIT_MS
         setPhase('overlay-exiting')
-        setTimeout(() => navigate(`/doctor/workspace/${pd.id}`), fadeOutDelay)
+        setTimeout(() => navigate(`/doctor/workspace/${pd.id}`), reducedMotion ? 0 : EXIT_MS)
       }, remaining)
-    } catch {
-      // Per spec: on failure the loading screen stays up (no fade back to
-      // the page) and the existing error handling runs as-is.
-      alert('Something went wrong. Please try again.')
+    } catch (err) {
+      setTeamError(`${err.message} Please try again.`)
+      setPhase('idle')
     }
   }
 
+  const breadcrumbs = [{ label: 'Drugs', to: '/doctor/drugs' }, { label: drug?.brand_name ?? applicationId }]
+
   if (phase === 'loading' || phase === 'overlay-exiting') {
-    return <LoadingOverlay message="Creating Workspace…" exiting={phase === 'overlay-exiting'} />
+    return <LoadingOverlay message="Creating workspace…" exiting={phase === 'overlay-exiting'} />
   }
 
   if (isLoading) {
     return (
-      <div className={`flex h-dvh w-full flex-col overflow-hidden py-6 text-[#f0f0f5] ${PAGE_CONTAINER}`}>
-        <BackLink />
-        <div className="mt-4 min-h-0 flex-1">
-          <DashboardSkeleton />
-        </div>
-      </div>
+      <AppShell role="doctor" breadcrumbs={breadcrumbs}>
+        <Spinner label="Loading drug…" />
+      </AppShell>
     )
   }
 
   if (notFound || !drug) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center gap-3 px-6 text-center text-[#f0f0f5]">
-        <p className="text-sm text-white/40">No drug found for</p>
-        <p className="font-mono text-lg">{applicationId}</p>
-        <div className="mt-4">
-          <BackLink />
-        </div>
-      </div>
+      <AppShell role="doctor" breadcrumbs={breadcrumbs}>
+        <Panel>
+          <EmptyState
+            title="Drug not found"
+            description={`No drug matches application ${applicationId}.`}
+            action={<Button to="/doctor/drugs">Back to drugs</Button>}
+          />
+        </Panel>
+      </AppShell>
     )
   }
 
-  const isPermanent = Boolean(drug.has_permanent_code)
-  const entranceOn = !reducedMotion
-  // Whole-screen fade-out while phase is 'exiting', ahead of the loading
-  // overlay taking over. Reduced motion skips the transition entirely
-  // (exitDelay is 0ms in handleGetTeamReady, so this barely renders anyway).
-  const exitClass =
-    phase === 'exiting'
-      ? reducedMotion
-        ? 'opacity-0'
-        : 'opacity-0 transition-opacity duration-[220ms] ease-out'
-      : ''
+  const meta = [drug.generic_name, drug.route_of_administration].filter(Boolean)
 
   return (
-    <div
-      className={`flex min-h-screen w-full flex-col overflow-visible py-4 text-[#f0f0f5] min-[900px]:h-dvh min-[900px]:overflow-hidden min-[900px]:py-6 ${PAGE_CONTAINER} ${exitClass}`}
-    >
-      <BackLink />
+    <AppShell role="doctor" breadcrumbs={breadcrumbs}>
+      <div className={phase === 'exiting' ? styles.exiting : undefined}>
+        <PageHeader
+          title={drug.brand_name || 'Unknown drug'}
+          meta={
+            <>
+              <span className="mono">{drug.application_id}</span>
+              {meta.map((m) => (
+                <span key={m}>{m}</span>
+              ))}
+            </>
+          }
+          actions={
+            <>
+              <Button variant="secondary">Add patients to hold list</Button>
+              <Button
+                variant="primary"
+                onClick={handleGetTeamReady}
+                disabled={phase !== 'idle' || !email}
+                title={email ? undefined : 'Sign in to create a team workspace'}
+              >
+                Get my team ready
+              </Button>
+            </>
+          }
+        />
 
-      <div className="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-6 min-[900px]:grid-cols-[38%_62%]">
-        <HeroPanel drug={drug} entranceOn={entranceOn} />
+        {teamError && (
+          <Alert tone="danger" className={styles.teamError}>
+            {teamError}
+          </Alert>
+        )}
 
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pr-2 sm:pr-4 [mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]">
-          <div className="flex flex-col space-y-10 pb-10">
-            <DocumentSection
-              title="Coverage"
-              headline={lights?.coverage?.text}
-              fields={[]}
-              delayMs={0}
-              entranceOn={entranceOn}
-            />
-            <DocumentSection
-              title="Billing Path"
-              headline={
-                lights?.billing_path?.text ||
-                (isPermanent
-                  ? `Permanent code ${drug.permanent_hcpcs_code || '—'}`
-                  : `Generic code ${drug.generic_billing_code || '—'}`)
-              }
-              fields={[
-                { label: 'Has Permanent Code', value: drug.has_permanent_code },
-                { label: 'Generic Billing Code', value: drug.generic_billing_code, mono: true },
-                { label: 'Permanent HCPCS Code', value: drug.permanent_hcpcs_code, mono: true },
-              ]}
-              delayMs={60}
-              entranceOn={entranceOn}
-            />
-            <DocumentSection
-              title="Payment Timing"
-              headline={
-                lights?.payment_timing?.text ||
-                (isEmptyValue(drug.cost_per_dose)
-                  ? 'Cost per dose not yet available'
-                  : `$${drug.cost_per_dose} per dose`)
-              }
-              fields={[{ label: 'Cost Per Dose', value: drug.cost_per_dose }]}
-              delayMs={120}
-              entranceOn={entranceOn}
-            />
-            <DocumentSection
-              title="Workflow Feasibility"
-              headline={
-                lights?.workflow?.text ||
-                [
-                  drug.route_of_administration,
-                  drug.infusion_time_minutes ? `${drug.infusion_time_minutes} min infusion` : null,
-                ]
-                  .filter((part) => !isEmptyValue(part))
-                  .join(', ') ||
-                'Workflow details not yet available'
-              }
-              fields={[
-                { label: 'Storage Requirements', value: drug.storage_requirements },
-                { label: 'Route of Administration', value: drug.route_of_administration },
-                { label: 'Infusion Time (minutes)', value: drug.infusion_time_minutes },
-              ]}
-              delayMs={180}
-              entranceOn={entranceOn}
-            />
-            <DocumentSection
-              title="Clinical Specifications"
-              fields={[
-                { label: 'Dosing Formula', value: drug.dosing_formula },
-                { label: 'Preparation Instructions', value: drug.preparation_instructions },
-                { label: 'Is Single Dose Vial', value: drug.is_single_dose_vial },
-              ]}
-              delayMs={240}
-              entranceOn={entranceOn}
-            />
-            <DocumentSection
-              title="Data References"
-              fields={[
-                { label: 'Approved Uses & Conditions', value: drug.approved_uses_and_conditions },
-                { label: 'NDCs', value: drug.ndcs },
-                { label: 'Citations', value: drug.citations },
-              ]}
-              delayMs={300}
-              entranceOn={entranceOn}
-            />
-
-            <ActionsSection
-              email={email}
-              busy={phase !== 'idle'}
-              onGetTeamReady={handleGetTeamReady}
-              delayMs={360}
-              entranceOn={entranceOn}
-            />
+        <div className={styles.grid}>
+          <div className={styles.mainCol}>
+            <ReadinessPanel lights={lights} />
+            <ClinicalPanel drug={drug} />
+            <ApprovedUsesPanel uses={drug.approved_uses_and_conditions} />
+            <PackagesPanel ndcs={drug.ndcs} />
+            <SourcesPanel citations={drug.citations} />
+          </div>
+          <div className={styles.sideCol}>
+            <BillingCodePanel drug={drug} />
           </div>
         </div>
       </div>
-    </div>
+    </AppShell>
   )
 }
 

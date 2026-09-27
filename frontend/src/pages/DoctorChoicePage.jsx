@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import BackButton from '../components/BackButton/BackButton.jsx'
+import AuthLayout from '../components/AuthLayout/AuthLayout.jsx'
+import Button from '../components/Button/Button.jsx'
+import Alert from '../components/Alert/Alert.jsx'
 import { signInWithGoogle } from '../lib/supabaseClient.js'
 import { useAuthSession } from '../lib/useAuthSession.js'
 import styles from './DoctorChoicePage.module.css'
@@ -31,32 +33,32 @@ function DoctorChoicePage() {
   }
 
   // Loading (session not yet known) or already signed in (redirect effect
-  // above is about to fire) -- render nothing rather than flash the cards.
+  // above is about to fire) -- render nothing rather than flash the form.
   if (loading || email) return null
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
-        <BackButton inline />
-        <h1 className={styles.title}>Doctor sign-in</h1>
-        <div className={styles.cards}>
-          <button
-            type="button"
-            className={styles.card}
-            onClick={handleSignIn}
-            disabled={isSigningIn}
-          >
-            <span className={styles.cardTitle}>{isSigningIn ? 'Redirecting…' : 'Sign In'}</span>
-            <span className={styles.cardBody}>Already registered? Continue with Google.</span>
-          </button>
-          <button type="button" className={styles.card} onClick={() => navigate('/sign-up')}>
-            <span className={styles.cardTitle}>Sign Up</span>
-            <span className={styles.cardBody}>New practice? Verify your NPI to get started.</span>
-          </button>
-        </div>
-        {error && <p className={styles.error}>{error}</p>}
+    <AuthLayout
+      backTo="/"
+      backLabel="All roles"
+      title="Sign in to your practice"
+      description="Doctors sign in with the Google account registered to their practice."
+    >
+      <div className={styles.actions}>
+        <Button variant="primary" onClick={handleSignIn} disabled={isSigningIn} className={styles.full}>
+          {isSigningIn ? 'Redirecting to Google…' : 'Continue with Google'}
+        </Button>
+        {error && <Alert tone="danger">{error}</Alert>}
       </div>
-    </div>
+
+      <div className={styles.divider} />
+
+      <div className={styles.signUp}>
+        <p className={styles.signUpText}>New practice? Verify your NPI to create an account.</p>
+        <Button variant="secondary" to="/sign-up" className={styles.full}>
+          Create practice account
+        </Button>
+      </div>
+    </AuthLayout>
   )
 }
 

@@ -6,15 +6,9 @@ import { clearCurrentPractice } from '../../lib/practiceSession.js'
 import { useAuthSession } from '../../lib/useAuthSession.js'
 import styles from './AuthStatus.module.css'
 
-// Pinned to the top-right of every doctor-facing page so sign-in state is
-// always visible. Fully self-contained (no props, owns its own state) so
-// "signed in" and "signed out" can never both render at once -- it's a
-// single if/else branch in one place rather than a rule each page has to
-// separately maintain.
-//
-// Pass `inline` to disable the fixed positioning (e.g. when placing it
-// inside a flex navbar).
-function AuthStatus({ inline = false }) {
+// The user menu in the app shell's top bar. Self-contained (owns its own
+// session state) so "signed in" and "signed out" can never both render.
+function AuthStatus() {
   const navigate = useNavigate()
   const { email, loading } = useAuthSession()
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -42,22 +36,25 @@ function AuthStatus({ inline = false }) {
   }
 
   return (
-    <div className={`${styles.wrap} ${inline ? styles.inline : ''}`.trim()}>
+    <div className={styles.wrap}>
+      {error && <span className={styles.error}>{error}</span>}
       {email ? (
         <>
+          <span className={styles.avatar} aria-hidden="true">
+            {email.charAt(0).toUpperCase()}
+          </span>
           <span className={styles.email} title={email}>
             {email}
           </span>
-          <Button onClick={handleSignOut} disabled={isSigningOut}>
-            {isSigningOut ? 'Signing out\u2026' : 'Sign Out'}
+          <Button variant="ghost" size="sm" onClick={handleSignOut} disabled={isSigningOut}>
+            {isSigningOut ? 'Signing out…' : 'Sign out'}
           </Button>
         </>
       ) : (
-        <Button onClick={handleSignIn} disabled={isSigningIn}>
-          {isSigningIn ? 'Redirecting\u2026' : 'Sign In'}
+        <Button variant="secondary" size="sm" onClick={handleSignIn} disabled={isSigningIn}>
+          {isSigningIn ? 'Redirecting…' : 'Sign in'}
         </Button>
       )}
-      {error && <span className={styles.error}>{error}</span>}
     </div>
   )
 }

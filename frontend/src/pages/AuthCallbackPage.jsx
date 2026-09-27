@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import AuthLayout from '../components/AuthLayout/AuthLayout.jsx'
+import Alert from '../components/Alert/Alert.jsx'
+import Button from '../components/Button/Button.jsx'
+import Spinner from '../components/Spinner/Spinner.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { fetchPracticeByEmail, savePractice } from '../api/practices.js'
 import { setCurrentPractice } from '../lib/practiceSession.js'
 import { takePendingSignUp } from '../lib/pendingSignUp.js'
-import styles from './AuthCallbackPage.module.css'
 
 // Where Google sends the browser back to after Supabase completes the
 // OAuth exchange. Two cases, distinguished by whether a sign-up was in
@@ -58,9 +61,20 @@ function AuthCallbackPage() {
   }, [navigate])
 
   return (
-    <div className={styles.page}>
-      {error ? <p className={styles.error}>{error}</p> : <p className={styles.status}>Signing you in…</p>}
-    </div>
+    <AuthLayout>
+      {error ? (
+        <>
+          <Alert tone="danger" title="Sign-in failed">
+            {error}
+          </Alert>
+          <Button variant="secondary" to="/doctor">
+            Back to sign in
+          </Button>
+        </>
+      ) : (
+        <Spinner label="Signing you in…" />
+      )}
+    </AuthLayout>
   )
 }
 
