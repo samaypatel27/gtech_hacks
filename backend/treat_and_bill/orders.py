@@ -13,6 +13,7 @@ from billing_rules import dose_for, vial_mix
 from core.auth import current_practice
 from core.db import supabase
 from core.lookups import fetch_drug, patient_name, patients_by_treatment, payer_policy
+from core.notify import notify
 from core.task_rules import waiting_on_labels
 from treat_and_bill.shared import (
     fetch_practice_patient,
@@ -262,6 +263,21 @@ def _create_patient_chain(treatment: dict, patient: dict, practice_drug: dict, d
                 "on this card (it goes in Box 23 of the claim).",
                 [],
             )
+        )
+        # The doctor hears about it too: payers often want the doctor's letter
+        # of medical necessity, and the dose can't be prepared until it's back.
+        notify(
+            practice_drug["practice_id"],
+            "prior_auth_needed",
+            f"{name} needs prior authorization from {policy['payer']}",
+            dedupe_key=f"prior_auth:{treatment['id']}",
+            body=(
+                f"{policy['payer']} requires prior authorization before {name}'s first dose of {brand}.{notes} "
+                "The biller has a card to submit it; the dose won't be prepared until it's approved."
+            ),
+            link=f"/doctor/workspace/{practice_drug['id']}",
+            application_id=practice_drug["application_id"],
+            treatment_id=treatment["id"],
         )
 
     in_stock = _stock_quantity(practice_drug)

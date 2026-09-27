@@ -6,7 +6,7 @@ import anthropic
 import httpx
 from fastapi import APIRouter, HTTPException
 
-from billing_rules import ndc_10_to_11
+from billing_rules import is_single_dose_package, ndc_10_to_11, vial_strength_mg
 from core.ai import claude
 
 router = APIRouter()
@@ -228,6 +228,10 @@ async def get_fda_ndc(application_number: str):
     route = ", ".join(sorted({route for r in results for route in r.get("route", [])}))
     ndcs = []
     for result in results:
+        # Vial strength needs a single active ingredient (a combination
+        # product's mg per vial is ambiguous); anything unreadable stays None.
+        ingredients = result.get("active_ingredients") or []
+        strength = ingredients[0].get("strength") if len(ingredients) == 1 else None
         for package in result.get("packaging", []):
             ndc_10 = package.get("package_ndc", "")
             try:
@@ -240,6 +244,8 @@ async def get_fda_ndc(application_number: str):
                     "ndc_11": ndc_11,
                     "description": package.get("description", ""),
                     "sample": bool(package.get("sample", False)),
+                    "strength_mg": vial_strength_mg(strength, package.get("description")),
+                    "single_dose": is_single_dose_package(package.get("description")),
                 }
             )
 

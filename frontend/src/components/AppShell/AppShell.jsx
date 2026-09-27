@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import Icon from '../Icon/Icon.jsx'
 import AuthStatus from '../AuthStatus/AuthStatus.jsx'
+import NotificationBell from '../NotificationBell/NotificationBell.jsx'
 import Brand from '../Brand/Brand.jsx'
 import { getCurrentPractice } from '../../lib/practiceSession.js'
 import { ROLES, STAFF_ROLES } from '../../lib/roles.js'
@@ -26,6 +27,12 @@ function navFor(role) {
         icon: 'workspaces',
         to: '/doctor/drugs?view=workspaces',
         isActive: (loc) => isWorkspacesView(loc) || loc.pathname.startsWith('/doctor/workspace'),
+      },
+      {
+        label: 'Patients',
+        icon: 'patients',
+        to: '/doctor/patients',
+        isActive: (loc) => loc.pathname.startsWith('/doctor/patients'),
       },
     ]
   }
@@ -143,7 +150,10 @@ function AppShell({ role, breadcrumbs, children }) {
             <Icon name="menu" />
           </button>
           <Breadcrumbs items={breadcrumbs} />
-          <div className={styles.topbarRight}>{role === 'doctor' && <AuthStatus />}</div>
+          <div className={styles.topbarRight}>
+            {role === 'doctor' && <NotificationBell />}
+            {role === 'doctor' && <AuthStatus />}
+          </div>
         </header>
         <main className={styles.content}>{children}</main>
       </div>

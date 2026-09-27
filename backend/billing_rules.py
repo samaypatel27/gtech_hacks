@@ -190,6 +190,40 @@ def ndc_10_to_11(ndc: str) -> str:
     return "-".join(segments)
 
 
+_STRENGTH = re.compile(r"([\d.]+)\s*(mcg|ug|mg|g)\s*/\s*([\d.]*)\s*(ml)?", re.IGNORECASE)
+_VIAL_VOLUME = re.compile(r"([\d.]+)\s*mL in 1 VIAL", re.IGNORECASE)
+
+
+def vial_strength_mg(strength: Optional[str], package_description: Optional[str]) -> Optional[float]:
+    """mg of drug in one vial, from openFDA's active-ingredient strength and
+    the package description. '20 mg/mL' with '5 mL in 1 VIAL' → 100; '100
+    mg/5mL' → 20 mg/mL, so 100 in a 5 mL vial; '150 mg/1' (a powder, per
+    vial) → 150. None when it can't be read (fill it in by hand)."""
+    match = _STRENGTH.fullmatch((strength or "").strip())
+    if not match:
+        return None
+    amount = _dec(match.group(1)) * _MG_PER_UNIT[match.group(2).lower()]
+    if not match.group(4):  # "150 mg/1": per vial (a powder), not per mL
+        return _num(amount) if match.group(3) == "1" else None
+
+    volumes = _VIAL_VOLUME.findall(package_description or "")
+    if not volumes:
+        return None
+    per_ml = amount / _dec(match.group(3) or 1)
+    return _num(per_ml * _dec(volumes[-1]))
+
+
+def is_single_dose_package(package_description: Optional[str]) -> Optional[bool]:
+    """True for 'VIAL, SINGLE-DOSE' / 'SINGLE-USE' packages, False for
+    multi-dose ones, None when the description doesn't say."""
+    text = (package_description or "").upper()
+    if "SINGLE-DOSE" in text or "SINGLE-USE" in text:
+        return True
+    if "MULTI-DOSE" in text:
+        return False
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Doses and units
 # ---------------------------------------------------------------------------

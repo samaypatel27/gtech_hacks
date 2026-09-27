@@ -7,7 +7,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from core.db import supabase
-from core.lookups import patient_name, patients_by_treatment
+from core.lookups import fetch_drug, patient_name, patients_by_treatment
+from core.notify import notify
 from core.task_rules import PAGE_COMPLETED_KINDS, raise_if_waiting, waiting_on_labels
 
 router = APIRouter()
@@ -84,6 +85,22 @@ def get_practice_drug_tasks(practice_drug_id: int):
     }
 
 
+def _notify_ready(practice_drug_id: int, practice_drug: dict) -> None:
+    """Tell the doctor the drug is ready to treat (once per workspace)."""
+    brand = fetch_drug(practice_drug["application_id"]).get("brand_name") or "The drug"
+    held = len(practice_drug.get("hold_list") or [])
+    waiting = f" {held} patient{'' if held == 1 else 's'} on your hold list can be ordered now." if held else ""
+    notify(
+        practice_drug["practice_id"],
+        "ready_to_treat",
+        f"{brand} is ready to treat",
+        dedupe_key=f"ready:{practice_drug_id}",
+        body=f"Every setup task is done and stock is on hand. Order a dose from a patient's chart.{waiting}",
+        link=f"/doctor/workspace/{practice_drug_id}",
+        application_id=practice_drug["application_id"],
+    )
+
+
 def _recalculate_readiness(practice_drug_id: int) -> None:
     """After any task update, check whether the workspace has reached 'active'.
     All setup (stage='prepare') tasks done AND stock_on_hand non-empty with total
@@ -101,7 +118,7 @@ def _recalculate_readiness(practice_drug_id: int) -> None:
     )
     pd_resp = (
         supabase.table("practice_drugs")
-        .select("status,stock_on_hand")
+        .select("status,stock_on_hand,practice_id,application_id,hold_list")
         .eq("id", practice_drug_id)
         .limit(1)
         .execute()
@@ -126,6 +143,7 @@ def _recalculate_readiness(practice_drug_id: int) -> None:
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
         ).eq("id", practice_drug_id).execute()
+        _notify_ready(practice_drug_id, practice_drug)
     elif practice_drug["status"] == "active" and not all_done:
         # A setup task was un-done — revert.
         supabase.table("practice_drugs").update(

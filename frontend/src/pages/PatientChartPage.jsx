@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell/AppShell.jsx'
 import PageHeader from '../components/PageHeader/PageHeader.jsx'
 import Panel from '../components/Panel/Panel.jsx'
@@ -18,6 +18,7 @@ import {
   runDocCheck,
   signTreatment,
 } from '../api/patients.js'
+import { fetchWorkspaces } from '../api/practices.js'
 import styles from './PatientChartPage.module.css'
 
 const NOTE_SAVE_DEBOUNCE_MS = 600
@@ -25,9 +26,40 @@ const NOTE_SAVE_DEBOUNCE_MS = 600
 // Doctor's patient chart (ProductSpec2 Steps 8-9): patient info, an editable
 // visit note, New Order, the documentation-check sidebar, and Sign. Gated
 // behind sign-in, same as the rest of /doctor/* (DoctorPage.jsx).
+const WORKSPACE_STATUS = { active: 'Ready to treat', adopting: 'Setting up', holding: 'Holding', considering: 'Considering' }
+
+// "Order for": which drug this order is for. Only drugs the practice has set
+// up ("Get my team ready") can be ordered; a drug still being set up can be
+// ordered too, and its missing stock shows up as a "Buy" card.
+function OrderFor({ workspaces, selected, locked, onSelect }) {
+  if (workspaces === null) return <Spinner label="Loading drugs…" />
+  if (locked) return null // opened from a workspace we can't list; the order still knows its drug
+  if (workspaces.length === 0) {
+    return (
+      <Alert tone="info">
+        No drugs are set up yet. Open a drug and click “Get my team ready” first.{' '}
+        <Link to="/doctor/drugs">Go to drugs</Link>
+      </Alert>
+    )
+  }
+  return (
+    <label className={styles.orderFor}>
+      <span className={styles.orderForLabel}>Order for</span>
+      <select value={selected ? String(selected.practice_drug_id) : ''} onChange={(e) => onSelect(e.target.value)}>
+        <option value="">Choose a drug…</option>
+        {workspaces.map((w) => (
+          <option key={w.practice_drug_id} value={w.practice_drug_id}>
+            {w.brand_name} ({WORKSPACE_STATUS[w.status] ?? w.status})
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
 function PatientChartPage() {
   const { patientId } = useParams()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const practiceDrugId = searchParams.get('pd')
   const applicationId = searchParams.get('applicationId')
   const navigate = useNavigate()
@@ -37,6 +69,9 @@ function PatientChartPage() {
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
+
+  // The practice's workspaces, for the "Order for" picker and the drug's name.
+  const [workspaces, setWorkspaces] = useState(null)
 
   const [treatment, setTreatment] = useState(null) // the in-progress order, once created
   const [orderError, setOrderError] = useState(null)
@@ -78,6 +113,17 @@ function PatientChartPage() {
       cancelled = true
     }
   }, [patientId])
+
+  useEffect(() => {
+    if (!email) return
+    let cancelled = false
+    fetchWorkspaces(email)
+      .then((list) => !cancelled && setWorkspaces(list))
+      .catch(() => !cancelled && setWorkspaces([]))
+    return () => {
+      cancelled = true
+    }
+  }, [email])
 
   // Re-runs the documentation check against whatever note is saved right now
   // -- this is the "editing the note live flips a check" demo moment
@@ -145,10 +191,15 @@ function PatientChartPage() {
 
   if (authLoading || !email) return null
 
+  const orderWorkspace = practiceDrugId
+    ? workspaces?.find((w) => String(w.practice_drug_id) === practiceDrugId)
+    : workspaces?.find((w) => w.application_id === applicationId)
+  const orderFor = practiceDrugId || applicationId
+
   const breadcrumbs = [
     practiceDrugId
-      ? { label: 'Workspace', to: `/doctor/workspace/${practiceDrugId}` }
-      : { label: 'Workspaces', to: '/doctor/drugs?view=workspaces' },
+      ? { label: orderWorkspace?.brand_name ?? 'Workspace', to: `/doctor/workspace/${practiceDrugId}` }
+      : { label: 'Patients', to: '/doctor/patients' },
     { label: patient?.name ?? 'Patient' },
   ]
 
@@ -217,11 +268,17 @@ function PatientChartPage() {
           <Panel title="Order">
             {!treatment ? (
               <div className={styles.stack}>
+                <OrderFor
+                  workspaces={workspaces}
+                  selected={orderWorkspace}
+                  locked={Boolean(orderFor) && !orderWorkspace && workspaces !== null}
+                  onSelect={(id) => setSearchParams(id ? { pd: id } : {}, { replace: true })}
+                />
                 <p className={styles.muted}>
                   Calculates the dose from the patient's weight and the least-waste vial combination.
                 </p>
                 <div>
-                  <Button variant="primary" onClick={handleNewOrder} disabled={ordering}>
+                  <Button variant="primary" onClick={handleNewOrder} disabled={ordering || !orderFor}>
                     {ordering ? 'Calculating dose…' : 'New order'}
                   </Button>
                 </div>

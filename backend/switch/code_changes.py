@@ -29,6 +29,7 @@ from billing_rules import code_for, code_kind_label, code_timeline, is_generic
 from core.clock import today
 from core.db import supabase
 from core.lookups import fetch_drug, patient_name
+from core.notify import notify
 
 router = APIRouter()
 
@@ -206,3 +207,73 @@ def get_code_status(practice_drug_id: int):
     if timeline["previous"]:
         handled = _handle_change(practice_drug, drug, timeline)
     return {"today": day.isoformat(), **code_notice(drug.get("brand_name") or "This drug", timeline), **handled}
+
+
+# How far ahead the bell warns about a coming code change.
+UPCOMING_NOTIFY_DAYS = 30
+
+
+def notify_code_changes(practice_id: int) -> None:
+    """Bell messages for this practice's drugs whose billing code changes
+    within UPCOMING_NOTIFY_DAYS or changed recently. Covers every drug the
+    practice has opened (a practice_drugs row), held or adopted or not. Runs
+    whenever the bell loads, since there's no scheduler; the dedupe keys make
+    repeats no-ops."""
+    rows = (
+        supabase.table("practice_drugs")
+        .select("id,application_id,status,hold_list")
+        .eq("practice_id", practice_id)
+        .execute()
+        .data
+        or []
+    )
+    if not rows:
+        return
+    drugs = (
+        supabase.table("drugs")
+        .select("application_id,brand_name,codes")
+        .in_("application_id", [r["application_id"] for r in rows])
+        .execute()
+        .data
+        or []
+    )
+    by_id = {d["application_id"]: d for d in drugs}
+    day = today()
+
+    for practice_drug in rows:
+        app_id = practice_drug["application_id"]
+        drug = by_id.get(app_id) or {}
+        try:
+            timeline = code_timeline(drug.get("codes") or [], day)
+        except ValueError:
+            continue
+        brand = drug.get("brand_name") or "A drug"
+        notice = code_notice(brand, timeline)
+        adopted = practice_drug["status"] in ("adopting", "active")
+        link = f"/doctor/workspace/{practice_drug['id']}" if adopted else f"/drugs/{app_id}"
+
+        if notice["state"] == "upcoming" and timeline["days_until_next"] <= UPCOMING_NOTIFY_DAYS:
+            upcoming = timeline["next"]
+            notify(
+                practice_id,
+                "code_change_upcoming",
+                f"{brand} moves to {upcoming['code']} on {_day(timeline['changes_on'])}",
+                dedupe_key=f"code_upcoming:{app_id}:{upcoming['code']}:{timeline['changes_on'].isoformat()}",
+                body=notice["message"],
+                link=link,
+                application_id=app_id,
+            )
+        elif notice["state"] == "switched":
+            held = len(practice_drug.get("hold_list") or [])
+            waiting = (
+                f" {held} patient{' is' if held == 1 else 's are'} on your hold list for it." if held else ""
+            )
+            notify(
+                practice_id,
+                "code_changed",
+                f"{brand} now bills as {timeline['current']['code']}",
+                dedupe_key=f"code_changed:{app_id}:{timeline['changed_on'].isoformat()}",
+                body=notice["message"] + waiting,
+                link=link,
+                application_id=app_id,
+            )

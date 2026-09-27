@@ -1,7 +1,8 @@
 """Claim builder tests: the demo drug (Pasatru) and demo patients, no database.
 
-Data mirrors scripts/reset_demo.py (DEMO_DRUG, DEMO_INVOICE) and
-scripts/seed_patients.py (Maria, James, Aisha).
+Fixed example data, independent of the live demo: 100 mg vials and J0289 as
+a stand-in permanent code (the demo now uses Pasatru's real 300 mg vials; see
+scripts/reset_demo.py and scripts/seed_patients.py).
 """
 
 import copy

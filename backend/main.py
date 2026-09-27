@@ -7,6 +7,7 @@ The code lives in one folder per product stage:
   workspace/       Stage 2 (Prepare): "Get my team ready", the team board
   treat_and_bill/  Stage 3: patients, orders + signing, documentation check, nurse record, claims
   switch/          Stage 4: billing-code changes (notices, flagging claims to recode, hold-list review)
+  notifications/   the bell: in-app messages across all stages (created via core/notify.py)
 """
 
 import os
@@ -15,8 +16,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from consider import lights, pins, practices
+from consider import decisions, lights, pins, practices
 from drug_engine import cms, drugs, fda
+from notifications import inbox
 from switch import code_changes
 from treat_and_bill import claims, doc_check, nurse, orders, patients
 from workspace import receiving, setup, tasks
@@ -43,9 +45,10 @@ def read_root():
 # keeps the same order the endpoints had when they all lived in this file.
 for module in (
     fda, cms, drugs,                               # drug engine
-    practices, pins, lights,                       # consider
+    practices, pins, lights, decisions,            # consider
     setup, tasks, receiving,                       # workspace
     patients, orders, doc_check, nurse, claims,    # treat & bill
     code_changes,                                  # switch
+    inbox,                                         # notifications
 ):
     app.include_router(module.router)
