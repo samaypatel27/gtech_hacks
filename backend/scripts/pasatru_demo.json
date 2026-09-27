@@ -1,0 +1,127 @@
+{
+  "application_id": "BLA761508",
+  "brand_name": "Pasatru",
+  "generic_name": "garetosmab-grts",
+  "approval_date": "2026-08-19",
+  "generic_billing_code": "J3590",
+  "dosing_formula": "10 mg/kg IV over 60 minutes once every 4 weeks (adults); may decrease to 3 mg/kg IV over 60 minutes once every 4 weeks if 10 mg/kg not tolerated",
+  "route_of_administration": "INTRAVENOUS",
+  "infusion_time_minutes": 60,
+  "preparation_instructions": "Inspect visually for particulate matter/discoloration; solution should be clear to slightly opalescent, colorless to pale yellow — discard if cloudy, discolored, or particulate. Single-use vial; do not shake. Withdraw required volume and transfer into a PVC, polyolefin, or EVA IV bag containing 50 mL to 100 mL of 5% Dextrose Injection, USP for a final concentration of 0.9 mg/mL to 25 mg/mL. Mix by gentle inversion; do not shake; discard unused vial portion. Use immediately, or store diluted solution refrigerated at 2-8°C for up to 24 hours or at room temperature up to 25°C for up to 16 hours from preparation to start of infusion; do not freeze. Allow refrigerated solution to reach room temperature before administration. Infuse IV over 60 minutes using an infusion pump with a PVC, PE-lined PVC, or PU infusion set; a sterile in-line or add-on 0.2- to 5-micron PES or polyamide filter is recommended. Flush the line with 5% Dextrose Injection, USP after infusion. Do not mix or co-administer other drugs via the same line.",
+  "storage_requirements": "Storage and Handling Store the unopened vial in a refrigerator at 2°C to 8°C (36°F to 46°F) in the original carton to protect from light. Do not freeze. Do not shake.",
+  "is_single_dose_vial": true,
+  "approved_uses_and_conditions": [
+    {
+      "prior_therapy": null,
+      "approved_diagnosis": "Fibrodysplasia ossificans progressiva (FOP) in adults — to reduce formation of new heterotopic ossification (HO) lesions and clinician-assessed flare-ups",
+      "required_test_method": null
+    }
+  ],
+  "ndcs": [
+    {
+      "ndc_10": "61755-012-01",
+      "ndc_11": "61755-0012-01",
+      "sample": false,
+      "description": "1 VIAL, SINGLE-DOSE in 1 CARTON (61755-012-01) / 5 mL in 1 VIAL, SINGLE-DOSE (61755-012-00)",
+      "single_dose": true,
+      "strength_mg": 300,
+      "list_price": 1850.0
+    }
+  ],
+  "cost_per_dose": null,
+  "citations": [
+    {
+      "field": "storage_requirements",
+      "citation": "openfda_label_section: storage_and_handling"
+    },
+    {
+      "field": "dosing_formula",
+      "citation": "openfda_label_section: dosage_and_administration"
+    },
+    {
+      "field": "typical_adult_dose",
+      "citation": "openfda_label_section: dosage_and_administration"
+    },
+    {
+      "field": "infusion_time_minutes",
+      "citation": "openfda_label_section: dosage_and_administration"
+    },
+    {
+      "field": "preparation_instructions",
+      "citation": "openfda_label_section: dosage_and_administration"
+    },
+    {
+      "field": "is_single_dose_vial",
+      "citation": "openfda_label_section: dosage_forms_and_strengths"
+    },
+    {
+      "field": "is_single_dose_vial",
+      "citation": "openfda_label_section: how_supplied"
+    },
+    {
+      "field": "approved_uses_and_conditions",
+      "citation": "openfda_label_section: indications_and_usage"
+    },
+    {
+      "field": "has_permanent_code",
+      "citation": "CMS ASP NDC-HCPCS Crosswalk, October 2026"
+    },
+    {
+      "field": "generic_billing_code",
+      "citation": "Generic code rule: cancer → J9999, BLA → J3590, else J3490"
+    }
+  ],
+  "has_permanent_code": false,
+  "permanent_hcpcs_code": null,
+  "pubchem_query": "garetosmab",
+  "typical_adult_dose": {
+    "amount": 10,
+    "unit": "mg/kg"
+  },
+  "is_antineoplastic": false,
+  "codes": [
+    {
+      "code": "J3590",
+      "type": "generic",
+      "from": "2026-02-01",
+      "to": "2026-09-30"
+    },
+    {
+      "code": "J0289",
+      "type": "permanent",
+      "unit": "1 MG",
+      "from": "2026-10-01"
+    }
+  ],
+  "payer_policies": [
+    {
+      "payer": "Medicare",
+      "covered": true,
+      "prior_auth": false,
+      "notes": "Covered for approved uses per LCD. No prior authorization required."
+    },
+    {
+      "payer": "BCBS",
+      "covered": true,
+      "prior_auth": true,
+      "notes": "Prior authorization required before first dose. Requires documented FOP diagnosis with genetic confirmation of an ACVR1 mutation.",
+      "documentation_requirements": [
+        "Genetic confirmation of an ACVR1 mutation (e.g. R206H)"
+      ]
+    },
+    {
+      "payer": "Aetna",
+      "covered": null,
+      "prior_auth": null,
+      "notes": "Policy under review. Verify coverage before treatment."
+    }
+  ],
+  "distributors": [
+    {
+      "name": "ASD Healthcare"
+    },
+    {
+      "name": "McKesson Specialty Health"
+    }
+  ]
+}

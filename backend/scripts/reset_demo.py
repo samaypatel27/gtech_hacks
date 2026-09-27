@@ -1,22 +1,24 @@
 """Put the demo back to a clean start: one command before each rehearsal.
 
-    python scripts/reset_demo.py <practice email> [--received] [--all-workspaces]
+    python scripts/reset_demo.py <practice email> [--launch-live | --received] [--all-workspaces]
 
 Run from `backend/` (needs backend/.env with SUPABASE_URL +
 SUPABASE_SERVICE_ROLE_KEY). The practice must already exist (sign up through
 the app first). Re-runnable; every step overwrites rather than appends.
 
 1. Practice profile: the demo payers (the three Pasatru has policies for, plus
-   UnitedHealthcare, which has none) and
-   capabilities, so "Review insurers" and the Considering lights have data.
-2. Pasatru's demo data (DEMO_DRUG below): billing codes, payer policies,
-   distributors, vial strengths and dose. Re-launching Pasatru through the
-   drug-maker page rewrites `ndcs` (openFDA's 300 mg, but no list price) --
-   this puts the demo values back.
+   UnitedHealthcare, which has none) and capabilities, so "Review insurers"
+   and the Considering lights have data.
+2. Pasatru: writes the whole drug row from scripts/pasatru_demo.json (FDA
+   label data plus the demo launch details: codes, insurer policies,
+   distributors, vial size and price), creating it if it was deleted from the
+   drug list. With --launch-live it deletes Pasatru instead, so the demo can
+   launch it from the Drug Maker page ("Fill example") and every practice gets
+   the "New drug" message.
 3. Deletes the practice's Pasatru workspace (cascading to its tasks and
    treatments), so the demo starts at "considering": opening Pasatru's drug
    page recreates it. With --all-workspaces, every workspace of the practice.
-4. Reseeds the three demo patients (scripts/seed_patients.py).
+4. Reseeds the demo patients (scripts/seed_patients.py).
 5. Clears the practice's notifications (the bell), so launching Pasatru from
    the drug-maker page sends its "New drug" message again.
 6. --received: pre-creates the Pasatru workspace with an invoice and stock on
@@ -25,7 +27,9 @@ the app first). Re-runnable; every step overwrites rather than appends.
 """
 
 import argparse
+import json
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from supabase import create_client
@@ -34,60 +38,14 @@ from seed_patients import find_practice, seed_patients
 
 load_dotenv()
 
-DEMO_APPLICATION_ID = "BLA761508"  # Pasatru
+# The complete Pasatru row. Edit this file to change the demo drug's data.
+DEMO_DRUG = json.loads((Path(__file__).parent / "pasatru_demo.json").read_text(encoding="utf-8"))
+DEMO_APPLICATION_ID = DEMO_DRUG["application_id"]
+NDC_11 = DEMO_DRUG["ndcs"][0]["ndc_11"]
 
 # UnitedHealthcare has no Pasatru policy on file: the Coverage light says "verify".
 DEMO_PAYERS = ["Medicare", "BCBS", "Aetna", "UnitedHealthcare"]
 DEMO_CAPABILITIES = {"infusion_chairs": True, "refrigeration": True}
-
-NDC_11 = "61755-0012-01"
-DEMO_DRUG = {
-    "typical_adult_dose": {"amount": 10, "unit": "mg/kg"},
-    "is_single_dose_vial": True,
-    "is_antineoplastic": False,
-    "has_permanent_code": False,
-    "generic_billing_code": "J3590",
-    "permanent_hcpcs_code": None,
-    "ndcs": [
-        {
-            "ndc_10": "61755-012-01",
-            "ndc_11": NDC_11,
-            "sample": False,
-            "description": "1 VIAL, SINGLE-DOSE in 1 CARTON (61755-012-01) / 5 mL in 1 VIAL, SINGLE-DOSE (61755-012-00)",
-            "single_dose": True,
-            "strength_mg": 300,  # openFDA: 300 mg/5 mL
-            "list_price": 1850.00,
-        }
-    ],
-    # The generic code must end the day before the permanent one starts, or
-    # billing_rules.code_for raises on the overlap.
-    "codes": [
-        {"code": "J3590", "type": "generic", "from": "2026-02-01", "to": "2026-09-30"},
-        {"code": "J0289", "type": "permanent", "unit": "1 MG", "from": "2026-10-01"},
-    ],
-    "distributors": [{"name": "ASD Healthcare"}, {"name": "McKesson Specialty Health"}],
-    "payer_policies": [
-        {
-            "payer": "Medicare",
-            "covered": True,
-            "prior_auth": False,
-            "notes": "Covered for approved uses per LCD. No prior authorization required.",
-        },
-        {
-            "payer": "BCBS",
-            "covered": True,
-            "prior_auth": True,
-            "notes": "Prior authorization required before first dose. Requires documented FOP diagnosis with genetic confirmation of an ACVR1 mutation.",
-            "documentation_requirements": ["Genetic confirmation of an ACVR1 mutation (e.g. R206H)"],
-        },
-        {
-            "payer": "Aetna",
-            "covered": None,
-            "prior_auth": None,
-            "notes": "Policy under review. Verify coverage before treatment.",
-        },
-    ],
-}
 
 DEMO_LOT = "PSA24091"
 DEMO_VIALS = 4  # Maria's 3 vials with 1 left over, so James's order needs a "Buy" card
@@ -95,14 +53,18 @@ DEMO_INVOICE = {
     "file_path": None,
     "distributor": "ASD Healthcare",
     "uploaded_at": "2026-09-28T09:00:00+00:00",
-    "lines": [{"ndc_11": NDC_11, "lot": DEMO_LOT, "quantity": DEMO_VIALS, "cost_per_vial": 1850.00}],
+    "lines": [{"ndc_11": NDC_11, "lot": DEMO_LOT, "quantity": DEMO_VIALS, "cost_per_vial": DEMO_DRUG["ndcs"][0]["list_price"]}],
 }
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("email", help="the demo practice's sign-in email")
-    parser.add_argument(
+    start = parser.add_mutually_exclusive_group()
+    start.add_argument(
+        "--launch-live", action="store_true", help="delete Pasatru so the demo launches it from the Drug Maker page"
+    )
+    start.add_argument(
         "--received", action="store_true", help="start with Pasatru's invoice and stock already recorded"
     )
     parser.add_argument(
@@ -119,16 +81,14 @@ def main():
     ).eq("id", practice["id"]).execute()
     print(f"1. Practice: payers {', '.join(DEMO_PAYERS)}; infusion chairs + refrigeration")
 
-    drug = (
-        supabase.table("drugs")
-        .update(DEMO_DRUG)
-        .eq("application_id", DEMO_APPLICATION_ID)
-        .execute()
-        .data
-    )
-    if not drug:
-        raise SystemExit(f"Demo drug {DEMO_APPLICATION_ID} isn't in the drugs table -- launch it first")
-    print(f"2. {drug[0]['brand_name']}: codes, payer policies, distributors, vials and dose restored")
+    if args.launch_live:
+        # Deleting the drug also deletes every practice's Pasatru workspace,
+        # pins and notifications (the foreign keys cascade).
+        supabase.table("drugs").delete().eq("application_id", DEMO_APPLICATION_ID).execute()
+        print("2. Pasatru deleted: launch it from the Drug Maker page (Fill example → Fetch and save)")
+    else:
+        supabase.table("drugs").upsert(DEMO_DRUG, on_conflict="application_id").execute()
+        print(f"2. {DEMO_DRUG['brand_name']} written from pasatru_demo.json (created if it was missing)")
 
     workspaces = supabase.table("practice_drugs").delete().eq("practice_id", practice["id"])
     if not args.all_workspaces:
@@ -138,7 +98,7 @@ def main():
     print(f"3. Deleted {scope} ({len(deleted)} row{'s' if len(deleted) != 1 else ''}, with their tasks and treatments)")
 
     count = seed_patients(supabase, practice["id"])
-    print(f"4. Seeded {count} patients (Maria / Medicare, James / BCBS, Aisha / Aetna, Daniel / UnitedHealthcare)")
+    print(f"4. Seeded {count} patients")
 
     cleared = supabase.table("notifications").delete().eq("practice_id", practice["id"]).execute().data
     print(f"5. Cleared {len(cleared)} notification{'s' if len(cleared) != 1 else ''}")
@@ -153,9 +113,13 @@ def main():
                 "stock_on_hand": [{"ndc_11": NDC_11, "lot": DEMO_LOT, "quantity": DEMO_VIALS}],
             }
         ).execute()
-        print(f"6. Pasatru received: {DEMO_VIALS} vials of lot {DEMO_LOT} at $1,850.00 each, invoice on file")
+        cost = DEMO_INVOICE["lines"][0]["cost_per_vial"]
+        print(f"6. Pasatru received: {DEMO_VIALS} vials of lot {DEMO_LOT} at ${cost:,.2f} each, invoice on file")
 
-    print("Done. Next: sign in, open Pasatru, click \"Get my team ready\".")
+    if args.launch_live:
+        print("Done. Next: Drug Maker → Fill example → Fetch and save, then sign in as the doctor.")
+    else:
+        print("Done. Next: sign in, open Pasatru, click \"Get my team ready\".")
 
 
 if __name__ == "__main__":
