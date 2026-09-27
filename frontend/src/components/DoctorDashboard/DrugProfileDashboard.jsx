@@ -113,9 +113,7 @@ function FieldGroup({ fields }) {
 function BackLink() {
   return (
     <div className="flex items-center pb-2">
-      <BackButton to="/doctor/drugs" inline>
-        Back to all drugs
-      </BackButton>
+      <BackButton to="/doctor/drugs" inline />
     </div>
   )
 }

@@ -8,8 +8,8 @@ import { useAuthSession } from '../lib/useAuthSession.js'
 import styles from './DoctorPage.module.css'
 
 const VIEW_OPTIONS = [
-  { value: 'drugs', label: 'View Drugs' },
-  { value: 'tasks', label: 'View Tasks' },
+  { value: 'drugs', label: 'Drugs' },
+  { value: 'tasks', label: 'Workspaces' },
 ]
 
 // The dashboard is not public -- anonymous visitors are bounced back to the
