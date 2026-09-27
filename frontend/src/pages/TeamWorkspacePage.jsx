@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useParams, Navigate } from 'react-router-dom'
+import { useParams, Navigate, Link } from 'react-router-dom'
 import AppShell from '../components/AppShell/AppShell.jsx'
 import PageHeader from '../components/PageHeader/PageHeader.jsx'
 import Badge from '../components/Badge/Badge.jsx'
@@ -102,13 +102,21 @@ const WORKSPACE_STATUS = {
   active: { label: 'Ready to treat', tone: 'success' },
 }
 
-function ColumnHeading({ label, count, dotColor, active = false }) {
+// `linkTo` turns the label into a link to that role's own board -- used only
+// on the doctor's read-only overview, so a doctor can jump straight into a
+// role's perspective instead of just reading about it secondhand.
+function ColumnHeading({ label, count, dotColor, active = false, linkTo }) {
+  const labelClass = `text-xs font-medium tracking-[0.04em] uppercase ${active ? 'text-brand' : 'text-fg-muted'}`
   return (
     <div className="mb-3 flex items-center gap-2 px-1">
       {dotColor && <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ background: dotColor }} />}
-      <p className={`text-xs font-medium tracking-[0.04em] uppercase ${active ? 'text-brand' : 'text-fg-muted'}`}>
-        {label}
-      </p>
+      {linkTo ? (
+        <Link to={linkTo} className={`${labelClass} underline decoration-line-strong underline-offset-2 hover:text-brand`}>
+          {label}
+        </Link>
+      ) : (
+        <p className={labelClass}>{label}</p>
+      )}
       <span className="ml-auto rounded-sm border border-line bg-surface px-1.5 font-mono text-xs leading-5 text-fg-muted">
         {count}
       </span>
@@ -238,7 +246,7 @@ function DoctorCard({ task, locked }) {
  * role, read-only. Each column also carries any synthetic demo cards for that
  * role (see SYNTHETIC_DOCTOR_TASKS).
  */
-function DoctorBoard({ tasks, purchasingDone }) {
+function DoctorBoard({ tasks, purchasingDone, practiceDrugId }) {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       {ROLE_COLUMNS.map((role) => {
@@ -251,7 +259,12 @@ function DoctorBoard({ tasks, purchasingDone }) {
 
         return (
           <div key={role} className="flex min-h-32 flex-col lg:min-h-[380px] rounded-md border border-line bg-subtle p-3">
-            <ColumnHeading label={ROLE_LABEL[role]} count={roleTasks.length} dotColor={ROLES[role].color} />
+            <ColumnHeading
+              label={ROLE_LABEL[role]}
+              count={roleTasks.length}
+              dotColor={ROLES[role].color}
+              linkTo={`/staff/${role}/workspace/${practiceDrugId}`}
+            />
 
             <div className="flex flex-1 flex-col gap-2">
               {roleTasks.length === 0 ? (
@@ -651,7 +664,7 @@ function TeamWorkspacePage() {
         meta={
           role
             ? `Your ${ROLE_LABEL[role]} tasks. Drag a card between To Do and Complete, or focus it and use the arrow keys.`
-            : 'Every setup task, grouped by who owns it. Read-only.'
+            : 'Every setup task, grouped by who owns it. Click a role to view their board.'
         }
       />
 
@@ -665,7 +678,7 @@ function TeamWorkspacePage() {
           <StaffBoard role={role} tasks={allTasks} purchasingDone={purchasingDone} onMove={moveTask} />
         </>
       ) : (
-        <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} />
+        <DoctorBoard tasks={allTasks} purchasingDone={purchasingDone} practiceDrugId={practiceDrugId} />
       )}
     </AppShell>
   )
