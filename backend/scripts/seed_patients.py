@@ -92,6 +92,21 @@ PATIENTS = [
 ]
 
 
+def find_practice(supabase, email):
+    practice = supabase.table("practices").select("*").eq("email", email).limit(1).execute()
+    if not practice.data:
+        sys.exit(f"No practice found for {email} -- sign up through the app first")
+    return practice.data[0]
+
+
+def seed_patients(supabase, practice_id):
+    """Replace the practice's patients with PATIENTS; returns how many."""
+    supabase.table("patients").delete().eq("practice_id", practice_id).execute()
+    rows = [{**p, "practice_id": practice_id} for p in PATIENTS]
+    supabase.table("patients").insert(rows).execute()
+    return len(rows)
+
+
 def main():
     if len(sys.argv) != 2:
         sys.exit("Usage: python scripts/seed_patients.py <practice email>")
@@ -100,17 +115,9 @@ def main():
     supabase = create_client(
         os.environ["SUPABASE_URL"], os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     )
-
-    practice = supabase.table("practices").select("id,name").eq("email", email).limit(1).execute()
-    if not practice.data:
-        sys.exit(f"No practice found for {email} -- sign up through the app first")
-    practice_id = practice.data[0]["id"]
-
-    supabase.table("patients").delete().eq("practice_id", practice_id).execute()
-    rows = [{**p, "practice_id": practice_id} for p in PATIENTS]
-    supabase.table("patients").insert(rows).execute()
-
-    print(f"Seeded {len(rows)} patients for {practice.data[0]['name']} ({email})")
+    practice = find_practice(supabase, email)
+    count = seed_patients(supabase, practice["id"])
+    print(f"Seeded {count} patients for {practice['name']} ({email})")
 
 
 if __name__ == "__main__":
