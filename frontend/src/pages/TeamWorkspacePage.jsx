@@ -213,9 +213,11 @@ const CARD_SKIN = 'border-line bg-surface'
  * dimmed: they're workable, just through their Open link. `extra` renders
  * below the card text (invoice form, Open link, prior-auth number).
  */
-function BoardCard({ task, column, locked, frozen, pinned, state, onPressStart, onKeyMove, onLanded, extra }) {
+function BoardCard({ task, column, locked, frozen, pinned, settled, state, onPressStart, onKeyMove, onLanded, extra }) {
   const label = columnOf(column).label
-  const movable = !frozen && !pinned
+  // `settled`: a completed card other tasks wait on. Moving it back to To Do
+  // would push them into Awaiting, so it stays put (the backend refuses too).
+  const movable = !frozen && !pinned && !settled
 
   function handleKeyDown(e) {
     // Arrow keys inside the card's form (e.g. the invoice fields) edit text,
@@ -232,7 +234,7 @@ function BoardCard({ task, column, locked, frozen, pinned, state, onPressStart, 
     skin = 'border-dashed border-line-strong bg-subtle'
   } else if (frozen) {
     skin = `${CARD_SKIN} cursor-not-allowed opacity-60`
-  } else if (pinned) {
+  } else if (pinned || settled) {
     skin = CARD_SKIN
   } else {
     skin =
@@ -253,7 +255,9 @@ function BoardCard({ task, column, locked, frozen, pinned, state, onPressStart, 
             ? `${task.title}, in ${label}. Awaiting is read-only and can't be moved.`
             : pinned
               ? `${task.title}, in ${label}. Completed from its own page: use Open.`
-              : `${task.title}, in ${label}. Drag to another column, or press left or right arrow to move.`
+              : settled
+                ? `${task.title}, in ${label}. Later tasks depend on it, so it stays complete.`
+                : `${task.title}, in ${label}. Drag to another column, or press left or right arrow to move.`
       }
       onPointerDown={movable ? (e) => onPressStart(e, task, column) : undefined}
       onKeyDown={movable ? handleKeyDown : undefined}
@@ -265,7 +269,9 @@ function BoardCard({ task, column, locked, frozen, pinned, state, onPressStart, 
           task={task}
           column={column}
           locked={locked}
-          accessory={pinned && !frozen ? null : <Icon name={frozen ? 'lock' : 'grip'} className="text-fg-subtle" />}
+          accessory={
+            pinned && !frozen ? null : <Icon name={frozen || settled ? 'lock' : 'grip'} className="text-fg-subtle" />
+          }
         />
         {extra}
       </div>
@@ -850,6 +856,8 @@ function StaffBoard({ role, tasks, onMove, drug, stockVials, onRecordInvoice, pr
   }, [dragging])
 
   const myTasks = sortTasks(tasks.filter((t) => t.role === role))
+  // Ids some task (any role's) waits on -- a finished one can't be reopened.
+  const dependedOn = new Set(tasks.flatMap((t) => (t.waits_on ?? []).map(Number)))
 
   const grouped = { todo: [], awaiting: [], done: [] }
   myTasks.forEach((t) => grouped[boardStatusOf(t)].push(t))
@@ -885,6 +893,7 @@ function StaffBoard({ role, tasks, onMove, drug, stockVials, onRecordInvoice, pr
                   // see the BOARD_COLUMNS comment above.
                   const frozen = locked || key === 'awaiting'
                   const pinned = PAGE_COMPLETED_KINDS.includes(task.kind)
+                  const settled = key === 'done' && dependedOn.has(task.id)
                   const link = pageLinkFor(task, practiceDrugId)
                   // What a card carries below its text while it's workable:
                   // the invoice form, an Open link to its page, or the
@@ -919,6 +928,7 @@ function StaffBoard({ role, tasks, onMove, drug, stockVials, onRecordInvoice, pr
                       locked={locked}
                       frozen={frozen}
                       pinned={pinned}
+                      settled={settled}
                       extra={extra}
                       state={
                         dragging && drag.task.id === task.id

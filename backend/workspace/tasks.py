@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from core.db import supabase
 from core.lookups import patient_name, patients_by_treatment
-from core.task_rules import PAGE_COMPLETED_KINDS, raise_if_waiting, waiting_on_labels
+from core.task_rules import PAGE_COMPLETED_KINDS, raise_if_waiting, task_label, waiting_on_labels
 
 router = APIRouter()
 
@@ -147,6 +147,22 @@ def _recalculate_readiness(practice_drug_id: int) -> None:
         ).eq("id", practice_drug_id).execute()
 
 
+def _dependents(task: dict) -> list[str]:
+    """Labels of the tasks that wait on this one. A finished task with
+    dependents can't be reopened: that would re-lock them into Awaiting."""
+    siblings = (
+        supabase.table("tasks")
+        .select("id,title,role,waits_on")
+        .eq("practice_drug_id", task["practice_drug_id"])
+        .execute()
+        .data
+        or []
+    )
+    return [
+        task_label(t) for t in siblings if task["id"] in {int(d) for d in t.get("waits_on") or []}
+    ]
+
+
 class TaskUpdate(BaseModel):
     status: Optional[str] = None   # 'todo' | 'done' (tasks_status_check allows only these)
     inputs: Optional[dict] = None  # merged non-destructively into existing inputs
@@ -204,6 +220,14 @@ def update_task(task_id: int, payload: TaskUpdate):
     # A task can't be finished while anything it waits on is unfinished.
     if payload.status == "done":
         raise_if_waiting(current)
+    # ...and a finished task others wait on can't be reopened, or they'd be
+    # pushed back into Awaiting.
+    if payload.status == "todo" and current["status"] == "done":
+        dependents = _dependents(current)
+        if dependents:
+            raise HTTPException(
+                status_code=409, detail=f"Can't reopen: {', '.join(dependents)} depends on it"
+            )
 
     update: dict = {}
     if payload.status is not None:
@@ -235,11 +259,30 @@ class PracticeDrugUpdate(BaseModel):
 
 # The doctor's input (WorkspacePlan.md Layer 2). Saved in its real home on
 # practice_drugs (DataContract.md rule 1); a number above 0 is what completes
-# the "Set planned patients" card, and clearing it reopens the card.
+# the "Set planned patients" card. Clearing it would reopen the card, so like
+# any finished task it's refused once another task waits on it.
 @router.patch("/api/practice-drugs/{practice_drug_id}")
 def update_practice_drug(practice_drug_id: int, payload: PracticeDrugUpdate):
     if payload.planned_patients_per_month < 0:
         raise HTTPException(status_code=422, detail="Planned patients can't be negative")
+    if payload.planned_patients_per_month == 0:
+        plan_task = (
+            supabase.table("tasks")
+            .select("*")
+            .eq("practice_drug_id", practice_drug_id)
+            .eq("kind", "plan_patients")
+            .eq("status", "done")
+            .limit(1)
+            .execute()
+            .data
+        )
+        dependents = _dependents(plan_task[0]) if plan_task else []
+        if dependents:
+            raise HTTPException(
+                status_code=409,
+                detail=f"Can't clear planned patients: {', '.join(dependents)} depends on it. "
+                "Enter a different number instead.",
+            )
     now = datetime.now(timezone.utc).isoformat()
     resp = (
         supabase.table("practice_drugs")
