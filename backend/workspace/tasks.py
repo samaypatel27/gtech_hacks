@@ -167,6 +167,19 @@ def update_task(task_id: int, payload: TaskUpdate):
         and not {**(current.get("inputs") or {}), **(payload.inputs or {})}.get("auth_number")
     ):
         raise HTTPException(status_code=422, detail="Enter the authorization number first")
+    if payload.status == "done" and current["kind"] == "receiving":
+        # "Receive & store" is done once the invoice is entered (stock > 0)
+        # and the drug is marked stored -- completing the card is the latter.
+        pd_row = (
+            supabase.table("practice_drugs")
+            .select("invoices,stock_on_hand")
+            .eq("id", current["practice_drug_id"])
+            .execute()
+            .data[0]
+        )
+        in_stock = sum(s.get("quantity") or 0 for s in pd_row.get("stock_on_hand") or [] if isinstance(s, dict))
+        if not pd_row.get("invoices") or in_stock <= 0:
+            raise HTTPException(status_code=422, detail="Record the invoice before marking the drug stored")
 
     # A task can't be finished while anything it waits on is unfinished.
     if payload.status == "done":

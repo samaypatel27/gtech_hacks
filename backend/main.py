@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from consider import lights, pins, practices
 from drug_engine import cms, drugs, fda
 from treat_and_bill import claims, doc_check, nurse, orders, patients
-from workspace import setup, tasks
+from workspace import receiving, setup, tasks
 
 load_dotenv()
 
@@ -42,7 +42,7 @@ def read_root():
 for module in (
     fda, cms, drugs,                               # drug engine
     practices, pins, lights,                       # consider
-    setup, tasks,                                  # workspace
+    setup, tasks, receiving,                       # workspace
     patients, orders, doc_check, nurse, claims,    # treat & bill
 ):
     app.include_router(module.router)

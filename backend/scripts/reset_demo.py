@@ -87,6 +87,7 @@ DEMO_DRUG = {
 DEMO_LOT = "PSA24091"
 DEMO_VIALS = 10
 DEMO_INVOICE = {
+    "file_path": None,
     "distributor": "ASD Healthcare",
     "uploaded_at": "2026-09-28T09:00:00+00:00",
     "lines": [{"ndc_11": NDC_11, "lot": DEMO_LOT, "quantity": DEMO_VIALS, "cost_per_vial": 1850.00}],
