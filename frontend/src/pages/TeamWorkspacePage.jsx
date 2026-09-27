@@ -679,16 +679,11 @@ function ReadyBanner({ drugName, practiceDrugId, orderedPatientIds }) {
  * Doctor's overarching view of the staff: every staff task, grouped into one
  * column per staff role, read-only. The doctor's own tasks are in DoctorStrip.
  */
-function DoctorBoard({ tasks, purchasingDone, practiceDrugId, filter }) {
+function DoctorBoard({ tasks, practiceDrugId, filter }) {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       {ROLE_COLUMNS.map((role) => {
-        const ordered = [
-          ...tasks
-            .filter((t) => t.role === role)
-            .sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind)),
-          ...SYNTHETIC_DOCTOR_TASKS.filter((t) => t.role === role),
-        ]
+        const ordered = sortTasks(tasks.filter((t) => t.role === role))
         const notDone = ordered.filter((t) => boardStatusOf(t) !== 'done')
         const done = ordered.filter((t) => boardStatusOf(t) === 'done')
 
@@ -1255,12 +1250,24 @@ function TeamWorkspacePage() {
           />
         </>
       ) : (
-        <DoctorBoard
-          tasks={allTasks}
-          purchasingDone={purchasingDone}
-          practiceDrugId={practiceDrugId}
-          filter={taskFilter}
-        />
+        <>
+          {practiceDrug?.status === 'active' && (
+            <ReadyBanner
+              drugName={drugName}
+              practiceDrugId={practiceDrugId}
+              orderedPatientIds={
+                new Set(allTasks.filter((t) => t.kind === 'order_sign' && t.patient_id).map((t) => t.patient_id))
+              }
+            />
+          )}
+          <DoctorStrip
+            planned={practiceDrug?.planned_patients_per_month}
+            tasks={allTasks.filter((t) => t.role === 'doctor')}
+            onSavePlanned={savePlanned}
+            practiceDrugId={practiceDrugId}
+          />
+          <DoctorBoard tasks={allTasks} practiceDrugId={practiceDrugId} filter={taskFilter} />
+        </>
       )}
     </AppShell>
   )
